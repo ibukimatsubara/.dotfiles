@@ -30,12 +30,17 @@ alias gps='git push origin'
 # venv 
 alias va='source venv/bin/activate'
 alias vd='deactivate'
-alias vc='python -m venv venv'
+alias vc='python3 -m venv venv'
 # julia
 alias j='julia'
 # singularity
 alias sec='singularity exec --nv Singularity.sif'
 alias sb='singularity build --fakeroot Singularity.def Singularity.sif'
+# atcoder
+alias ac='(){acc new abc$1 -c all}'
+alias at='(){oj t -c "python3 ./$1/main.py" -d ./$1/tests/}'
+alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd -}'
+
 
 #--------------------- prompt theme -----------------
 
