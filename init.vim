@@ -10,6 +10,7 @@ set colorcolumn=80
 set backspace=indent,eol,start
 set cursorline
 
+set t_Co=256
 let mapleader = ','
 
 " 折りたたみの設定
@@ -34,75 +35,81 @@ retab 2
 setlocal tabstop=2
 setlocal softtabstop=2
 setlocal shiftwidth=2
-filetype plugin indent off
 
-" dein.vim settings {{{
-" install dir {{{
-let s:dein_dir = expand('~/.config/nvim/dein')
-let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
-" }}}
+"  *********************** Plugins **************************
+"
+call plug#begin('~/.local/share/nvim/site/autoload/')
 
-" dein installation check {{{
-if &runtimepath !~# '/dein.vim'
-  if !isdirectory(s:dein_repo_dir)
-    execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
-  endif
-  execute 'set runtimepath^=' . s:dein_repo_dir
-endif
-" }}}
+" Coc
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~ '\s'
+endfunction
+inoremap <silent><expr> <TAB>
+  \ pumvisible() ? "\<C-n>" :
+  \ <SID>check_back_space() ? "\<TAB>" :
+  \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <CR> pumvisible() ? coc#pum#confirm() : "\<CR>"
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
 
-" begin settings {{{
-if dein#load_state(s:dein_dir)
-  call dein#begin(s:dein_dir)
+Plug 'alvan/vim-closetag'
 
-  " .toml file
-  let s:rc_dir = expand('~/.config/nvim/toml')
-  if !isdirectory(s:rc_dir)
-    call mkdir(s:rc_dir, 'p')
-  endif
-  let s:toml = s:rc_dir . '/dein.toml'
-  let s:tomllazy = s:rc_dir . '/dein_lazy.toml'
+" View
 
-  " read toml and cache
-  call dein#load_toml(s:toml, {'lazy': 0})
+Plug 'ryanoasis/vim-devicons'
 
-  call dein#load_toml(s:tomllazy, {'lazy': 1})
+Plug 'luochen1990/rainbow'
+let g:rainbow_active = 1
 
-  " end settings
-  call dein#end()
-  call dein#save_state()
-endif
-" }}}
+Plug 'Maan2003/lsp_lines.nvim'
+lua << EOF
+vim.diagnostic.config({ virtual_lines = true })
+EOF
 
-" plugin installation check {{{
-if dein#check_install()
-  call dein#install()
-endif
-" }}}
+Plug 'j-hui/fidget.nvim'
 
-" plugin remove check {{{
-let s:removed_plugins = dein#check_clean()
-if len(s:removed_plugins) > 0
-  call map(s:removed_plugins, "delete(v:val, 'rf')")
-  call dein#recache_runtimepath()
-endif
-" }}}
+Plug 'lukas-reineke/indent-blankline.nvim'
+lua << EOF
+vim.opt.list = true
+vim.opt.listchars:append "eol:↴"
+EOF
 
-set t_Co=256
-" color scheme
-" colorscheme atom-dark-256
-" colorscheme atom-dark
+
+Plug 'airblade/vim-gitgutter'
+
+Plug '4513ECHO/vim-colors-hatsunemiku'
+
+Plug 'itchyny/lightline.vim'
+set laststatus=2
+set showmode
+set showcmd
+set ruler
+
+call plug#end()
+
 colorscheme hatsunemiku
-set t_Co=256
-
-let g:lightline = { 'colorscheme': 'hatsunemiku' }
-
 autocmd ColorScheme * highlight Normal ctermbg=none
 autocmd ColorScheme * highlight LineNr ctermbg=none
 autocmd ColorScheme * highlight CursorLine ctermbg=none cterm=none
 autocmd ColorScheme * highlight CursorLineNr ctermbg=none cterm=underline
 
+let g:lightline = { 'colorscheme': 'hatsunemiku' }
+
+filetype indent off
+filetype plugin off
+
+
 syntax enable
-"set textwidth=79
-"set colorcolumn=+1
-"highlight ColorColumn guibg=#202020 ctermbg=lightgray
+set textwidth=79
+set colorcolumn=+1
+highlight ColorColumn guibg=#202020 ctermbg=lightgray

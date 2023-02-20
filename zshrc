@@ -44,10 +44,10 @@ alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd
 
 #--------------------- prompt theme -----------------
 
-theme=simple_cyberpunk
+theme=simple
 
-if [ -f ~/dotfiles/zsh_theme/$theme ]; then
-  . ~/dotfiles/zsh_theme/$theme
+if [ -f ~/dotfiles/theme/$theme ]; then
+  . ~/dotfiles/theme/$theme
 else
   echo "not find theme file !"
 fi
