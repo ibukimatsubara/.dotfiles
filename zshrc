@@ -46,8 +46,8 @@ alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd
 
 theme=simple
 
-if [ -f ~/dotfiles/theme/$theme ]; then
-  . ~/dotfiles/theme/$theme
+if [ -f ~/.dotfiles/theme/$theme ]; then
+  . ~/.dotfiles/theme/$theme
 else
   echo "not find theme file !"
 fi
