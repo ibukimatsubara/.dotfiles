@@ -28,9 +28,9 @@ alias gb='git branch'
 alias gpl='git pull origin'
 alias gps='git push origin'
 # venv 
-alias va='source venv/bin/activate'
+alias va='source .venv/bin/activate'
 alias vd='deactivate'
-alias vc='python3 -m venv venv'
+alias vc='python3 -m venv .venv'
 # julia
 alias j='julia'
 # singularity
