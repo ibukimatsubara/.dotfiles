@@ -1,0 +1,8 @@
+{
+  "coc.preferences.tabSize": 2,
+  "suggest.floatConfig": {
+    "border": true,
+    "rounded": true,
+    "borderhighlight": "CocFloatBorder"
+  }
+}

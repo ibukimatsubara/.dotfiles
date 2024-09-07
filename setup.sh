@@ -9,6 +9,7 @@ echo "fi" >> ~/.zshrc
 mkdir -p ~/.config/nvim
 mkdir -p ~/.config/nvim/dein
 mkdir -p ~/.config/nvim/toml
+
 ln -s ~/.dotfiles/init.vim ~/.config/nvim/init.vim
 ln -s ~/.dotfiles/tmux.conf ~/.tmux.conf
 ln -s ~/.dotfiles/dein.toml ~/.config/nvim/toml/dein.toml

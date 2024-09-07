@@ -16,8 +16,7 @@ Run this:
 
 ```sh
 $ cd ~
-$ git clone https://github.com/1vket/dotfiles.git
-$ cd dotfiles
+$ git clone https://github.com/1vket/.dotfiles.git
+$ cd .dotfiles
 $ sh setup.sh
 ```
-
