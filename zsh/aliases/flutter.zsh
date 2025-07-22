@@ -1,0 +1,22 @@
+# Flutter aliases
+alias fl='flutter'
+alias flr='flutter run'
+alias flrd='flutter run -d'
+alias flb='flutter build'
+alias flc='flutter clean'
+alias flpg='flutter pub get'
+alias flpu='flutter pub upgrade'
+alias fld='flutter doctor'
+alias flf='flutter format'
+alias fla='flutter analyze'
+alias flt='flutter test'
+alias flg='flutter generate'
+
+# Dart aliases
+alias d='dart'
+alias dr='dart run'
+alias dt='dart test'
+alias df='dart format'
+alias da='dart analyze'
+alias dpg='dart pub get'
+alias dpu='dart pub upgrade'
