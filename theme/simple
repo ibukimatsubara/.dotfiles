@@ -41,7 +41,24 @@ function python-env {
 	fi
 }
 
+# node prompt
+function node-env {
+	if [ -f "package.json" ]; then
+		local node_ver=`node -v 2>/dev/null | sed 's/v//'`
+		if [ -n "$node_ver" ]; then
+			echo "`bar`%F{14}⬢$node_ver%f"
+		fi
+	fi
+}
+
+# ssh indicator - simple mark
+function ssh-mark {
+	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+		echo "%F{11}◆%f "
+	fi
+}
+
 
 setopt prompt_subst
-PROMPT='%F{14}%~%f`python-env``git-branch` %F{13}%f
+PROMPT='$(ssh-mark)%F{14}%~%f`python-env``node-env``git-branch` %F{13}%f
 %F{13}%f'
