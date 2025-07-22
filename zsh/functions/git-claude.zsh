@@ -57,7 +57,7 @@ $changes"
     fi
     
     # claude codeを呼び出してメッセージを生成
-    local commit_msg=$(echo "$prompt" | claude --no-conversation 2>/dev/null)
+    local commit_msg=$(echo "$prompt" | claude --print 2>/dev/null)
     
     if [ -z "$commit_msg" ]; then
         if [[ "$lang" == "ja" ]]; then

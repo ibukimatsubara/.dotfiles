@@ -53,17 +53,12 @@ Plug 'mhinz/vim-signify'
 call plug#end()
 
 " カラースキームの設定
-try
-  colorscheme hatsunemiku
-catch
-  echo "hatsunemiku theme not found. Run :PlugInstall"
-endtry
-
-" 背景色の設定（カラースキーム適用後に実行）
-highlight Normal ctermbg=none
-highlight LineNr ctermbg=none
-highlight CursorLine ctermbg=none cterm=none
-highlight CursorLineNr ctermbg=none cterm=underline
+colorscheme hatsunemiku
+" 背景色の設定
+autocmd ColorScheme * highlight Normal ctermbg=none
+autocmd ColorScheme * highlight LineNr ctermbg=none
+autocmd ColorScheme * highlight CursorLine ctermbg=none cterm=none
+autocmd ColorScheme * highlight CursorLineNr ctermbg=none cterm=underline
 
 " シンタックスハイライトを有効化
 syntax enable
@@ -81,31 +76,10 @@ let g:signify_sign_show_count = 0
 " ファイル競合回避のための自動リロード
 set autoread
 set updatetime=100
+autocmd FocusGained,BufEnter * checktime
 
-" 完全自動リロード - 常に外部の変更を優先
-autocmd FocusGained,BufEnter,CursorHold,CursorHoldI * 
-  \ if mode() !~ '\v(c|r.?|!|t)' && getcmdwintype() == '' | checktime | endif
-
-" ファイルが外部で変更された時は常に自動リロード
-set autoread
-autocmd FileChangedShell * 
-  \ execute 'silent! e!' |
-  \ echo "File auto-reloaded from disk"
-
-" 編集中でも外部変更を検知したら自動リロード
-autocmd CursorHold,CursorHoldI * 
-  \ silent! checktime |
-  \ if v:fcs_reason == 'changed' |
-  \   execute 'silent! e!' |
-  \ endif
-
-" より頻繁にチェック（100ms）
-set updatetime=100
-
-" スワップファイルを無効化（自動リロードとの競合を防ぐ）
-set noswapfile
-set nobackup
-set nowritebackup
+" 外部変更の警告
+autocmd FileChangedShell * echo "Warning: File changed on disk"
 
 " 保存前に外部変更をチェック
 function! CheckFileChanged()
@@ -117,13 +91,6 @@ function! CheckFileChanged()
     call setpos('.', l:save_cursor)
 endfunction
 autocmd BufWritePre * call CheckFileChanged()
-
-" 手動リロードのキーマップ
-nnoremap <leader>r :checktime<CR>
-nnoremap <leader>R :e!<CR>
-
-" ターミナルやコマンドラインから戻った時も確認
-autocmd CmdlineLeave,TermLeave * checktime
 
 " Claude Code用キーマップ
 " ターミナルを素早く開く
