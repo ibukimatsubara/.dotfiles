@@ -30,5 +30,7 @@ alias gstp='git stash pop'
 alias gstl='git stash list'
 
 # Claude Code integration
-alias gcmc='gcmc'    # Generate commit message with Claude
-alias gcmcc='gcmcc'  # Open Claude for commit message
+alias gcmc='gcmc'      # Generate commit message with Claude (日本語デフォルト)
+alias gcmce='gcmc -e'  # Generate commit message in English
+alias gcmcj='gcmc -j'  # Generate commit message in Japanese (明示的)
+alias gcmcc='gcmcc'    # Open Claude for commit message
