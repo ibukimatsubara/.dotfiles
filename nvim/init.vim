@@ -154,3 +154,54 @@ require('modes').setup({
 })
 EOF
 
+" Claude Code連携設定
+" ファイル競合回避のための自動リロード
+set autoread
+set updatetime=100
+autocmd FocusGained,BufEnter * checktime
+
+" 外部変更の警告
+autocmd FileChangedShell * echo "Warning: File changed on disk"
+
+" 保存前に外部変更をチェック
+function! CheckFileChanged()
+    if !&modified
+        return
+    endif
+    let l:save_cursor = getpos('.')
+    silent! checktime
+    call setpos('.', l:save_cursor)
+endfunction
+autocmd BufWritePre * call CheckFileChanged()
+
+" Claude Code用キーマップ
+" ターミナルを素早く開く
+nnoremap <leader>cc :split \| terminal claude<CR>
+nnoremap <leader>ct :vsplit \| terminal claude<CR>
+
+" ターミナルモードでのエスケープ
+tnoremap <Esc> <C-\><C-n>
+
+" ファイルパス・行番号コピー
+nnoremap <leader>cp :let @+ = expand('%:p')<CR>:echo "Copied: " . expand('%:p')<CR>
+nnoremap <leader>cl :let @+ = expand('%:p') . ':' . line('.')<CR>:echo "Copied: " . expand('%:p') . ':' . line('.')<CR>
+
+" 選択範囲コピー
+vnoremap <leader>cy "+y
+
+" 読み取り専用モードトグル
+nnoremap <leader>ro :set readonly!<CR>:echo "Read-only: " . (&readonly ? "ON" : "OFF")<CR>
+
+" 差分表示
+nnoremap <leader>df :DiffOrig<CR>
+command! DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd p | diffthis
+
+" Git関連
+nnoremap <leader>gs :!git status<CR>
+nnoremap <leader>gd :!git diff %<CR>
+nnoremap <leader>gb :!git blame %<CR>
+
+" プロジェクト管理
+nnoremap <leader>pr :cd %:p:h<CR>:pwd<CR>
+nnoremap <leader>rm :e README.md<CR>
+

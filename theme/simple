@@ -22,17 +22,7 @@ function git-branch {
 		return
 	fi
 
-	st=`git status -s 2> /dev/null`
-
-  if [[ -n `echo "$st" | grep -e "^ M" -e "^A"` ]]; then
-		branch_add="±"
-  fi
-  
-  if [[ -n `echo "$st" | grep "^M"` ]]; then
-    branch_cmt="ﰙ"
-  fi
-
-	echo "`bar`%F{14}$branch_name$branch_add$branch_cmt"
+	echo "`bar`%F{14}$branch_name"
 }
 
 # python prompt
