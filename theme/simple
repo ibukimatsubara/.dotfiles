@@ -54,7 +54,13 @@ function node-env {
 	if [ -f "package.json" ]; then
 		local node_ver=`node -v 2>/dev/null | sed 's/v//'`
 		if [ -n "$node_ver" ]; then
-			echo "`bar`%F{14}⬢$node_ver%f"
+			# Check if using nvm
+			local nvm_current=$(nvm current 2>/dev/null)
+			if [ -n "$nvm_current" ] && [ "$nvm_current" != "system" ]; then
+				echo "`bar`%F{14}⬢$node_ver(nvm)%f"
+			else
+				echo "`bar`%F{14}⬢$node_ver%f"
+			fi
 		fi
 	fi
 }
