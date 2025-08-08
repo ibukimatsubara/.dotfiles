@@ -79,11 +79,6 @@ backup_file ~/.tmux.conf
 ln -sf ~/.dotfiles/tmux/tmux.conf ~/.tmux.conf
 print_success "Linked tmux.conf"
 
-# wezterm config
-mkdir -p ~/.config/wezterm
-backup_file ~/.config/wezterm/wezterm.lua
-ln -sf ~/.dotfiles/wezterm/wezterm.lua ~/.config/wezterm/wezterm.lua
-print_success "Linked wezterm.lua"
 
 # Install vim-plug for Neovim if not already installed
 if [ ! -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]; then

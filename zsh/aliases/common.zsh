@@ -5,6 +5,3 @@ alias la='ls -a'
 alias lla='ls -la'
 alias lal='ls -la'
 
-# Terminal applications
-alias wez='wezterm'
-alias term='wezterm'
