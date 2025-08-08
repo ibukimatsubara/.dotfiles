@@ -94,14 +94,28 @@ fi
 print_info "📦 Installing Neovim plugins..."
 nvim --headless +PlugInstall +qall 2>/dev/null && print_success "Neovim plugins installed" || print_warning "Please run :PlugInstall in Neovim"
 
+# Check for uv Python package manager
+print_info "🐍 Checking Python environment..."
+if command -v uv >/dev/null 2>&1; then
+    print_success "uv is installed ($(uv --version))"
+else
+    print_warning "uv is not installed - recommended for Python development"
+    echo "Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    echo "Or via Homebrew: brew install uv"
+fi
+
 print_success "✅ Setup complete!"
 echo ""
 print_info "📝 Next steps:"
 echo "1. Restart your terminal or run: source ~/.zshrc"
 echo "2. Open Neovim to verify the setup"
 echo "3. Open tmux and press: Prefix + I (to install plugins)"
+if ! command -v uv >/dev/null 2>&1; then
+    echo "4. Install uv for better Python development experience"
+fi
 echo ""
 print_info "💡 Tips:"
 echo "- Previous configs are backed up with timestamp"
 echo "- Run 'gcmc' for AI-powered git commits"
 echo "- Neovim will auto-reload files changed by AI tools"
+echo "- Use 'uvr python script.py' to run Python with uv"

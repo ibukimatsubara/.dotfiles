@@ -29,7 +29,14 @@ function git-branch {
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 function python-env {
 	local st
-	if [ -n "$VIRTUAL_ENV" ]; then
+	# uv environment detection
+	if [ -f "pyproject.toml" ] && [ -f "uv.lock" ]; then
+		echo "`bar`%F{14}uv%f"
+		return
+	elif [ -f ".venv/pyvenv.cfg" ]; then
+		echo "`bar`%F{14}.venv%f"
+		return
+	elif [ -n "$VIRTUAL_ENV" ]; then
 		st=`basename $VIRTUAL_ENV`
 		echo "`bar`%F{14}$st%f"
 		return
