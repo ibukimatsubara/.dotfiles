@@ -6,7 +6,7 @@ sketchybar --add item focus_toggle right \
                  script="$PLUGIN_DIR/focus_toggle_simple.sh" \
                  update_freq=10 \
                  icon.font="JetBrainsMono Nerd Font:Regular:16" \
-                 icon="󰂛" \
+                 icon="󰖔" \
                  icon.color=0xff6272a4 \
                  icon.padding_left=8 \
                  icon.padding_right=8 \

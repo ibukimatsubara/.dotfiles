@@ -6,17 +6,17 @@ DND_STATUS=$(plutil -extract dnd-prefs.userPref.enabled raw /Users/$(whoami)/Lib
 
 if [ ! -z "$FOCUS_STATUS" ] && [ "$FOCUS_STATUS" != "null" ] && [ "$FOCUS_STATUS" != "" ]; then
   # Focus mode is ON - Purple/Blue
-  ICON="󰂛"  # Moon icon
+  ICON="󰖔"  # Crescent moon
   COLOR=0xffbd93f9  # Purple
   BG_COLOR=0x33bd93f9  # Semi-transparent purple
 elif [ "$DND_STATUS" = "1" ]; then
   # DND is ON - Purple
-  ICON="󰂛"  # Moon icon
+  ICON="󰖔"  # Crescent moon
   COLOR=0xffbd93f9  # Purple
   BG_COLOR=0x33bd93f9  # Semi-transparent purple
 else
   # Focus mode is OFF - Gray
-  ICON="󰂛"  # Moon icon
+  ICON="󰖔"  # Crescent moon
   COLOR=0xff6272a4  # Gray
   BG_COLOR=0x226272a4  # Semi-transparent gray
 fi
