@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+ITEM_DIR="$CONFIG_DIR/items"
+
+# Load global styles, colors and icons
+source "$CONFIG_DIR/globalstyles.sh"
+
+POPUP_CLICK_SCRIPT="sketchybar --set \$NAME popup.drawing=toggle"
+POPUP_OFF="sketchybar --set \$NAME popup.drawing=off"
+
+# Unload the macOS on screen indicator overlay for volume change
+launchctl unload -F /System/Library/LaunchAgents/com.apple.OSDUIHelper.plist > /dev/null 2>&1 &
+
+sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
+
+# Custom minimal design - only essential items
+# Left side - empty for now
+
+# Right side - essential items with modern design
+source "$ITEM_DIR/notifications_bell.sh"
+source "$ITEM_DIR/focus_toggle.sh"
+source "$ITEM_DIR/battery_custom.sh"  
+source "$ITEM_DIR/datetime_custom.sh"
+
+# Brackets are also commented out
+# sketchybar --add bracket left.side '/space\..*/'                                                 \
+#            --set left.side "${bracket_defaults[@]}"                                              \
+#                                                                                                  \
+#           --add bracket notifications weather aqi reminders messages mail brew                   \
+#            --set notifications "${bracket_defaults[@]}"                                          \
+#                                                                                                  \
+#            --add bracket status_icons diskmonitor volume_icon volume wifi dnd date clock battery \
+#            --set status_icons "${bracket_defaults[@]}"
+
+sketchybar --hotload on
+sketchybar --update

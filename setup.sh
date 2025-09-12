@@ -111,6 +111,55 @@ else
     print_info "Kitty not found, skipping Kitty setup"
 fi
 
+# Setup SketchyBar (if on macOS)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    print_info "📊 Setting up SketchyBar..."
+    
+    # Check if SketchyBar is installed
+    if ! command -v sketchybar >/dev/null 2>&1; then
+        print_info "Installing SketchyBar..."
+        brew tap FelixKratz/formulae >/dev/null 2>&1
+        brew install sketchybar >/dev/null 2>&1
+        print_success "SketchyBar installed"
+    else
+        print_success "SketchyBar already installed"
+    fi
+    
+    # Install required fonts for SketchyBar
+    print_info "Installing JetBrainsMono Nerd Font..."
+    if ! brew list --cask | grep -q "font-jetbrains-mono-nerd-font"; then
+        brew install --cask font-jetbrains-mono-nerd-font >/dev/null 2>&1
+        print_success "JetBrainsMono Nerd Font installed"
+    else
+        print_success "JetBrainsMono Nerd Font already installed"
+    fi
+    
+    # Create symlink for SketchyBar config if it exists in dotfiles
+    if [ -d ~/.dotfiles/sketchybar ]; then
+        backup_file ~/.config/sketchybar
+        ln -sf ~/.dotfiles/sketchybar ~/.config/sketchybar
+        print_success "Linked SketchyBar configuration"
+        
+        # Make scripts executable
+        chmod +x ~/.config/sketchybar/plugins/*.sh 2>/dev/null
+        chmod +x ~/.config/sketchybar/items/*.sh 2>/dev/null
+        
+        # Start SketchyBar service if not running
+        if ! brew services list | grep -q "sketchybar.*started"; then
+            brew services start felixkratz/formulae/sketchybar >/dev/null 2>&1
+            print_success "SketchyBar service started"
+        else
+            # Reload configuration
+            sketchybar --reload >/dev/null 2>&1
+            print_success "SketchyBar configuration reloaded"
+        fi
+    else
+        print_warning "SketchyBar config not found in dotfiles"
+    fi
+else
+    print_info "Skipping SketchyBar setup (macOS only)"
+fi
+
 # Install vim-plug for Neovim if not already installed
 if [ ! -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]; then
     print_info "📦 Installing vim-plug..."
