@@ -9,23 +9,23 @@ NOTIF_COUNT=${NOTIF_COUNT:-0}
 if [ "$NOTIF_COUNT" -gt 10 ]; then
   # Many notifications - bright red
   ICON="󰅸"  # Bell with notification
-  COLOR=0xffff5555  # Bright red
-  BG_COLOR=0x44ff5555  # More opaque red
+  COLOR=0xffffffff  # White text
+  BG_COLOR=0xffe53e3e  # Red background
 elif [ "$NOTIF_COUNT" -gt 5 ]; then
   # Several notifications - orange
   ICON="󰅸"  # Bell with notification
-  COLOR=0xffffb86c  # Orange
-  BG_COLOR=0x33ffb86c  # Semi-transparent orange
+  COLOR=0xffffffff  # White text
+  BG_COLOR=0xfff56500  # Orange background
 elif [ "$NOTIF_COUNT" -gt 0 ]; then
   # Few notifications - yellow
   ICON="󰅸"  # Bell with notification
-  COLOR=0xfff1fa8c  # Yellow
-  BG_COLOR=0x33f1fa8c  # Semi-transparent yellow
+  COLOR=0xff2d3748  # Dark text
+  BG_COLOR=0xffecc94b  # Yellow background
 else
-  # No notifications - subtle white
+  # No notifications - dark theme
   ICON="󰂚"  # Normal bell
-  COLOR=0xaaffffff  # Dimmed white
-  BG_COLOR=0x22ffffff  # Very subtle white
+  COLOR=0xffffffff  # White text
+  BG_COLOR=0xff2d3748  # Dark background
 fi
 
 sketchybar --set notifications_bell \

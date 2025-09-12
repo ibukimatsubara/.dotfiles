@@ -12,8 +12,8 @@ sketchybar --add item battery right \
                  label.font="SF Pro Display:Medium:12" \
                  label.color=0xffffffff \
                  label.padding_right=8 \
-                 background.color=0x33ffffff \
+                 background.color=0xff2d3748 \
                  background.corner_radius=6 \
-                 background.height=24 \
+                 background.height=28 \
                  background.drawing=on \
                  click_script="open 'x-apple.systempreferences:com.apple.preference.battery'"

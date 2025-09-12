@@ -11,8 +11,8 @@ sketchybar --add item notifications_bell right \
                  icon.padding_left=8 \
                  icon.padding_right=8 \
                  label.drawing=off \
-                 background.color=0x33ffffff \
+                 background.color=0xff2d3748 \
                  background.corner_radius=6 \
-                 background.height=24 \
+                 background.height=28 \
                  background.drawing=on \
                  click_script="open -b com.apple.notificationcenterui"

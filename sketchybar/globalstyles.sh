@@ -15,19 +15,20 @@ bar=(
   position=top
   topmost=window
   sticky=on
-  height=34
-  padding_left=8
-  padding_right=8
+  height=38
+  padding_left=10
+  padding_right=10
   corner_radius=0
   blur_radius=0
   notch_width=170
   shadow=off
+  display=main
 )
 
 # Item Defaults
 item_defaults=(
-  background.corner_radius=4
-  background.height=20
+  background.corner_radius=6
+  background.height=28
   background.padding_left=$(($PADDINGS / 2))
   background.padding_right=$(($PADDINGS / 2))
   icon.background.corner_radius=4

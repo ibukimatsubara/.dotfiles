@@ -23,15 +23,14 @@ source "$ITEM_DIR/focus_toggle.sh"
 source "$ITEM_DIR/battery_custom.sh"  
 source "$ITEM_DIR/datetime_custom.sh"
 
-# Brackets are also commented out
-# sketchybar --add bracket left.side '/space\..*/'                                                 \
-#            --set left.side "${bracket_defaults[@]}"                                              \
-#                                                                                                  \
-#           --add bracket notifications weather aqi reminders messages mail brew                   \
-#            --set notifications "${bracket_defaults[@]}"                                          \
-#                                                                                                  \
-#            --add bracket status_icons diskmonitor volume_icon volume wifi dnd date clock battery \
-#            --set status_icons "${bracket_defaults[@]}"
+# Add bracket to group all right-side items
+sketchybar --add bracket status_group notifications_bell focus_toggle battery clock date \
+           --set status_group background.color=0xff1a202c \
+                             background.corner_radius=10 \
+                             background.height=34 \
+                             background.padding_left=8 \
+                             background.padding_right=8 \
+                             background.drawing=on
 
 sketchybar --hotload on
 sketchybar --update

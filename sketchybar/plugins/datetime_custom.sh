@@ -5,7 +5,7 @@ if [ "$NAME" = "clock" ]; then
   TIME=$(date '+%H:%M')
   sketchybar --set clock label="$TIME"
 elif [ "$NAME" = "date" ]; then
-  # Date format: 1月13日(月)
-  DATE=$(date '+%-m月%-d日(%a)')
+  # Date format: 09/13 Fri
+  DATE=$(date '+%m/%d %a')
   sketchybar --set date label="$DATE"
 fi

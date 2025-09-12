@@ -11,9 +11,9 @@ sketchybar --add item focus_toggle right \
                  icon.padding_left=8 \
                  icon.padding_right=8 \
                  label.drawing=off \
-                 background.color=0x226272a4 \
+                 background.color=0xff4a5568 \
                  background.corner_radius=6 \
-                 background.height=24 \
+                 background.height=28 \
                  background.drawing=on \
                  click_script="$PLUGIN_DIR/focus_toggle_action.sh" \
            --subscribe focus_toggle system_woke focus_changed
