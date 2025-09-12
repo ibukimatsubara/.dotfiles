@@ -11,17 +11,17 @@ FONT="SF Pro Display"
 
 # Modern Bar Appearance
 bar=(
-  color=0x22000000
+  color=0x00000000
   position=top
-  topmost=on
+  topmost=window
   sticky=on
   height=34
   padding_left=8
   padding_right=8
   corner_radius=0
-  blur_radius=20
+  blur_radius=0
   notch_width=170
-  shadow=on
+  shadow=off
 )
 
 # Item Defaults
