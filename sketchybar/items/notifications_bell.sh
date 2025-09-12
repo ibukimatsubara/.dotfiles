@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Simple Notification Bell (separate from focus toggle)
+# Simple Notification Bell - Display only (no click interaction)
 sketchybar --add item notifications_bell right \
            --set notifications_bell \
                  script="$PLUGIN_DIR/notifications_bell.sh" \
@@ -18,5 +18,4 @@ sketchybar --add item notifications_bell right \
                  background.color=0xff2d3748 \
                  background.corner_radius=6 \
                  background.height=28 \
-                 background.drawing=on \
-                 click_script="open -b com.apple.notificationcenterui"
+                 background.drawing=on

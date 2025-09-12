@@ -1,0 +1,32 @@
+{
+  "notifications": [
+    {
+      "id": "1757705282001",
+      "title": "System Update Available",
+      "body": "macOS Sequoia 15.1 is ready to install",
+      "app": "Software Update",
+      "time": "2025-09-13T04:28:02+09:00",
+      "type": "system",
+      "read": false
+    },
+    {
+      "id": "1757705282002", 
+      "title": "New Message",
+      "body": "Hey, how's the SketchyBar setup going?",
+      "app": "Messages",
+      "time": "2025-09-13T04:23:02+09:00",
+      "type": "message",
+      "read": false
+    },
+    {
+      "id": "1757705282003",
+      "title": "Calendar Event",
+      "body": "Meeting with design team in 15 minutes",
+      "app": "Calendar", 
+      "time": "2025-09-13T04:26:02+09:00",
+      "type": "calendar",
+      "read": true
+    }
+  ],
+  "last_updated": "2025-09-13T04:28:02+09:00"
+}
