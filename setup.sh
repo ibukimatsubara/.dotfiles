@@ -79,6 +79,37 @@ backup_file ~/.tmux.conf
 ln -sf ~/.dotfiles/tmux/tmux.conf ~/.tmux.conf
 print_success "Linked tmux.conf"
 
+# Setup Kitty (if installed)
+if command -v kitty >/dev/null 2>&1; then
+    print_info "🐱 Setting up Kitty terminal..."
+    
+    # Create kitty config directory if it doesn't exist
+    mkdir -p ~/.config/kitty
+    
+    # Check if kitty-themes is already installed
+    if [ ! -d ~/.config/kitty/kitty-themes ]; then
+        print_info "Installing kitty-themes..."
+        git clone https://github.com/dexpota/kitty-themes.git ~/.config/kitty/kitty-themes >/dev/null 2>&1
+        print_success "kitty-themes installed"
+    else
+        print_success "kitty-themes already installed"
+    fi
+    
+    # Check if theme is already configured
+    if [ -f ~/.config/kitty/kitty.conf ]; then
+        if ! grep -q "include ./kitty-themes/themes/" ~/.config/kitty/kitty.conf; then
+            print_info "Adding Dracula theme to kitty.conf..."
+            echo "" >> ~/.config/kitty/kitty.conf
+            echo "# Theme" >> ~/.config/kitty/kitty.conf
+            echo "include ./kitty-themes/themes/Dracula.conf" >> ~/.config/kitty/kitty.conf
+            print_success "Dracula theme configured"
+        else
+            print_success "Kitty theme already configured"
+        fi
+    fi
+else
+    print_info "Kitty not found, skipping Kitty setup"
+fi
 
 # Install vim-plug for Neovim if not already installed
 if [ ! -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]; then
