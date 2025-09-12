@@ -10,7 +10,11 @@ sketchybar --add item notifications_bell right \
                  icon.color=0xffffffff \
                  icon.padding_left=8 \
                  icon.padding_right=8 \
-                 label.drawing=off \
+                 label.drawing=on \
+                 label.font="SF Pro Display:Medium:11" \
+                 label.color=0xffffffff \
+                 label.padding_left=4 \
+                 label.padding_right=8 \
                  background.color=0xff2d3748 \
                  background.corner_radius=6 \
                  background.height=28 \

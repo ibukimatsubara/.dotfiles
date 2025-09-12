@@ -11,24 +11,29 @@ if [ "$NOTIF_COUNT" -gt 10 ]; then
   ICON="󰅸"  # Bell with notification
   COLOR=0xffffffff  # White text
   BG_COLOR=0xffe53e3e  # Red background
+  LABEL="$NOTIF_COUNT"
 elif [ "$NOTIF_COUNT" -gt 5 ]; then
   # Several notifications - orange
   ICON="󰅸"  # Bell with notification
   COLOR=0xffffffff  # White text
   BG_COLOR=0xfff56500  # Orange background
+  LABEL="$NOTIF_COUNT"
 elif [ "$NOTIF_COUNT" -gt 0 ]; then
   # Few notifications - yellow
   ICON="󰅸"  # Bell with notification
   COLOR=0xff2d3748  # Dark text
   BG_COLOR=0xffecc94b  # Yellow background
+  LABEL="$NOTIF_COUNT"
 else
   # No notifications - dark theme
   ICON="󰂚"  # Normal bell
   COLOR=0xffffffff  # White text
   BG_COLOR=0xff2d3748  # Dark background
+  LABEL=""  # No label when no notifications
 fi
 
 sketchybar --set notifications_bell \
   icon="$ICON" \
   icon.color=$COLOR \
-  background.color=$BG_COLOR
+  background.color=$BG_COLOR \
+  label="$LABEL"
