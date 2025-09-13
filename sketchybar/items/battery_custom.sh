@@ -16,4 +16,4 @@ sketchybar --add item battery right \
                  background.corner_radius=6 \
                  background.height=28 \
                  background.drawing=on \
-                 click_script="open 'x-apple.systempreferences:com.apple.preference.battery'"
+                 click_script="open -a 'Activity Monitor'"

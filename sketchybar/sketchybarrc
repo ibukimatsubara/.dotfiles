@@ -18,13 +18,14 @@ sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
 # Left side - empty for now
 
 # Right side - essential items with modern design
+source "$ITEM_DIR/tailscale.sh"
 source "$ITEM_DIR/notifications_bell.sh"
 source "$ITEM_DIR/focus_toggle.sh"
-source "$ITEM_DIR/battery_custom.sh"  
+source "$ITEM_DIR/battery_custom.sh"
 source "$ITEM_DIR/datetime_custom.sh"
 
 # Add bracket to group all right-side items
-sketchybar --add bracket status_group notifications_bell focus_toggle battery clock date \
+sketchybar --add bracket status_group tailscale notifications_bell focus_toggle battery clock date \
            --set status_group background.color=0xff1a202c \
                              background.corner_radius=10 \
                              background.height=34 \
