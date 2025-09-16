@@ -190,6 +190,22 @@ install_neovim_plugins() {
     fi
 }
 
+# Setup assets (sounds, images, etc.)
+setup_assets() {
+    print_info "🔊 Setting up dotfiles assets..."
+
+    # Create directories for assets
+    mkdir -p ~/Downloads
+
+    # Copy Pomodoro timer sound
+    if [ -f ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ]; then
+        cp ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ~/Downloads/
+        print_success "Copied Pomodoro timer sound to ~/Downloads/"
+    else
+        print_warning "Pomodoro timer sound not found in dotfiles"
+    fi
+}
+
 # Check for required software
 check_requirements() {
     print_info "🔍 Checking for required software..."
@@ -242,6 +258,9 @@ main() {
     echo ""
 
     link_macos_configs
+    echo ""
+
+    setup_assets
     echo ""
 
     install_neovim_plugins
