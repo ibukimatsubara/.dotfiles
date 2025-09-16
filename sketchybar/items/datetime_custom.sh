@@ -14,6 +14,8 @@ sketchybar --add item clock right \
                  background.corner_radius=6 \
                  background.height=28 \
                  background.drawing=on \
+                 background.border_color=0xffff79c6 \
+                 background.border_width=2 \
                  click_script="open -a Calendar" \
                  \
            --add item date right \
@@ -28,4 +30,6 @@ sketchybar --add item clock right \
                  background.color=0xff2d3748 \
                  background.corner_radius=6 \
                  background.height=28 \
-                 background.drawing=on
+                 background.drawing=on \
+                 background.border_color=0xffff79c6 \
+                 background.border_width=2

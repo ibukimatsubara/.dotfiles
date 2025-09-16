@@ -27,11 +27,13 @@ for sid in $SPACES; do
                      click_script="yabai -m space --focus $sid"
 done
 
-# Create bracket for all spaces (without separator)
+# Create bracket for all spaces (without separator) with pink outline
 sketchybar --add bracket spaces_bracket '/space\..*/' \
            --set spaces_bracket background.color=0xff1a202c \
                                background.corner_radius=10 \
                                background.height=34 \
                                background.padding_left=0 \
                                background.padding_right=8 \
-                               background.drawing=on
+                               background.drawing=on \
+                               background.border_color=0xffff79c6 \
+                               background.border_width=2
