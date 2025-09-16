@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Get existing spaces from yabai
+# Get ALL existing spaces from yabai (across all displays)
 SPACES=$(yabai -m query --spaces | jq -r '.[].index' | sort -n)
 
-# Add only existing spaces
+# Add only existing spaces (force all to main display)
 for sid in $SPACES; do
   sketchybar --add space space.$sid left \
     --set space.$sid associated_space=$sid \
+                     associated_display=1 \
                      icon="$sid" \
                      icon.color=0xff8b92a9 \
                      icon.highlight_color=0xff50fa7b \
