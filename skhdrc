@@ -45,10 +45,16 @@ alt - f : yabai -m window --toggle zoom-fullscreen
 shift + alt - space : yabai -m window --toggle float; yabai -m window --grid 4:4:1:1:2:2
 
 # ========================================
-# 5. アプリケーション起動
+# 5. ウィンドウ管理操作
 # ========================================
-# Alacritty起動
-ctrl - t : open -na /Applications/Alacritty.app
+# ウィンドウを閉じる（Cmd+Wの強化版）
+shift + alt - w : yabai -m window --close
+
+# 現在のアプリを完全に終了（Cmd+Qの強化版）
+shift + alt - q : yabai -m window --close; osascript -e 'tell application "System Events" to keystroke "q" using command down'
+
+# ウィンドウを最小化
+shift + alt - m : yabai -m window --minimize
 
 # ========================================
 # 6. yabai再起動（設定変更時用）

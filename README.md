@@ -17,10 +17,25 @@ Modern, lightweight dotfiles for efficient development workflow.
 cd ~
 git clone https://github.com/1vket/.dotfiles.git
 cd .dotfiles
-./setup.sh
+./install.sh  # Install required software
+./setup.sh    # Configure dotfiles
 ```
 
-**That's it!** The setup script handles everything automatically.
+**Two-step setup**: Install software first, then configure dotfiles.
+
+### 📦 Installation Scripts
+
+- **`install.sh`**: Installs all required software via Homebrew
+  - Essential tools: Neovim, tmux, git
+  - Fonts: JetBrains Mono Nerd Font
+  - macOS tools: yabai, skhd, SketchyBar, JankyBorders
+  - Optional: uv, nnn, Claude Code CLI
+
+- **`setup.sh`**: Links configuration files and sets up dotfiles
+  - Creates symlinks to configuration files
+  - Sets up Zsh integration
+  - Installs Neovim plugins
+  - Configures macOS window management
 
 ## 📋 Requirements
 
@@ -95,6 +110,8 @@ po install    # Poetry install
 
 ```
 .dotfiles/
+├── install.sh               # Software installation script
+├── setup.sh                 # Configuration setup script
 ├── nvim/                    # Neovim configuration
 │   ├── init.vim            # Main config (minimal & fast)
 │   └── plugin/             # Auto-reload & utilities
