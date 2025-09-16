@@ -4,19 +4,19 @@
 # A lightweight border utility for macOS windows
 
 # Basic border settings
-borders active_color=0xff8bd5ca \
-        inactive_color=0xff494d64 \
-        width=5.0 \
+borders active_color=0xffff79c6 \
+        inactive_color=0x00000000 \
+        width=3.0 \
         hidpi=on \
-        style=round &
+        style=square &
 
-# Color scheme (Catppuccin Macchiato inspired)
-# Active: Light blue/cyan
-# Inactive: Dark gray
+# Color scheme (Pink active, transparent inactive)
+# Active: Pink (matching SketchyBar theme)
+# Inactive: Transparent (completely hidden)
 
 # Border styles available:
-# - square: Sharp corners
-# - round: Rounded corners (default)
+# - square: Sharp corners (current)
+# - round: Rounded corners
 
 # Width: Border thickness in pixels
 # HiDPI: Enable high DPI support for retina displays
