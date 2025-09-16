@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Pomodoro timer item
+# Pomodoro timer item (initially hidden)
 sketchybar --add item pomodoro right \
            --set pomodoro \
                  script="$PLUGIN_DIR/pomodoro.sh" \
@@ -16,5 +16,6 @@ sketchybar --add item pomodoro right \
                  background.corner_radius=6 \
                  background.height=28 \
                  background.drawing=on \
+                 drawing=off \
            --subscribe pomodoro mouse.clicked \
            --subscribe pomodoro mouse.clicked.right

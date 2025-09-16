@@ -6,6 +6,8 @@ source "$CONFIG_FILE"
 
 STATE_FILE="/tmp/sketchybar_pomodoro_state"
 TIME_FILE="/tmp/sketchybar_pomodoro_time"
+LAST_ACTIVITY_FILE="/tmp/sketchybar_pomodoro_last_activity"
+HIDE_TIMEOUT=15  # 15 seconds for testing (was 600 for 10 minutes)
 
 # Initialize state if not exists
 if [ ! -f "$STATE_FILE" ]; then
@@ -17,10 +19,37 @@ STATE=$(cat "$STATE_FILE")
 STATUS=$(echo "$STATE" | cut -d: -f1)  # stopped/running
 MODE=$(echo "$STATE" | cut -d: -f2)    # work/break
 
+# Function to update last activity timestamp
+update_last_activity() {
+    date +%s > "$LAST_ACTIVITY_FILE"
+}
+
+# Check if should auto-hide (10 minutes of inactivity while stopped)
+check_auto_hide() {
+    if [ "$STATUS" = "stopped" ] && [ -f "$LAST_ACTIVITY_FILE" ]; then
+        LAST_ACTIVITY=$(cat "$LAST_ACTIVITY_FILE")
+        CURRENT_TIME=$(date +%s)
+        ELAPSED=$((CURRENT_TIME - LAST_ACTIVITY))
+
+        if [ $ELAPSED -ge $HIDE_TIMEOUT ]; then
+            # Reset to work mode and hide
+            echo "stopped:work" > "$STATE_FILE"
+            sketchybar --set pomodoro drawing=off
+            rm -f "$LAST_ACTIVITY_FILE"
+            exit 0
+        fi
+    fi
+}
+
 # Handle different click events
 case "$SENDER" in
     "mouse.clicked")
         # Left click: start/stop timer
+        sketchybar --set pomodoro drawing=on  # Ensure visibility on click
+
+        # Stop any playing alarm sound
+        pkill -f "afplay.*kitchen-timer-5sec.mp3" 2>/dev/null
+
         if [ "$STATUS" = "stopped" ]; then
             # Start timer
             echo "running:$MODE" > "$STATE_FILE"
@@ -32,10 +61,12 @@ case "$SENDER" in
                     echo "$BREAK_DURATION" > "$TIME_FILE"
                     ;;
             esac
+            rm -f "$LAST_ACTIVITY_FILE"  # Clear activity timer when running
         else
             # Stop timer
             echo "stopped:$MODE" > "$STATE_FILE"
             rm -f "$TIME_FILE"
+            update_last_activity  # Start tracking inactivity
         fi
         ;;
     "mouse.clicked.right")
@@ -53,6 +84,7 @@ case "$SENDER" in
         esac
         echo "stopped:$NEW_MODE" > "$STATE_FILE"
         rm -f "$TIME_FILE"
+        update_last_activity  # Track inactivity after mode change
         ;;
 esac
 
@@ -60,6 +92,9 @@ esac
 STATE=$(cat "$STATE_FILE")
 STATUS=$(echo "$STATE" | cut -d: -f1)
 MODE=$(echo "$STATE" | cut -d: -f2)
+
+# Check for auto-hide condition
+check_auto_hide
 
 # Convert seconds to mm:ss format
 format_time() {
@@ -93,7 +128,11 @@ if [ "$STATUS" = "running" ] && [ -f "$TIME_FILE" ]; then
     if [ "$REMAINING" -gt 0 ]; then
         echo $((REMAINING - 1)) > "$TIME_FILE"
     else
-        # Timer finished - automatically transition to next mode
+        # Timer finished - play alarm sound and transition to next mode
+        if [ -f "$ALARM_SOUND" ]; then
+            afplay "$ALARM_SOUND" &
+        fi
+
         case "$MODE" in
             "work")
                 NEXT_MODE="break"
@@ -104,6 +143,7 @@ if [ "$STATUS" = "running" ] && [ -f "$TIME_FILE" ]; then
         esac
         echo "stopped:$NEXT_MODE" > "$STATE_FILE"
         rm -f "$TIME_FILE"
+        update_last_activity  # Track inactivity after timer finishes
     fi
 else
     # Timer is stopped - show max time for current mode

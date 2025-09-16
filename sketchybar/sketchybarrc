@@ -20,14 +20,14 @@ source "$ITEM_DIR/spaces.sh"
 # source "$ITEM_DIR/front_app.sh"  # Disabled
 
 # Right side - essential items with modern design
-source "$ITEM_DIR/pomodoro.sh"
 source "$ITEM_DIR/tailscale.sh"
 source "$ITEM_DIR/notifications.sh"
 source "$ITEM_DIR/battery_custom.sh"
 source "$ITEM_DIR/datetime_custom.sh"
+source "$ITEM_DIR/pomodoro.sh"
 
 # Add bracket to group all right-side items
-sketchybar --add bracket status_group pomodoro tailscale notifications battery clock date \
+sketchybar --add bracket status_group tailscale notifications battery clock date pomodoro \
            --set status_group background.color=0xff1a202c \
                              background.corner_radius=10 \
                              background.height=34 \
