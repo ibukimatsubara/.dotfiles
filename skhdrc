@@ -57,6 +57,12 @@ shift + alt - q : yabai -m window --close; osascript -e 'tell application "Syste
 shift + alt - m : yabai -m window --minimize
 
 # ========================================
-# 6. yabai再起動（設定変更時用）
+# 6. アプリケーション起動
+# ========================================
+# 新しいターミナルウィンドウを起動
+ctrl - t : open -n -a "Alacritty"
+
+# ========================================
+# 7. yabai再起動（設定変更時用）
 # ========================================
 ctrl + alt + cmd - r : yabai --restart-service
