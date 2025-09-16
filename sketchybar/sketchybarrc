@@ -15,7 +15,9 @@ launchctl unload -F /System/Library/LaunchAgents/com.apple.OSDUIHelper.plist > /
 sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
 
 # Custom minimal design - only essential items
-# Left side - empty for now
+# Left side - Spaces only
+source "$ITEM_DIR/spaces.sh"
+# source "$ITEM_DIR/front_app.sh"  # Disabled
 
 # Right side - essential items with modern design
 source "$ITEM_DIR/tailscale.sh"

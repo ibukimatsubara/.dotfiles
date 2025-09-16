@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# JankyBorders Configuration
+# A lightweight border utility for macOS windows
+
+# Basic border settings
+borders active_color=0xff8bd5ca \
+        inactive_color=0xff494d64 \
+        width=5.0 \
+        hidpi=on \
+        style=round &
+
+# Color scheme (Catppuccin Macchiato inspired)
+# Active: Light blue/cyan
+# Inactive: Dark gray
+
+# Border styles available:
+# - square: Sharp corners
+# - round: Rounded corners (default)
+
+# Width: Border thickness in pixels
+# HiDPI: Enable high DPI support for retina displays

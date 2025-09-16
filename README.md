@@ -24,11 +24,19 @@ cd .dotfiles
 
 ## 📋 Requirements
 
-- **macOS/Linux** 
+- **macOS/Linux**
 - **Zsh** (default on macOS 10.15+)
 - **Neovim** 0.5+
-- **tmux** 
+- **tmux**
 - **Nerd Font** (for prompt icons)
+
+### macOS Window Management (Optional)
+- **yabai** (Tiling window manager)
+- **skhd** (Hotkey daemon)
+- **SketchyBar** (Custom menu bar)
+- **JankyBorders** (Window borders)
+- **SketchyVim** (Vim integration - planned)
+- **nnn** (Terminal file manager - planned)
 
 Optional for full features:
 - [Claude Code CLI](https://claude.ai/code) (for AI commits)
@@ -52,6 +60,15 @@ Optional for full features:
 - **Right-click paste**: Natural workflow
 - **Session auto-save**: Resume your work after restart
 - **Cross-pane selection**: Option+drag for terminal-style selection
+
+### macOS Window Management
+- **yabai**: Tiling window manager for efficient workspace organization
+- **skhd**: Keyboard shortcuts for window and application control
+- **SketchyBar**: Custom menu bar with system information and controls
+- **JankyBorders**: Beautiful window borders with customizable colors and styles
+- **Planned additions**:
+  - SketchyVim: Vim mode indicator integration
+  - nnn: Fast terminal file manager
 
 ## 🔥 Notable Commands
 
@@ -81,7 +98,7 @@ po install    # Poetry install
 ├── nvim/                    # Neovim configuration
 │   ├── init.vim            # Main config (minimal & fast)
 │   └── plugin/             # Auto-reload & utilities
-├── zsh/                     # Zsh configuration  
+├── zsh/                     # Zsh configuration
 │   ├── main.zsh            # Entry point
 │   ├── aliases/            # Organized by tool
 │   │   ├── git.zsh         # Git shortcuts + AI commits
@@ -93,9 +110,18 @@ po install    # Poetry install
 │   └── functions/          # AI commit functions
 ├── tmux/                    # tmux configuration
 │   └── tmux.conf           # Mouse-friendly setup
+├── sketchybar/              # SketchyBar configuration
+│   ├── sketchybarrc        # Main config
+│   ├── items/              # Bar items
+│   └── plugins/            # Custom scripts
+├── yabairc                  # yabai window manager config
+├── skhdrc                   # skhd hotkey daemon config
+├── bordersrc                # JankyBorders configuration
 ├── theme/                   # Shell themes
 │   └── simple              # Minimal prompt with rich info
 └── docs/                    # Documentation
+    ├── sketchybar.md       # SketchyBar setup guide
+    └── yabai-skhd.md       # Window management guide
 ```
 
 ## 🎨 Prompt Features
@@ -160,8 +186,27 @@ alias myalias="my command"
 # Neovim
 nvim +PlugUpdate +qall
 
-# tmux  
+# tmux
 tmux run-shell ~/.tmux/plugins/tpm/bindings/install_plugins
+
+# SketchyBar & JankyBorders (if using Homebrew)
+brew upgrade sketchybar borders
+
+# yabai & skhd
+brew upgrade yabai skhd
+```
+
+### Restart services
+```bash
+# Restart window management and visual enhancements
+brew services restart yabai
+brew services restart skhd
+sketchybar --reload
+borders &
+
+# Restart specific service
+skhd --restart-service
+yabai --restart-service
 ```
 
 ### Backup current setup
