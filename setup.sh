@@ -194,13 +194,13 @@ install_neovim_plugins() {
 setup_assets() {
     print_info "🔊 Setting up dotfiles assets..."
 
-    # Create directories for assets
-    mkdir -p ~/Downloads
+    # Create directories for SketchyBar assets
+    mkdir -p ~/.config/sketchybar/assets/sounds
 
     # Copy Pomodoro timer sound
     if [ -f ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ]; then
-        cp ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ~/Downloads/
-        print_success "Copied Pomodoro timer sound to ~/Downloads/"
+        cp ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ~/.config/sketchybar/assets/sounds/
+        print_success "Copied Pomodoro timer sound to ~/.config/sketchybar/assets/sounds/"
     else
         print_warning "Pomodoro timer sound not found in dotfiles"
     fi
