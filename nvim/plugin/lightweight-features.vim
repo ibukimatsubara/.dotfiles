@@ -49,12 +49,12 @@ set wildmode=longest:full,full
 set wildignore=*.o,*.obj,*~,*.pyc,*.pyo,*.swp,*.bak
 set wildignore+=*/.git/*,*/.hg/*,*/.svn/*,*/node_modules/*
 
-" 11. 括弧の自動補完（最小限）
-inoremap ( ()<Left>
-inoremap { {}<Left>
-inoremap [ []<Left>
-inoremap " ""<Left>
-inoremap ' ''<Left>
+" 11. 括弧の自動補完（Copilotとの競合を避けるため無効化）
+" inoremap ( ()<Left>
+" inoremap { {}<Left>
+" inoremap [ []<Left>
+" inoremap " ""<Left>
+" inoremap ' ''<Left>
 
 " 12. 行番号トグル
 nnoremap <leader>n :set relativenumber!<CR>

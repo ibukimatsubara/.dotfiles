@@ -177,3 +177,7 @@ let g:copilot_no_tab_map = v:true
 imap <silent><script><expr> <Tab> copilot#Accept("\<Tab>")
 imap <C-J> <Plug>(copilot-next)
 imap <C-K> <Plug>(copilot-previous)
+
+" Copilot表示設定（視認性向上）
+highlight CopilotSuggestion ctermfg=8 ctermbg=none guifg=#5c6370 guibg=none
+highlight CopilotAnnotation ctermfg=8 ctermbg=none guifg=#5c6370 guibg=none
