@@ -3,6 +3,15 @@
 PERCENTAGE=$(pmset -g batt | grep -Eo "\d+%" | cut -d% -f1)
 CHARGING=$(pmset -g batt | grep 'AC Power')
 
+# Hide when battery is 100% and charging (AC Power connected)
+if [ $PERCENTAGE -eq 100 ] && [ ! -z "$CHARGING" ]; then
+  sketchybar --set battery drawing=off
+  exit 0
+fi
+
+# Show battery for all other cases
+sketchybar --set battery drawing=on
+
 # Color based on battery level
 if [ $PERCENTAGE -gt 70 ]; then
   COLOR=0xff50fa7b  # Green

@@ -1,0 +1,43 @@
+#!/usr/bin/env sh
+
+# ========================================
+# 最小限のskhd設定 - 基本操作のみ
+# ========================================
+
+# ========================================
+# 1. ウィンドウフォーカス移動（最重要）
+# ========================================
+alt - h : yabai -m window --focus west
+alt - j : yabai -m window --focus south
+alt - k : yabai -m window --focus north
+alt - l : yabai -m window --focus east
+
+# ========================================
+# 2. ウィンドウ入れ替え
+# ========================================
+shift + alt - h : yabai -m window --swap west
+shift + alt - j : yabai -m window --swap south
+shift + alt - k : yabai -m window --swap north
+shift + alt - l : yabai -m window --swap east
+
+# ========================================
+# 3. スペース（デスクトップ）移動
+# ========================================
+cmd + alt - 1 : yabai -m space --focus 1
+cmd + alt - 2 : yabai -m space --focus 2
+cmd + alt - 3 : yabai -m space --focus 3
+cmd + alt - 4 : yabai -m space --focus 4
+
+# ========================================
+# 4. 基本的なウィンドウ操作
+# ========================================
+# フルスクリーン切り替え
+alt - f : yabai -m window --toggle zoom-fullscreen
+
+# フローティング切り替え
+shift + alt - space : yabai -m window --toggle float; yabai -m window --grid 4:4:1:1:2:2
+
+# ========================================
+# 5. yabai再起動（設定変更時用）
+# ========================================
+ctrl + alt + cmd - r : yabai --restart-service

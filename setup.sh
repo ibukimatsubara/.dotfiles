@@ -79,6 +79,37 @@ backup_file ~/.tmux.conf
 ln -sf ~/.dotfiles/tmux/tmux.conf ~/.tmux.conf
 print_success "Linked tmux.conf"
 
+# yabai config (if on macOS)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    print_info "🪟 Setting up yabai window manager..."
+
+    # Check if yabai is installed
+    if ! command -v yabai >/dev/null 2>&1; then
+        print_warning "yabai is not installed. Please install with: brew install koekeishiya/formulae/yabai"
+    else
+        backup_file ~/.config/yabai/yabairc
+        mkdir -p ~/.config/yabai
+        ln -sf ~/.dotfiles/yabairc ~/.config/yabai/yabairc
+        chmod +x ~/.config/yabai/yabairc
+        print_success "Linked yabairc"
+    fi
+
+    # skhd config
+    print_info "⌨️  Setting up skhd hotkey daemon..."
+
+    # Check if skhd is installed
+    if ! command -v skhd >/dev/null 2>&1; then
+        print_warning "skhd is not installed. Please install with: brew install koekeishiya/formulae/skhd"
+    else
+        backup_file ~/.config/skhd/skhdrc
+        mkdir -p ~/.config/skhd
+        ln -sf ~/.dotfiles/skhdrc ~/.config/skhd/skhdrc
+        print_success "Linked skhdrc"
+    fi
+else
+    print_info "Skipping yabai/skhd setup (macOS only)"
+fi
+
 # Setup Kitty (if installed)
 if command -v kitty >/dev/null 2>&1; then
     print_info "🐱 Setting up Kitty terminal..."
