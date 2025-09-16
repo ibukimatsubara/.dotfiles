@@ -14,6 +14,13 @@ set cursorline  " カーソル行をハイライト
 set t_Co=256  " 256色対応
 let mapleader = ','  " リーダーキーを,に設定
 
+" パフォーマンス最適化
+set ttyfast              " 高速ターミナル
+set lazyredraw           " マクロ実行中の再描画を無効
+set synmaxcol=200        " 長い行のシンタックス制限
+set undolevels=1000      " undo履歴制限
+set history=500          " コマンド履歴制限
+
 " 折りたたみの設定
 set foldmethod=indent
 set foldlevel=99
@@ -49,6 +56,9 @@ Plug '4513ECHO/vim-colors-hatsunemiku'
 
 " Git差分表示（シンプル版）
 Plug 'mhinz/vim-signify'
+
+" GitHub Copilot（AI補完）
+Plug 'github/copilot.vim'
 
 call plug#end()
 
@@ -158,3 +168,12 @@ nnoremap <leader>gb :!git blame %<CR>
 " プロジェクト管理
 nnoremap <leader>pr :cd %:p:h<CR>:pwd<CR>
 nnoremap <leader>rm :e README.md<CR>
+
+" ========================================
+" GitHub Copilot設定
+" ========================================
+" Copilotを有効化
+let g:copilot_no_tab_map = v:true
+imap <silent><script><expr> <Tab> copilot#Accept("\<Tab>")
+imap <C-J> <Plug>(copilot-next)
+imap <C-K> <Plug>(copilot-previous)
