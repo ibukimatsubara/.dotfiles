@@ -110,6 +110,21 @@ else
     print_info "Skipping yabai/skhd setup (macOS only)"
 fi
 
+# Setup Alacritty (if installed)
+if command -v alacritty >/dev/null 2>&1; then
+    print_info "💻 Setting up Alacritty terminal..."
+
+    # Create alacritty config directory if it doesn't exist
+    mkdir -p ~/.config/alacritty
+
+    # Link alacritty config
+    backup_file ~/.config/alacritty/alacritty.toml
+    ln -sf ~/.dotfiles/alacritty.toml ~/.config/alacritty/alacritty.toml
+    print_success "Linked Alacritty configuration"
+else
+    print_info "Alacritty not found, skipping Alacritty setup"
+fi
+
 # Setup Kitty (if installed)
 if command -v kitty >/dev/null 2>&1; then
     print_info "🐱 Setting up Kitty terminal..."
@@ -187,8 +202,30 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     else
         print_warning "SketchyBar config not found in dotfiles"
     fi
+
+    # Install and setup JankyBorders
+    print_info "Installing JankyBorders..."
+    if ! command -v borders >/dev/null 2>&1; then
+        # Add FelixKratz tap (might already be added for SketchyBar)
+        brew tap FelixKratz/formulae >/dev/null 2>&1
+        brew install borders >/dev/null 2>&1
+        print_success "JankyBorders installed"
+    else
+        print_success "JankyBorders already installed"
+    fi
+
+    # Setup JankyBorders configuration
+    if [ -f ~/.dotfiles/bordersrc ]; then
+        backup_file ~/.config/borders/bordersrc
+        mkdir -p ~/.config/borders
+        ln -sf ~/.dotfiles/bordersrc ~/.config/borders/bordersrc
+        chmod +x ~/.config/borders/bordersrc
+        print_success "Linked JankyBorders configuration"
+    else
+        print_warning "JankyBorders config not found in dotfiles"
+    fi
 else
-    print_info "Skipping SketchyBar setup (macOS only)"
+    print_info "Skipping SketchyBar and JankyBorders setup (macOS only)"
 fi
 
 # Install vim-plug for Neovim if not already installed

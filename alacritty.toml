@@ -1,0 +1,12 @@
+# Alacritty Configuration - 必要最小限設定
+
+[window]
+# ウィンドウのタイトルバーを非表示
+decorations = "none"
+
+# ウィンドウの透明度 (0.0で完全透明、1.0で不透明)
+opacity = 0.85
+
+[font]
+# メインフォント（JetBrains Mono Nerd Font）
+normal = { family = "JetBrainsMono Nerd Font" }

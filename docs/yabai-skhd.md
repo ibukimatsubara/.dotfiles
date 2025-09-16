@@ -16,14 +16,19 @@ brew install koekeishiya/formulae/yabai
 brew install koekeishiya/formulae/skhd
 ```
 
-### SIPの部分的な無効化（オプション）
+### SIPの部分的な無効化（スペース切り替えに必要）
 
-yabaiの全機能を使用するには、System Integrity Protection (SIP)の部分的な無効化が必要です：
+**スペース切り替え機能**を使用するには、System Integrity Protection (SIP)の部分的な無効化が必要です。
 
-1. macOSをリカバリーモードで起動（Intel: 起動時にCmd+R、Apple Silicon: 電源ボタン長押し）
-2. ターミナルを開く
-3. `csrutil enable --without fs --without debug --without nvram` を実行
-4. 再起動
+### 詳細な手順
+詳しいSIP設定方法は **[docs/sip-setup.md](./sip-setup.md)** を参照してください。
+
+### 簡単な手順
+1. macOSをリカバリーモードで起動
+   - **Apple Silicon**: 電源ボタン長押し → 「オプション」選択
+   - **Intel**: 起動時に`⌘ + R`
+2. ターミナルで実行: `csrutil enable --without fs --without debug --without nvram`
+3. 再起動後に実行: `sudo yabai --load-sa`
 
 ## 設定ファイル
 
@@ -80,13 +85,16 @@ yabaiの全機能を使用するには、System Integrity Protection (SIP)の部
 
 ### スペース（仮想デスクトップ）操作
 
+**⚠️ スペース切り替えにはSIP部分無効化が必要**
+
 | ショートカット | 動作 |
 |--------------|------|
-| `cmd + alt + 1-9,0` | スペース1-10へ移動 |
-| `cmd + alt + x` | 直前のスペースへ移動 |
-| `cmd + alt + z/c` | 前/次のスペースへ移動 |
-| `cmd + alt + n` | 新しいスペースを作成 |
-| `cmd + alt + w` | 現在のスペースを削除 |
+| `ctrl + 1-4` | スペース1-4へ移動（SIP無効化後） |
+| `shift + ctrl + 1-4` | ウィンドウをスペース1-4へ移動 |
+
+**SIP無効化前でも使える機能:**
+- ウィンドウのスペース間移動
+- macOS標準のMission Control（`ctrl + ←/→`）
 
 ### レイアウト管理
 

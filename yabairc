@@ -100,4 +100,17 @@ yabai -m signal --add event=space_changed action="yabai -m window --focus \$(yab
 # Focus window after active display changes
 yabai -m signal --add event=display_changed action="yabai -m window --focus \$(yabai -m query --windows --space | jq .[0].id)"
 
+# ========================================
+# SketchyBar Integration
+# ========================================
+
+# Trigger SketchyBar to update spaces when space changes
+yabai -m signal --add event=space_changed action="sketchybar --trigger space_change"
+yabai -m signal --add event=display_added action="sketchybar --trigger display_change"
+yabai -m signal --add event=display_removed action="sketchybar --trigger display_change"
+yabai -m signal --add event=window_created action="sketchybar --trigger windows_on_spaces"
+yabai -m signal --add event=window_destroyed action="sketchybar --trigger windows_on_spaces"
+yabai -m signal --add event=window_focused action="sketchybar --trigger window_focus"
+yabai -m signal --add event=window_title_changed action="sketchybar --trigger title_change"
+
 echo "yabai configuration loaded..."
