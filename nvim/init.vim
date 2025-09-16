@@ -59,11 +59,14 @@ catch
   echo "hatsunemiku theme not found. Run :PlugInstall"
 endtry
 
-" 背景色の設定（カラースキーム適用後に実行）
-highlight Normal ctermbg=none
-highlight LineNr ctermbg=none
-highlight CursorLine ctermbg=none cterm=none
-highlight CursorLineNr ctermbg=none cterm=underline
+" 背景色の設定（完全透明化）
+highlight Normal ctermbg=none guibg=none
+highlight LineNr ctermbg=none guibg=none
+highlight CursorLine ctermbg=none guibg=none cterm=none gui=none
+highlight CursorLineNr ctermbg=none guibg=none cterm=underline gui=underline
+highlight NonText ctermbg=none guibg=none
+highlight EndOfBuffer ctermbg=none guibg=none
+highlight SignColumn ctermbg=none guibg=none
 
 " シンタックスハイライトを有効化
 syntax enable
