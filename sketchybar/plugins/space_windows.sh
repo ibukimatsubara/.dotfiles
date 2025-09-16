@@ -77,9 +77,9 @@ if [ "$SELECTED" = "true" ]; then
     sketchybar --set $NAME \
         background.drawing=on \
         icon.highlight=on \
-        icon.color=0xff50fa7b \
+        icon.color=0xffff79c6 \
         label="$LABEL" \
-        label.color=0xff50fa7b
+        label.color=0xffff79c6
 else
     sketchybar --set $NAME \
         background.drawing=off \

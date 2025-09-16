@@ -10,7 +10,7 @@ for sid in $SPACES; do
                      associated_display=1 \
                      icon="$sid" \
                      icon.color=0xff8b92a9 \
-                     icon.highlight_color=0xff50fa7b \
+                     icon.highlight_color=0xffff79c6 \
                      icon.font="SF Pro Display:Bold:14" \
                      icon.padding_left=8 \
                      icon.padding_right=4 \

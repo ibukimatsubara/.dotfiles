@@ -25,7 +25,7 @@ yabai -m config                                 \
     insert_feedback_color        0xffd75f5f     \
     split_ratio                  0.50           \
     split_type                   auto           \
-    auto_balance                 off            \
+    auto_balance                 on             \
     top_padding                  12             \
     bottom_padding               12             \
     left_padding                 12             \
@@ -74,7 +74,8 @@ yabai -m rule --add app="^mpv$" manage=off
 yabai -m rule --add app="^Photo Booth$" manage=off
 yabai -m rule --add app="^Stickies$" manage=off
 yabai -m rule --add app="^VirtualBuddy$" manage=off
-yabai -m rule --add app="^Simulator$" manage=off
+# iOS Simulator - 自動管理を有効化（デフォルトのmanage=onを使用）
+# yabai -m rule --add app="^Simulator$" manage=off  # コメントアウト
 
 # Third-party apps
 yabai -m rule --add app="^Alfred Preferences$" manage=off

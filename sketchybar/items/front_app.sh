@@ -5,7 +5,7 @@ sketchybar --add item front_app left \
            --set front_app \
                  script="$PLUGIN_DIR/front_app.sh" \
                  icon.font="sketchybar-app-font:Regular:16" \
-                 icon.color=0xff50fa7b \
+                 icon.color=0xffff79c6 \
                  icon.padding_left=8 \
                  icon.padding_right=4 \
                  label.font="SF Pro Display:Medium:12" \

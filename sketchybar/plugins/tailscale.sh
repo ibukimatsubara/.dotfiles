@@ -35,7 +35,7 @@ case "$STATUS" in
         # Connected - hide when connected
         if [ "$PREV_STATUS" != "Running" ]; then
             # Status just changed to connected - show briefly then hide
-            BG_COLOR=0xff50fa7b
+            BG_COLOR=0xffff79c6
             ICON_COLOR=0xff000000
             sketchybar --set tailscale \
                 drawing=on \

@@ -14,7 +14,7 @@ sketchybar --set battery drawing=on
 
 # Color based on battery level
 if [ $PERCENTAGE -gt 70 ]; then
-  COLOR=0xff50fa7b  # Green
+  COLOR=0xffff79c6  # Pink
   ICON="󰁹"  # Full battery (Nerd Font)
 elif [ $PERCENTAGE -gt 40 ]; then
   COLOR=0xfff1fa8c  # Yellow
@@ -30,7 +30,7 @@ fi
 # Charging indicator
 if [ ! -z "$CHARGING" ]; then
   ICON="󰂄"  # Charging icon (Nerd Font)
-  COLOR=0xff50fa7b  # Green when charging
+  COLOR=0xffff79c6  # Pink when charging
 fi
 
 sketchybar --set battery \

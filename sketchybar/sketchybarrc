@@ -27,7 +27,7 @@ source "$ITEM_DIR/datetime_custom.sh"
 source "$ITEM_DIR/pomodoro.sh"
 
 # Add bracket to group all right-side items
-sketchybar --add bracket status_group tailscale notifications battery clock date pomodoro \
+sketchybar --add bracket status_group tailscale notifications battery datetime pomodoro \
            --set status_group background.color=0xff1a202c \
                              background.corner_radius=10 \
                              background.height=34 \

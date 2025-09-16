@@ -117,11 +117,13 @@ case "$MODE" in
     "work")
         ICON="$WORK_ICON"
         BG_COLOR="$WORK_BG_COLOR"
+        BORDER_COLOR="$WORK_BORDER_COLOR"
         ICON_COLOR="$WORK_ICON_COLOR"
         ;;
     "break")
         ICON="$BREAK_ICON"
         BG_COLOR="$BREAK_BG_COLOR"
+        BORDER_COLOR="$BREAK_BORDER_COLOR"
         ICON_COLOR="$BREAK_ICON_COLOR"
         ;;
 esac
@@ -171,4 +173,6 @@ fi
 sketchybar --set pomodoro \
     icon="$DISPLAY" \
     background.color="$BG_COLOR" \
+    background.border_color="$BORDER_COLOR" \
+    background.border_width=2 \
     icon.color="$ICON_COLOR"
