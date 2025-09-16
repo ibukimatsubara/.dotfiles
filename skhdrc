@@ -66,7 +66,7 @@ ctrl - t : open -n -a "Alacritty"
 # 7. Pomodoro Timer制御
 # ========================================
 # Pomodoroタイマー開始/停止（非表示時のみworkモードに設定）
-alt - p : if ! sketchybar --query pomodoro | grep -q '"drawing": "on"'; then \
+alt - p : if [ "$(sketchybar --query pomodoro | jq -r '.geometry.drawing')" = "off" ]; then \
             echo "stopped:work" > /tmp/sketchybar_pomodoro_state 2>/dev/null; \
           fi; \
           sketchybar --set pomodoro drawing=on; \
