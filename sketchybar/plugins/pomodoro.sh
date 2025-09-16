@@ -7,7 +7,7 @@ source "$CONFIG_FILE"
 STATE_FILE="/tmp/sketchybar_pomodoro_state"
 TIME_FILE="/tmp/sketchybar_pomodoro_time"
 LAST_ACTIVITY_FILE="/tmp/sketchybar_pomodoro_last_activity"
-HIDE_TIMEOUT=15  # 15 seconds for testing (was 600 for 10 minutes)
+HIDE_TIMEOUT=1800  # 30 minutes in seconds
 
 # Initialize state if not exists
 if [ ! -f "$STATE_FILE" ]; then
@@ -63,8 +63,16 @@ case "$SENDER" in
             esac
             rm -f "$LAST_ACTIVITY_FILE"  # Clear activity timer when running
         else
-            # Stop timer
-            echo "stopped:$MODE" > "$STATE_FILE"
+            # Timer is running - skip to next mode
+            case "$MODE" in
+                "work")
+                    NEXT_MODE="break"
+                    ;;
+                "break")
+                    NEXT_MODE="work"
+                    ;;
+            esac
+            echo "stopped:$NEXT_MODE" > "$STATE_FILE"
             rm -f "$TIME_FILE"
             update_last_activity  # Start tracking inactivity
         fi
