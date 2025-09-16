@@ -63,6 +63,15 @@ shift + alt - m : yabai -m window --minimize
 ctrl - t : open -n -a "Alacritty"
 
 # ========================================
-# 7. yabai再起動（設定変更時用）
+# 7. Pomodoro Timer制御
+# ========================================
+# Pomodoroタイマー開始/停止
+alt - p : CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
+
+# Pomodoroモード切り替え
+shift + alt - p : CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked.right" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
+
+# ========================================
+# 8. yabai再起動（設定変更時用）
 # ========================================
 ctrl + alt + cmd - r : yabai --restart-service
