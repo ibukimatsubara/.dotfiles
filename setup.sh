@@ -40,6 +40,7 @@ create_directories() {
         mkdir -p ~/.config/skhd
         mkdir -p ~/.config/sketchybar
         mkdir -p ~/.config/borders
+        mkdir -p ~/.config/kitty
     fi
 
     print_success "Directories created"
@@ -169,6 +170,15 @@ link_macos_configs() {
         print_success "Linked JankyBorders configuration"
     else
         print_warning "JankyBorders config not found in dotfiles"
+    fi
+
+    # kitty configuration
+    if [ -f ~/.dotfiles/kitty.conf ]; then
+        backup_file ~/.config/kitty/kitty.conf
+        ln -sf ~/.dotfiles/kitty.conf ~/.config/kitty/kitty.conf
+        print_success "Linked kitty configuration"
+    else
+        print_warning "kitty.conf not found in dotfiles"
     fi
 }
 

@@ -60,6 +60,13 @@ Plug 'mhinz/vim-signify'
 " GitHub Copilot（AI補完）
 Plug 'github/copilot.vim'
 
+" ファイルエクスプローラー
+Plug 'nvim-tree/nvim-tree.lua'
+Plug 'nvim-tree/nvim-web-devicons'
+
+" タブライン表示
+Plug 'akinsho/bufferline.nvim', { 'tag': '*' }
+
 call plug#end()
 
 " カラースキームの設定
@@ -181,3 +188,147 @@ imap <C-K> <Plug>(copilot-previous)
 " Copilot表示設定（視認性向上）
 highlight CopilotSuggestion ctermfg=8 ctermbg=none guifg=#5c6370 guibg=none
 highlight CopilotAnnotation ctermfg=8 ctermbg=none guifg=#5c6370 guibg=none
+
+" ========================================
+" nvim-tree設定
+" ========================================
+lua << EOF
+-- nvim-treeの設定
+require("nvim-tree").setup({
+  -- 基本設定
+  disable_netrw = true,
+  hijack_netrw = true,
+  hijack_cursor = false,
+  hijack_unnamed_buffer_when_opening = false,
+
+  -- ビュー設定
+  view = {
+    width = 30,
+    side = "left",
+    number = false,
+    relativenumber = false,
+    signcolumn = "yes",
+  },
+
+  -- レンダラー設定
+  renderer = {
+    add_trailing = false,
+    group_empty = false,
+    highlight_git = true,
+    highlight_opened_files = "none",
+    root_folder_modifier = ":~",
+    indent_markers = {
+      enable = true,
+      icons = {
+        corner = "└ ",
+        edge = "│ ",
+        none = "  ",
+      },
+    },
+    icons = {
+      webdev_colors = true,
+      git_placement = "before",
+      padding = " ",
+      symlink_arrow = " ➛ ",
+      show = {
+        file = true,
+        folder = true,
+        folder_arrow = true,
+        git = true,
+      },
+      glyphs = {
+        default = "",
+        symlink = "",
+        folder = {
+          arrow_closed = "",
+          arrow_open = "",
+          default = "",
+          open = "",
+          empty = "",
+          empty_open = "",
+          symlink = "",
+          symlink_open = "",
+        },
+        git = {
+          unstaged = "✗",
+          staged = "✓",
+          unmerged = "",
+          renamed = "➜",
+          untracked = "★",
+          deleted = "",
+          ignored = "◌",
+        },
+      },
+    },
+  },
+
+  -- ファイルフィルター
+  filters = {
+    dotfiles = false,
+    custom = { ".git", "node_modules", ".cache" },
+  },
+
+  -- Git設定
+  git = {
+    enable = true,
+    ignore = true,
+    timeout = 400,
+  },
+
+  -- その他設定
+  update_focused_file = {
+    enable = true,
+    update_cwd = true,
+    ignore_list = {},
+  },
+
+  actions = {
+    use_system_clipboard = true,
+    change_dir = {
+      enable = true,
+      global = false,
+      restrict_above_cwd = false,
+    },
+    open_file = {
+      quit_on_open = false,
+      resize_window = false,
+      window_picker = {
+        enable = true,
+        chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
+        exclude = {
+          filetype = { "notify", "packer", "qf", "diff", "fugitive", "fugitiveblame" },
+          buftype = { "nofile", "terminal", "help" },
+        },
+      },
+    },
+  },
+})
+EOF
+
+" nvim-tree最小設定
+lua << EOF
+require("nvim-tree").setup({
+  view = { width = 30 },
+  renderer = { icons = { show = { git = false, folder_arrow = false } } },
+  filters = { custom = { ".git", "node_modules" } },
+})
+EOF
+
+" nvim-treeキーマップ
+nnoremap <leader>e :NvimTreeToggle<CR>
+
+" bufferline最小設定
+lua << EOF
+require('bufferline').setup {
+  options = {
+    offsets = {{ filetype = "NvimTree", text = "Files" }},
+    show_close_icon = false,
+    show_buffer_close_icons = false,
+  }
+}
+EOF
+
+" bufferlineキーマップ
+nnoremap <silent><leader>h <Cmd>BufferLineCyclePrev<CR>
+nnoremap <silent><leader>l <Cmd>BufferLineCycleNext<CR>
+nnoremap <silent><leader>bd <Cmd>bdelete<CR>
