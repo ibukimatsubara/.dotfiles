@@ -17,6 +17,7 @@ cmd - 1 : open -a "kitty"
 cmd - 2 : open -a "Arc" || open -a "Google Chrome" || open -a "Safari"
 cmd - 3 : open -a "Visual Studio Code"
 cmd - 4 : open -a "Slack"
+cmd - 5 : open -a "Notion"
 
 # ========================================
 # 7. Pomodoro Timer制御
