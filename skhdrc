@@ -4,63 +4,19 @@
 # 最小限のskhd設定 - 基本操作のみ
 # ========================================
 
-# ========================================
-# 1. ウィンドウフォーカス移動（最重要）
-# ========================================
-alt - h : yabai -m window --focus west
-alt - j : yabai -m window --focus south
-alt - k : yabai -m window --focus north
-alt - l : yabai -m window --focus east
-
-# ========================================
-# 2. ウィンドウ入れ替え
-# ========================================
-shift + alt - h : yabai -m window --swap west
-shift + alt - j : yabai -m window --swap south
-shift + alt - k : yabai -m window --swap north
-shift + alt - l : yabai -m window --swap east
-
-# ========================================
-# 3. スペース（デスクトップ）移動
-# ========================================
-# スペース切り替え（SIP部分無効化後に動作）
-ctrl - 1 : yabai -m space --focus 1
-ctrl - 2 : yabai -m space --focus 2
-ctrl - 3 : yabai -m space --focus 3
-ctrl - 4 : yabai -m space --focus 4
-
-# ウィンドウを特定スペースに移動
-shift + ctrl - 1 : yabai -m window --space 1
-shift + ctrl - 2 : yabai -m window --space 2
-shift + ctrl - 3 : yabai -m window --space 3
-shift + ctrl - 4 : yabai -m window --space 4
-
-# ========================================
-# 4. 基本的なウィンドウ操作
-# ========================================
-# フルスクリーン切り替え
-alt - f : yabai -m window --toggle zoom-fullscreen
-
-# フローティング切り替え
-shift + alt - space : yabai -m window --toggle float; yabai -m window --grid 4:4:1:1:2:2
-
-# ========================================
-# 5. ウィンドウ管理操作
-# ========================================
-# ウィンドウを閉じる（Cmd+Wの強化版）
-shift + alt - w : yabai -m window --close
-
-# 現在のアプリを完全に終了（Cmd+Qの強化版）
-shift + alt - q : yabai -m window --close; osascript -e 'tell application "System Events" to keystroke "q" using command down'
-
-# ウィンドウを最小化
-shift + alt - m : yabai -m window --minimize
 
 # ========================================
 # 6. アプリケーション起動
 # ========================================
 # 新しいターミナルウィンドウを起動
-ctrl - t : open -n -a "Alacritty"
+ctrl - t : open -n -a "kitty"
+
+# アプリケーション切り替え（cmd + 数字キー）
+# 開いていればフォーカス、なければ起動
+cmd - 1 : open -a "kitty"
+cmd - 2 : open -a "Arc" || open -a "Google Chrome" || open -a "Safari"
+cmd - 3 : open -a "Visual Studio Code"
+cmd - 4 : open -a "Slack"
 
 # ========================================
 # 7. Pomodoro Timer制御
@@ -75,7 +31,3 @@ alt - p : if [ "$(sketchybar --query pomodoro | jq -r '.geometry.drawing')" = "o
 # Pomodoroモード切り替え
 shift + alt - p : CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked.right" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
 
-# ========================================
-# 8. yabai再起動（設定変更時用）
-# ========================================
-ctrl + alt + cmd - r : yabai --restart-service

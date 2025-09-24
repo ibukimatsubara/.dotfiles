@@ -60,6 +60,12 @@ Plug 'mhinz/vim-signify'
 " GitHub Copilot（AI補完）
 Plug 'github/copilot.vim'
 
+" 軽量LSPと補完（プロジェクト全体の関数認識用）
+Plug 'neovim/nvim-lspconfig'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'  " バッファから補完（超軽量）
+
 " ファイルエクスプローラー
 Plug 'nvim-tree/nvim-tree.lua'
 Plug 'nvim-tree/nvim-web-devicons'
@@ -87,7 +93,7 @@ highlight SignColumn ctermbg=none guibg=none
 
 " シンタックスハイライトを有効化
 syntax enable
-set textwidth=79
+set textwidth=0
 set colorcolumn=+1
 highlight ColorColumn guibg=#202020 ctermbg=0
 
@@ -332,3 +338,73 @@ EOF
 nnoremap <silent><leader>h <Cmd>BufferLineCyclePrev<CR>
 nnoremap <silent><leader>l <Cmd>BufferLineCycleNext<CR>
 nnoremap <silent><leader>bd <Cmd>bdelete<CR>
+
+" ========================================
+" LSPと補完設定（Copilotと共存、軽量版）
+" ========================================
+lua << EOF
+-- LSP設定（Neovim 0.11+対応）
+-- Python用（jedi推奨 - pyrightより軽量）
+-- pip install jedi-language-server でインストール
+if vim.fn.executable('jedi-language-server') == 1 then
+  vim.lsp.config.jedi_language_server = {
+    cmd = {'jedi-language-server'},
+    filetypes = {'python'},
+    settings = {
+      completion = {
+        disableSnippets = true,  -- スニペット無効（軽量化）
+      }
+    },
+    root_markers = {'.git', 'pyproject.toml', 'setup.py'},
+  }
+  vim.lsp.enable('jedi_language_server')
+elseif vim.fn.executable('pyright') == 1 then
+  vim.lsp.config.pyright = {
+    cmd = {'pyright-langserver', '--stdio'},
+    filetypes = {'python'},
+    root_markers = {'.git', 'pyproject.toml', 'setup.py'},
+  }
+  vim.lsp.enable('pyright')
+end
+
+-- nvim-cmp設定（Copilotと競合しないように）
+local cmp = require'cmp'
+cmp.setup({
+  -- スニペット無効（軽量化）
+  snippet = {
+    expand = function(args)
+      -- スニペット無効
+    end,
+  },
+
+  -- キーマップ（Copilotと分離、tmux/yabaiと競合回避）
+  mapping = cmp.mapping.preset.insert({
+    ['<C-]>'] = cmp.mapping.complete(),  -- 補完メニュー表示
+    ['<C-n>'] = cmp.mapping.select_next_item(),  -- 次の候補
+    ['<C-p>'] = cmp.mapping.select_prev_item(),  -- 前の候補
+    ['<C-y>'] = cmp.mapping.confirm({ select = true }),  -- 選択確定
+    ['<C-e>'] = cmp.mapping.abort(),  -- キャンセル
+    -- TabはCopilot用、Ctrl+J/KはCopilotとtmuxで使用済み
+  }),
+
+  -- 補完ソース（優先順位順）
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp', priority = 1000 },  -- LSP補完
+    { name = 'buffer', priority = 500, keyword_length = 3 },  -- バッファ内の単語
+  }),
+
+  -- パフォーマンス設定
+  performance = {
+    max_view_entries = 15,  -- 最大表示数を制限
+  },
+})
+
+-- LSPキーマップ（競合回避）
+vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = 'Go to definition' })
+vim.keymap.set('n', 'gr', vim.lsp.buf.references, { desc = 'Find references' })
+vim.keymap.set('n', '<S-K>', vim.lsp.buf.hover, { desc = 'Show hover (Shift+K)' })  -- Kは避けてShift+K使用
+EOF
+
+" 補完メニューの見た目（軽量化）
+set pumheight=10  " 補完メニューの最大高さ
+set completeopt=menu,menuone,noselect

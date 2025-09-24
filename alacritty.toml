@@ -8,12 +8,16 @@ decorations = "none"
 opacity = 0.85
 
 [font]
-# メインフォント（JetBrains Mono Nerd Font）
-normal = { family = "JetBrainsMono Nerd Font" }
+# メインフォント（Hack Nerd Font Mono - iTerm2と同じ）
+normal = { family = "Hack Nerd Font Mono" }
 
 [scrolling]
 # スクロール時の乗数（高速スクロール）
 multiplier = 3
+
+[env]
+# TERM環境変数をxterm-256colorに設定（iTerm2と同じ）
+TERM = "xterm-256color"
 
 [general]
 # ライブ設定リロードを有効化

@@ -16,7 +16,7 @@ sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
 
 # Custom minimal design - only essential items
 # Left side - Spaces only
-source "$ITEM_DIR/spaces.sh"
+# source "$ITEM_DIR/spaces.sh"  # Disabled
 # source "$ITEM_DIR/front_app.sh"  # Disabled
 
 # Right side - essential items with modern design
