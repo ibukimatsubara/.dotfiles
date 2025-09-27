@@ -14,7 +14,7 @@ ctrl - t : open -n -a "kitty"
 # アプリケーション切り替え（cmd + 数字キー）
 # 開いていればフォーカス、なければ起動
 cmd - 1 : open -a "kitty"
-cmd - 2 : open -a "Arc" || open -a "Google Chrome" || open -a "Safari"
+cmd - 2 : open -a "Dia"
 cmd - 3 : open -a "Visual Studio Code"
 cmd - 4 : open -a "Slack"
 cmd - 5 : open -a "Notion"

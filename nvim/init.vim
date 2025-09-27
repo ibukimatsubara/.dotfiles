@@ -144,43 +144,45 @@ function! CheckFileChanged()
 endfunction
 autocmd BufWritePre * call CheckFileChanged()
 
-" 手動リロードのキーマップ
-nnoremap <leader>r :checktime<CR>
-nnoremap <leader>R :e!<CR>
+" Optionキー（Alt/Meta）ベースのキーマップ
+" macOSでは Option as Meta を有効にする必要あり
 
-" ターミナルやコマンドラインから戻った時も確認
-autocmd CmdlineLeave,TermLeave * checktime
+" ファイル操作
+nnoremap <M-e> :NvimTreeToggle<CR>
+nnoremap <M-h> <Cmd>BufferLineCyclePrev<CR>
+nnoremap <M-l> <Cmd>BufferLineCycleNext<CR>
+nnoremap <M-w> <Cmd>bdelete<CR>
 
-" Claude Code用キーマップ
-" ターミナルを素早く開く
-nnoremap <leader>cc :split \| terminal claude<CR>
-nnoremap <leader>ct :vsplit \| terminal claude<CR>
+" Claude Code連携
+nnoremap <M-c> :split \| terminal claude<CR>
+nnoremap <M-v> :vsplit \| terminal claude<CR>
+nnoremap <M-p> :let @+ = expand('%:p')<CR>:echo "Copied: " . expand('%:p')<CR>
+nnoremap <M-P> :let @+ = expand('%:p') . ':' . line('.')<CR>:echo "Copied: " . expand('%:p') . ':' . line('.')<CR>
+vnoremap <M-y> "+y
+
+" ファイルリロード
+nnoremap <M-r> :checktime<CR>
+nnoremap <M-R> :e!<CR>
 
 " ターミナルモードでのエスケープ
 tnoremap <Esc> <C-\><C-n>
-
-" ファイルパス・行番号コピー
-nnoremap <leader>cp :let @+ = expand('%:p')<CR>:echo "Copied: " . expand('%:p')<CR>
-nnoremap <leader>cl :let @+ = expand('%:p') . ':' . line('.')<CR>:echo "Copied: " . expand('%:p') . ':' . line('.')<CR>
-
-" 選択範囲コピー
-vnoremap <leader>cy "+y
-
-" 読み取り専用モードトグル
-nnoremap <leader>ro :set readonly!<CR>:echo "Read-only: " . (&readonly ? "ON" : "OFF")<CR>
-
-" 差分表示
-nnoremap <leader>df :DiffOrig<CR>
-command! DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd p | diffthis
+tnoremap <M-[> <C-\><C-n>
 
 " Git関連
-nnoremap <leader>gs :!git status<CR>
-nnoremap <leader>gd :!git diff %<CR>
-nnoremap <leader>gb :!git blame %<CR>
+nnoremap <M-g>s :!git status<CR>
+nnoremap <M-g>d :!git diff %<CR>
+nnoremap <M-g>b :!git blame %<CR>
 
-" プロジェクト管理
-nnoremap <leader>pr :cd %:p:h<CR>:pwd<CR>
-nnoremap <leader>rm :e README.md<CR>
+" 差分表示
+nnoremap <M-d> :DiffOrig<CR>
+command! DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd p | diffthis
+
+" その他
+nnoremap <M-o> :set readonly!<CR>:echo "Read-only: " . (&readonly ? "ON" : "OFF")<CR>
+nnoremap <M-m> :e README.md<CR>
+
+" 従来のリーダーキーマップも残す（互換性のため）
+autocmd CmdlineLeave,TermLeave * checktime
 
 " ========================================
 " GitHub Copilot設定
@@ -320,9 +322,6 @@ require("nvim-tree").setup({
 })
 EOF
 
-" nvim-treeキーマップ
-nnoremap <leader>e :NvimTreeToggle<CR>
-
 " bufferline最小設定
 lua << EOF
 require('bufferline').setup {
@@ -334,10 +333,6 @@ require('bufferline').setup {
 }
 EOF
 
-" bufferlineキーマップ
-nnoremap <silent><leader>h <Cmd>BufferLineCyclePrev<CR>
-nnoremap <silent><leader>l <Cmd>BufferLineCycleNext<CR>
-nnoremap <silent><leader>bd <Cmd>bdelete<CR>
 
 " ========================================
 " LSPと補完設定（Copilotと共存、軽量版）
