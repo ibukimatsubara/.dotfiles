@@ -31,8 +31,7 @@ function python-env {
 	local st
 	# uv environment detection
 	if [ -f "pyproject.toml" ] && [ -f "uv.lock" ]; then
-		local python_ver=$(uv run python -c "import sys; print(f'py{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null || echo "py")
-		echo "`bar`%F{14}uv-${python_ver}%f"
+		echo "`bar`%F{14}uv%f"
 		return
 	elif [ -f ".venv/pyvenv.cfg" ]; then
 		echo "`bar`%F{14}.venv%f"
