@@ -4,8 +4,9 @@ Modern, lightweight dotfiles for efficient development workflow.
 
 ## ✨ Features
 
-- **🚀 Ultra-fast Neovim**: Minimal setup with only 2 essential plugins + auto-reload
-- **🤖 AI-Powered Git**: Intelligent commit messages with Claude Code integration  
+- **🚀 Modern Neovim**: Lazy.nvim with image paste & inline preview + auto-reload
+- **🖼️ Image Support**: Paste screenshots directly into Markdown with Kitty terminal
+- **🤖 AI-Powered Git**: Intelligent commit messages with Claude Code integration
 - **🖱️ Smart tmux**: Mouse-friendly copy/paste + automatic session saving
 - **⚡ Modular Zsh**: Organized aliases for Git, Docker, AWS, Flutter, Python
 - **🎨 Beautiful Prompt**: Shows Git branch, SSH status, Node.js/Python environments
@@ -27,6 +28,7 @@ cd .dotfiles
 
 - **`install.sh`**: Installs all required software via Homebrew
   - Essential tools: Neovim, tmux, git
+  - Image support: ImageMagick, luarocks
   - Fonts: JetBrains Mono Nerd Font
   - macOS tools: yabai, skhd, SketchyBar, JankyBorders
   - Optional: uv, nnn, Claude Code CLI
@@ -59,11 +61,14 @@ Optional for full features:
 
 ## 🎯 Key Features
 
-### Neovim (Ultra-lightweight)
-- Only 2 plugins: colorscheme + git signs
+### Neovim (Modern & Powerful)
+- **Lazy.nvim**: Fast plugin manager with lazy loading
+- **Image paste & preview**: Screenshots → Markdown with inline display
 - **Auto-reload**: Files refresh automatically when changed by AI tools
-- **Performance optimized**: Fast startup, handles large files
+- **GitHub Copilot**: AI-powered code completion
+- **LSP + completion**: Intelligent code navigation (Python)
 - **Hatsune Miku theme**: Beautiful cyan color scheme
+- **10 carefully curated plugins**: Lightweight yet feature-rich
 
 ### Shell (Zsh)
 - **AI Git commits**: `gcmc` (Japanese) / `gcmce` (English)
@@ -92,13 +97,18 @@ Optional for full features:
 gcmc          # Generate commit message in Japanese
 gcmce         # Generate commit message in English
 
-# Quick shortcuts  
+# Quick shortcuts
 v file.txt    # Open in Neovim
 t             # Start tmux
 g st          # Git status
 dk ps         # Docker ps
 fl run        # Flutter run
 po install    # Poetry install
+
+# Neovim image features (in Markdown files)
+,p            # Paste screenshot from clipboard → saves to assets/
+              # Automatically inserts Markdown link
+              # Image displays inline in Kitty terminal!
 
 # tmux copy
 # Just drag with mouse → auto-copied!
@@ -113,7 +123,22 @@ po install    # Poetry install
 ├── install.sh               # Software installation script
 ├── setup.sh                 # Configuration setup script
 ├── nvim/                    # Neovim configuration
-│   ├── init.vim            # Main config (minimal & fast)
+│   ├── init.lua            # Main entry point (Lazy.nvim)
+│   ├── init.vim.backup     # Previous vim-plug config
+│   ├── lua/
+│   │   ├── config/         # Core settings
+│   │   │   ├── options.lua
+│   │   │   ├── keymaps.lua
+│   │   │   └── autocmds.lua
+│   │   └── plugins/        # Modular plugin configs
+│   │       ├── colorscheme.lua  # Hatsune Miku theme
+│   │       ├── git.lua          # vim-signify
+│   │       ├── copilot.lua      # GitHub Copilot
+│   │       ├── lsp.lua          # LSP + completion
+│   │       ├── nvim-tree.lua    # File explorer
+│   │       ├── bufferline.lua   # Tab line
+│   │       ├── img-clip.lua     # Image paste
+│   │       └── image.lua        # Image preview
 │   └── plugin/             # Auto-reload & utilities
 ├── zsh/                     # Zsh configuration
 │   ├── main.zsh            # Entry point
@@ -137,6 +162,7 @@ po install    # Poetry install
 ├── theme/                   # Shell themes
 │   └── simple              # Minimal prompt with rich info
 └── docs/                    # Documentation
+    ├── neovim.md           # Neovim setup guide
     ├── sketchybar.md       # SketchyBar setup guide
     └── yabai-skhd.md       # Window management guide
 ```
@@ -192,16 +218,18 @@ alias myalias="my command"
 
 ### Key bindings (Neovim)
 - **Leader key**: `,`
-- **Save**: `,w`
-- **Quick escape**: `jk` or `kj`
-- **File path copy**: `,cp`
+- **Paste image**: `,p` (saves to assets/ and inserts Markdown link)
+- **File path copy**: `<M-p>` (Option+P)
+- **File explorer**: `<M-e>` (Option+E)
+- **Claude Code**: `<M-c>` (Option+C for split)
 
 ## 🔧 Maintenance
 
 ### Update plugins
 ```bash
-# Neovim
-nvim +PlugUpdate +qall
+# Neovim (Lazy.nvim)
+nvim
+# Then in Neovim: :Lazy update
 
 # tmux
 tmux run-shell ~/.tmux/plugins/tpm/bindings/install_plugins
@@ -233,10 +261,10 @@ git add -A && git commit -m "backup: $(date)"
 
 ## 📊 Performance
 
-- **Neovim startup**: ~50ms (2 plugins only)
+- **Neovim startup**: ~30-50ms (Lazy.nvim with lazy loading)
 - **Zsh load time**: ~100ms (modular loading)
 - **tmux responsiveness**: Optimized for real-time use
-- **Memory usage**: Minimal footprint
+- **Memory usage**: Minimal footprint despite 10 plugins
 
 ## 🎯 Philosophy
 
@@ -252,7 +280,9 @@ This dotfiles setup prioritizes:
 
 - [Hatsune Miku theme](https://github.com/4513ECHO/vim-colors-hatsunemiku) by 4513ECHO
 - [Claude Code](https://claude.ai/code) by Anthropic
-- [vim-plug](https://github.com/junegunn/vim-plug) by junegunn
+- [Lazy.nvim](https://github.com/folke/lazy.nvim) by folke
+- [img-clip.nvim](https://github.com/HakonHarnes/img-clip.nvim) by HakonHarnes
+- [image.nvim](https://github.com/3rd/image.nvim) by 3rd
 
 ---
 

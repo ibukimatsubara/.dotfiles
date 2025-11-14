@@ -86,11 +86,18 @@ setup_zsh() {
 link_neovim() {
     print_info "📝 Linking Neovim configuration..."
 
-    # Main init.vim
-    if [ -f ~/.dotfiles/nvim/init.vim ]; then
-        backup_file ~/.config/nvim/init.vim
-        ln -sf ~/.dotfiles/nvim/init.vim ~/.config/nvim/init.vim
-        print_success "Linked init.vim"
+    # Main init.lua (Lazy.nvim)
+    if [ -f ~/.dotfiles/nvim/init.lua ]; then
+        backup_file ~/.config/nvim/init.lua
+        ln -sf ~/.dotfiles/nvim/init.lua ~/.config/nvim/init.lua
+        print_success "Linked init.lua"
+    fi
+
+    # Lua configuration directory
+    if [ -d ~/.dotfiles/nvim/lua ]; then
+        backup_file ~/.config/nvim/lua
+        ln -sfn ~/.dotfiles/nvim/lua ~/.config/nvim/lua
+        print_success "Linked lua directory"
     fi
 
     # Plugin directory
@@ -186,17 +193,23 @@ link_macos_configs() {
 install_neovim_plugins() {
     print_info "📦 Installing Neovim plugins..."
 
-    # Check if vim-plug is installed
-    if [ ! -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]; then
-        print_warning "vim-plug not found. Please run ./install.sh first"
+    # Check if Neovim is installed
+    if ! command -v nvim >/dev/null 2>&1; then
+        print_warning "Neovim not found. Please run ./install.sh first"
         return
     fi
 
-    # Install plugins
-    if command -v nvim >/dev/null 2>&1; then
-        nvim --headless +PlugInstall +qall 2>/dev/null && print_success "Neovim plugins installed" || print_warning "Please run :PlugInstall in Neovim"
+    # Initialize Lazy.nvim and install plugins
+    print_info "Initializing Lazy.nvim and installing plugins..."
+    print_info "This may take a few minutes on first run..."
+
+    # Run Neovim headless to bootstrap Lazy.nvim and install plugins
+    if nvim --headless -c "qall" 2>/dev/null; then
+        print_success "Lazy.nvim bootstrapped successfully"
+        print_info "Plugins will be installed on first Neovim launch"
+        print_info "Or run: nvim --headless \"+Lazy! sync\" +qa"
     else
-        print_warning "Neovim not found. Please run ./install.sh first"
+        print_warning "Please launch Neovim manually to complete plugin installation"
     fi
 }
 

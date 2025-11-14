@@ -40,7 +40,7 @@ check_homebrew() {
 install_essentials() {
     print_info "🔧 Installing essential tools..."
 
-    local essentials=("neovim" "tmux" "git")
+    local essentials=("neovim" "tmux" "git" "imagemagick" "luarocks")
 
     for tool in "${essentials[@]}"; do
         if ! command -v "$tool" >/dev/null 2>&1; then
