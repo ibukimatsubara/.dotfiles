@@ -14,7 +14,7 @@ ctrl - t : open -n -a "kitty"
 # アプリケーション切り替え（cmd + 数字キー）
 # 開いていればフォーカス、なければ起動
 cmd - 1 : open -a "kitty"
-cmd - 2 : open -a "Dia"
+cmd - 2 : osascript -e 'tell application id "com.openai.atlas" to activate'
 cmd - 3 : open -a "Visual Studio Code"
 cmd - 4 : open -a "Slack"
 cmd - 5 : open -a "Notion"
@@ -31,4 +31,3 @@ alt - p : if [ "$(sketchybar --query pomodoro | jq -r '.geometry.drawing')" = "o
 
 # Pomodoroモード切り替え
 shift + alt - p : CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked.right" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
-
