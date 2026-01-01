@@ -6,8 +6,6 @@ source "$CONFIG_FILE"
 
 STATE_FILE="/tmp/sketchybar_pomodoro_state"
 TIME_FILE="/tmp/sketchybar_pomodoro_time"
-LAST_ACTIVITY_FILE="/tmp/sketchybar_pomodoro_last_activity"
-HIDE_TIMEOUT=1800  # 30 minutes in seconds
 
 # Initialize state if not exists
 if [ ! -f "$STATE_FILE" ]; then
@@ -19,25 +17,64 @@ STATE=$(cat "$STATE_FILE")
 STATUS=$(echo "$STATE" | cut -d: -f1)  # stopped/running
 MODE=$(echo "$STATE" | cut -d: -f2)    # work/break
 
-# Function to update last activity timestamp
-update_last_activity() {
-    date +%s > "$LAST_ACTIVITY_FILE"
+next_mode() {
+    if [ "$1" = "work" ]; then
+        echo "break"
+    else
+        echo "work"
+    fi
 }
 
-# Check if should auto-hide (10 minutes of inactivity while stopped)
-check_auto_hide() {
-    if [ "$STATUS" = "stopped" ] && [ -f "$LAST_ACTIVITY_FILE" ]; then
-        LAST_ACTIVITY=$(cat "$LAST_ACTIVITY_FILE")
-        CURRENT_TIME=$(date +%s)
-        ELAPSED=$((CURRENT_TIME - LAST_ACTIVITY))
+set_timer_for_mode() {
+    case "$1" in
+        "work")
+            echo "$WORK_DURATION"
+            ;;
+        "break")
+            echo "$BREAK_DURATION"
+            ;;
+    esac
+}
 
-        if [ $ELAPSED -ge $HIDE_TIMEOUT ]; then
-            # Reset to work mode and hide
-            echo "stopped:work" > "$STATE_FILE"
-            sketchybar --set pomodoro drawing=off
-            rm -f "$LAST_ACTIVITY_FILE"
-            exit 0
-        fi
+is_right_click() {
+    case "${BUTTON:-}" in
+        right|2|3)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+start_timer() {
+    local mode="$1"
+
+    if [ ! -f "$TIME_FILE" ]; then
+        set_timer_for_mode "$mode" > "$TIME_FILE"
+    fi
+
+    echo "running:$mode" > "$STATE_FILE"
+}
+
+stop_timer() {
+    local mode="$1"
+
+    echo "stopped:$mode" > "$STATE_FILE"
+}
+
+skip_session() {
+    local mode="$1"
+    local status="$2"
+    local next
+
+    next=$(next_mode "$mode")
+
+    if [ "$status" = "running" ]; then
+        echo "running:$next" > "$STATE_FILE"
+        set_timer_for_mode "$next" > "$TIME_FILE"
+    else
+        echo "stopped:$next" > "$STATE_FILE"
+        rm -f "$TIME_FILE"
     fi
 }
 
@@ -45,54 +82,22 @@ check_auto_hide() {
 case "$SENDER" in
     "mouse.clicked")
         # Left click: start/stop timer
-        sketchybar --set pomodoro drawing=on  # Ensure visibility on click
-
         # Stop any playing alarm sound
         pkill -f "afplay.*kitchen-timer-5sec.mp3" 2>/dev/null
 
-        if [ "$STATUS" = "stopped" ]; then
-            # Start timer
-            echo "running:$MODE" > "$STATE_FILE"
-            case "$MODE" in
-                "work")
-                    echo "$WORK_DURATION" > "$TIME_FILE"
-                    ;;
-                "break")
-                    echo "$BREAK_DURATION" > "$TIME_FILE"
-                    ;;
-            esac
-            rm -f "$LAST_ACTIVITY_FILE"  # Clear activity timer when running
+        if is_right_click; then
+            skip_session "$MODE" "$STATUS"
         else
-            # Timer is running - skip to next mode
-            case "$MODE" in
-                "work")
-                    NEXT_MODE="break"
-                    ;;
-                "break")
-                    NEXT_MODE="work"
-                    ;;
-            esac
-            echo "stopped:$NEXT_MODE" > "$STATE_FILE"
-            rm -f "$TIME_FILE"
-            update_last_activity  # Start tracking inactivity
+            if [ "$STATUS" = "stopped" ]; then
+                start_timer "$MODE"
+            else
+                stop_timer "$MODE"
+            fi
         fi
         ;;
     "mouse.clicked.right")
-        # Right click: toggle between work and break
-        case "$MODE" in
-            "work")
-                NEW_MODE="break"
-                ;;
-            "break")
-                NEW_MODE="work"
-                ;;
-            *)
-                NEW_MODE="work"
-                ;;
-        esac
-        echo "stopped:$NEW_MODE" > "$STATE_FILE"
-        rm -f "$TIME_FILE"
-        update_last_activity  # Track inactivity after mode change
+        # Right click: skip to next mode
+        skip_session "$MODE" "$STATUS"
         ;;
 esac
 
@@ -100,9 +105,6 @@ esac
 STATE=$(cat "$STATE_FILE")
 STATUS=$(echo "$STATE" | cut -d: -f1)
 MODE=$(echo "$STATE" | cut -d: -f2)
-
-# Check for auto-hide condition
-check_auto_hide
 
 # Convert seconds to mm:ss format
 format_time() {
@@ -128,45 +130,32 @@ case "$MODE" in
         ;;
 esac
 
-if [ "$STATUS" = "running" ] && [ -f "$TIME_FILE" ]; then
-    # Timer is running - show remaining time
-    REMAINING=$(cat "$TIME_FILE")
-    TIME_DISPLAY=$(format_time $REMAINING)
-    DISPLAY="$ICON $TIME_DISPLAY"
+if [ "$STATUS" = "running" ] && [ ! -f "$TIME_FILE" ]; then
+    set_timer_for_mode "$MODE" > "$TIME_FILE"
+fi
 
-    # Countdown logic (this would be handled by a separate timer process)
+if [ -f "$TIME_FILE" ]; then
+    REMAINING=$(cat "$TIME_FILE")
+    TIME_DISPLAY=$(format_time "$REMAINING")
+else
+    MAX_TIME=$(set_timer_for_mode "$MODE")
+    TIME_DISPLAY=$(format_time "$MAX_TIME")
+fi
+
+DISPLAY="$ICON $TIME_DISPLAY"
+
+if [ "$STATUS" = "running" ] && [ -f "$TIME_FILE" ]; then
     if [ "$REMAINING" -gt 0 ]; then
         echo $((REMAINING - 1)) > "$TIME_FILE"
     else
-        # Timer finished - play alarm sound and transition to next mode
         if [ -f "$ALARM_SOUND" ]; then
             afplay "$ALARM_SOUND" &
         fi
 
-        case "$MODE" in
-            "work")
-                NEXT_MODE="break"
-                ;;
-            "break")
-                NEXT_MODE="work"
-                ;;
-        esac
+        NEXT_MODE=$(next_mode "$MODE")
         echo "stopped:$NEXT_MODE" > "$STATE_FILE"
         rm -f "$TIME_FILE"
-        update_last_activity  # Track inactivity after timer finishes
     fi
-else
-    # Timer is stopped - show max time for current mode
-    case "$MODE" in
-        "work")
-            MAX_TIME="$WORK_DURATION"
-            ;;
-        "break")
-            MAX_TIME="$BREAK_DURATION"
-            ;;
-    esac
-    TIME_DISPLAY=$(format_time $MAX_TIME)
-    DISPLAY="$ICON $TIME_DISPLAY"
 fi
 
 # Update SketchyBar
