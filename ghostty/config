@@ -1,0 +1,37 @@
+# Ghostty Configuration
+# Kitty設定から移行
+
+# テーマ (Catppuccin Mocha - Ghostty組み込み)
+theme = Catppuccin Mocha
+
+# フォント設定
+font-family = Hack Nerd Font Mono
+font-size = 14
+
+# 背景透過
+background-opacity = 1.0
+
+# 背景画像
+background-image = /Users/ketiv/Downloads/aaaa.jpg
+background-image-opacity = 0.2
+background-image-fit = contain
+
+# ウィンドウ設定
+window-decoration = false
+
+# macOSでOptionキーをAltとして使用
+macos-option-as-alt = true
+
+# URL検出
+link-url = true
+
+# スクロール設定 (Ghosttyはデフォルトで滑らかなスクロール)
+# wheel_scroll_multiplier相当の設定はなし
+
+# キーバインド - 全て無効化して必要なものだけ有効
+keybind = clear
+keybind = super+v=paste_from_clipboard
+keybind = super+q=quit
+
+# ターミナル設定
+term = xterm-256color

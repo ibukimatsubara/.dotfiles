@@ -27,10 +27,13 @@ bar=(
 
 # Item Defaults
 item_defaults=(
-  background.corner_radius=6
-  background.height=28
+  background.corner_radius=0
+  background.height=26
   background.padding_left=$(($PADDINGS / 2))
   background.padding_right=$(($PADDINGS / 2))
+  background.border_width=1
+  background.border_color=$HIGHLIGHT_10
+  background.color=$BAR_COLOR
   icon.background.corner_radius=4
   icon.color=$ICON_COLOR
   icon.font="$FONT:Regular:11"

@@ -39,7 +39,9 @@ case "$STATUS" in
             ICON_COLOR=0xff000000
             sketchybar --set tailscale \
                 drawing=on \
-                background.color=$BG_COLOR \
+                background.color=0x00000000 \
+                background.border_color=$BG_COLOR \
+                background.border_width=1 \
                 icon.color=$ICON_COLOR
             schedule_hide
         else
@@ -55,7 +57,9 @@ case "$STATUS" in
             ICON_COLOR=0xffffffff
             sketchybar --set tailscale \
                 drawing=on \
-                background.color=$BG_COLOR \
+                background.color=0x00000000 \
+                background.border_color=$BG_COLOR \
+                background.border_width=1 \
                 icon.color=$ICON_COLOR
             schedule_hide
         else
@@ -64,7 +68,9 @@ case "$STATUS" in
             ICON_COLOR=0xffffffff
             sketchybar --set tailscale \
                 drawing=on \
-                background.color=$BG_COLOR \
+                background.color=0x00000000 \
+                background.border_color=$BG_COLOR \
+                background.border_width=1 \
                 icon.color=$ICON_COLOR
         fi
         ;;
@@ -74,7 +80,9 @@ case "$STATUS" in
         ICON_COLOR=0xff000000
         sketchybar --set tailscale \
             drawing=on \
-            background.color=$BG_COLOR \
+            background.color=0x00000000 \
+            background.border_color=$BG_COLOR \
+            background.border_width=1 \
             icon.color=$ICON_COLOR
         ;;
     *)
@@ -83,7 +91,9 @@ case "$STATUS" in
         ICON_COLOR=0xffffffff
         sketchybar --set tailscale \
             drawing=on \
-            background.color=$BG_COLOR \
+            background.color=0x00000000 \
+            background.border_color=$BG_COLOR \
+            background.border_width=1 \
             icon.color=$ICON_COLOR
         ;;
 esac

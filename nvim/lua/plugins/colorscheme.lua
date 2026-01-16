@@ -14,8 +14,8 @@ return {
     local highlights = {
       Normal = { bg = "none" },
       LineNr = { bg = "none" },
-      CursorLine = { bg = "none", cterm = "none", gui = "none" },
-      CursorLineNr = { bg = "none", cterm = "underline", gui = "underline" },
+      CursorLine = { bg = "none" },
+      CursorLineNr = { bg = "none", underline = true },
       NonText = { bg = "none" },
       EndOfBuffer = { bg = "none" },
       SignColumn = { bg = "none" },

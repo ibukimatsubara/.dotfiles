@@ -163,5 +163,5 @@ sketchybar --set pomodoro \
     icon="$DISPLAY" \
     background.color="$BG_COLOR" \
     background.border_color="$BORDER_COLOR" \
-    background.border_width=2 \
+    background.border_width=1 \
     icon.color="$ICON_COLOR"

@@ -9,11 +9,10 @@ tailscale=(
   icon.padding_left=8
   icon.padding_right=8
   label.drawing=off
-  background.corner_radius=6
-  background.height=28
+  background.corner_radius=0
   background.drawing=on
   click_script="$PLUGIN_DIR/tailscale_toggle.sh"
 )
 
-sketchybar --add item tailscale right \
+sketchybar --add item tailscale center \
            --set tailscale "${tailscale[@]}"

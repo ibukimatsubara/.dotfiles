@@ -71,6 +71,25 @@ nvim ~/.config/kitty/kitty.conf
 - `Ctrl+Shift+F5` を押す
 - またはKittyを再起動
 
+## ライト/ダークモードの切り替え
+
+`scripts/kitty-theme-toggle.sh` で `theme.conf` を張り替えてライト/ダークを即切り替えできます。Kittyが起動中なら `SIGUSR1` を送り即リロードします。
+
+```bash
+# 現在のテーマを確認
+~/.dotfiles/scripts/kitty-theme-toggle.sh status
+
+# ライト（white）/ダークを直接指定
+~/.dotfiles/scripts/kitty-theme-toggle.sh light
+~/.dotfiles/scripts/kitty-theme-toggle.sh dark
+
+# 引数なしでトグル
+~/.dotfiles/scripts/kitty-theme-toggle.sh
+```
+
+- `setup.sh` 実行時はデフォルトでダークテーマにリンクされます。
+- `theme.conf` が見つからない場合はスクリプトが自動で作成します。
+
 ## インタラクティブなテーマ選択
 
 Kittyの組み込み機能でテーマをプレビューしながら選択：

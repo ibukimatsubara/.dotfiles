@@ -35,3 +35,7 @@ alias sb='singularity build --fakeroot Singularity.def Singularity.sif'
 alias ac='(){acc new abc$1 -c all}'
 alias at='(){oj t -c "python3 ./$1/main.py" -d ./$1/tests/}'
 alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd -}'
+
+# AI Tools (auto-accept mode)
+alias claudec='claude --dangerously-skip-permissions'
+alias codexc='codex --full-auto'

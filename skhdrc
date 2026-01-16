@@ -8,16 +8,14 @@
 # ========================================
 # 6. アプリケーション起動
 # ========================================
-# 新しいターミナルウィンドウを起動
-ctrl - t : open -n -a "kitty"
-
 # アプリケーション切り替え（cmd + 数字キー）
 # 開いていればフォーカス、なければ起動
-cmd - 1 : open -a "kitty"
-cmd - 2 : osascript -e 'tell application id "com.openai.atlas" to activate'
-cmd - 3 : open -a "Visual Studio Code"
+cmd - 1 : open -a "Ghostty"
+cmd - 2 : open -a "Google Chrome"
+cmd - 3 : open -a "Antigravity"
 cmd - 4 : open -a "Slack"
 cmd - 5 : open -a "Notion"
+cmd - 6 : open -a "Figma"
 
 # ========================================
 # 7. Pomodoro Timer制御

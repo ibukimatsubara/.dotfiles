@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Notifications item
-sketchybar --add item notifications right \
+sketchybar --add item notifications center \
            --set notifications \
                  script="$PLUGIN_DIR/notifications.sh" \
                  update_freq=30 \
@@ -10,7 +10,6 @@ sketchybar --add item notifications right \
                  icon.padding_left=8 \
                  icon.padding_right=8 \
                  label.drawing=off \
-                 background.color=0xff1a202c \
-                 background.corner_radius=6 \
-                 background.height=28 \
+                 background.color=$BAR_COLOR \
+                 background.corner_radius=0 \
                  background.drawing=on

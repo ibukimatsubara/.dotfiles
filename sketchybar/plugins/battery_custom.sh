@@ -37,4 +37,6 @@ sketchybar --set battery \
   icon="$ICON" \
   icon.color=$COLOR \
   label="${PERCENTAGE}%" \
-  background.color=0x33$(echo $COLOR | cut -c 5-)
+  background.color=0x00000000 \
+  background.border_color=$COLOR \
+  background.border_width=1

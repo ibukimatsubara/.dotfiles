@@ -19,21 +19,17 @@ sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
 # source "$ITEM_DIR/spaces.sh"  # Disabled
 # source "$ITEM_DIR/front_app.sh"  # Disabled
 
-# Right side - essential items with modern design
+# Center - essential items with modern design
 source "$ITEM_DIR/tailscale.sh"
 source "$ITEM_DIR/notifications.sh"
 source "$ITEM_DIR/battery_custom.sh"
 source "$ITEM_DIR/datetime_custom.sh"
 source "$ITEM_DIR/pomodoro.sh"
 
-# Add bracket to group all right-side items
+# Add bracket to group all center items
 sketchybar --add bracket status_group tailscale notifications battery datetime pomodoro \
-           --set status_group background.color=0xff1a202c \
-                             background.corner_radius=10 \
-                             background.height=34 \
-                             background.padding_left=8 \
-                             background.padding_right=8 \
-                             background.drawing=on
+           --set status_group background.drawing=off \
+                             position=center
 
 sketchybar --hotload on
 sketchybar --update

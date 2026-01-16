@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Pomodoro timer item (always visible)
-sketchybar --add item pomodoro right \
+sketchybar --add item pomodoro center \
            --set pomodoro \
                  script="$PLUGIN_DIR/pomodoro.sh" \
                  update_freq=1 \
@@ -12,11 +12,10 @@ sketchybar --add item pomodoro right \
                  icon.width=65 \
                  icon.align=center \
                  label.drawing=off \
-                 background.color=0xff1a202c \
+                 background.color=$BAR_COLOR \
                  background.border_color=0xffff79c6 \
-                 background.border_width=2 \
-                 background.corner_radius=6 \
-                 background.height=28 \
+                 background.border_width=1 \
+                 background.corner_radius=0 \
                  background.drawing=on \
                  drawing=on \
            --subscribe pomodoro mouse.clicked \

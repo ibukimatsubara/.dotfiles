@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Custom Battery with visual indicator
-sketchybar --add item battery right \
+sketchybar --add item battery center \
            --set battery \
                  script="$PLUGIN_DIR/battery_custom.sh" \
                  update_freq=10 \
@@ -12,8 +12,7 @@ sketchybar --add item battery right \
                  label.font="SF Pro Display:Medium:12" \
                  label.color=0xffffffff \
                  label.padding_right=8 \
-                 background.color=0xff2d3748 \
-                 background.corner_radius=6 \
-                 background.height=28 \
+                 background.color=$BAR_COLOR \
+                 background.corner_radius=0 \
                  background.drawing=on \
                  click_script="open -a 'Activity Monitor'"

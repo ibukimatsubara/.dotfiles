@@ -41,6 +41,7 @@ create_directories() {
         mkdir -p ~/.config/sketchybar
         mkdir -p ~/.config/borders
         mkdir -p ~/.config/kitty
+        mkdir -p ~/.config/ghostty
     fi
 
     print_success "Directories created"
@@ -186,6 +187,24 @@ link_macos_configs() {
         print_success "Linked kitty configuration"
     else
         print_warning "kitty.conf not found in dotfiles"
+    fi
+
+    # kitty color theme link (defaults to dark)
+    if [ -f ~/.dotfiles/kitty/colors/dark.conf ]; then
+        backup_file ~/.config/kitty/theme.conf
+        ln -sf ~/.dotfiles/kitty/colors/dark.conf ~/.config/kitty/theme.conf
+        print_success "Linked kitty default theme (dark)"
+    else
+        print_warning "kitty dark theme definition not found"
+    fi
+
+    # Ghostty configuration
+    if [ -f ~/.dotfiles/ghostty/config ]; then
+        backup_file ~/.config/ghostty/config
+        ln -sf ~/.dotfiles/ghostty/config ~/.config/ghostty/config
+        print_success "Linked Ghostty configuration"
+    else
+        print_warning "Ghostty config not found in dotfiles"
     fi
 }
 
