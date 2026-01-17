@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# claudec - claude with --dangerously-skip-permissions
+exec claude --dangerously-skip-permissions "$@"

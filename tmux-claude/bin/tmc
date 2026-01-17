@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+#
+# tmc - tmux claude session manager
+# Automatically saves and restores Claude Code sessions per tmux pane
+#
+
+set -euo pipefail
+
+TMC_DATA_DIR="${HOME}/.tmux-claude"
+TMC_VERSION="0.1.0"
+
+# Determine claude command based on how this script was called
+# tmc -> claude, tmcc -> claudec
+SCRIPT_NAME=$(basename "$0")
+if [[ "$SCRIPT_NAME" == "tmcc" ]]; then
+  TMC_CLAUDE_CMD="${TMC_CLAUDE_CMD:-claudec}"
+else
+  TMC_CLAUDE_CMD="${TMC_CLAUDE_CMD:-claude}"
+fi
+
+# Encode directory path (same format as Claude CLI)
+encode_path() {
+  echo "$1" | sed 's|/|-|g'
+}
+
+# Get Claude projects directory for current working directory
+get_claude_project_dir() {
+  local encoded_path
+  encoded_path=$(encode_path "$(pwd)")
+  echo "${HOME}/.claude/projects/${encoded_path}"
+}
+
+# Get latest session ID from Claude project directory
+get_latest_claude_session() {
+  local project_dir="$1"
+  if [[ -d "$project_dir" ]]; then
+    # Find most recently modified .jsonl file (excluding agent-* files)
+    # macOS compatible version using stat
+    local latest_file
+    latest_file=$(ls -t "$project_dir"/*.jsonl 2>/dev/null | grep -v 'agent-' | head -1)
+    if [[ -n "$latest_file" ]]; then
+      basename "$latest_file" .jsonl
+    fi
+  fi
+}
+
+# Get session file path for current pane
+get_session_file() {
+  local pane_id="${TMUX_PANE:-standalone}"
+  local cwd_hash
+  # macOS uses md5, Linux uses md5sum
+  if command -v md5 &>/dev/null; then
+    cwd_hash=$(echo "$(pwd)" | md5 | cut -c1-8)
+  else
+    cwd_hash=$(echo "$(pwd)" | md5sum | cut -c1-8)
+  fi
+  echo "${TMC_DATA_DIR}/${pane_id}_${cwd_hash}.session"
+}
+
+# Save session ID
+save_session() {
+  local session_id="$1"
+  local session_file
+  session_file=$(get_session_file)
+
+  mkdir -p "${TMC_DATA_DIR}"
+  echo "$session_id" > "$session_file"
+}
+
+# Load saved session ID
+load_session() {
+  local session_file
+  session_file=$(get_session_file)
+
+  if [[ -f "$session_file" ]]; then
+    cat "$session_file"
+  fi
+}
+
+# Check if session ID is valid (exists in Claude projects)
+is_valid_session() {
+  local session_id="$1"
+  local project_dir
+  project_dir=$(get_claude_project_dir)
+
+  [[ -f "${project_dir}/${session_id}.jsonl" ]]
+}
+
+# List saved sessions
+list_sessions() {
+  echo "Saved tmc sessions:"
+  echo "==================="
+  if [[ -d "$TMC_DATA_DIR" ]]; then
+    local files
+    files=$(ls "${TMC_DATA_DIR}"/*.session 2>/dev/null || true)
+    if [[ -n "$files" ]]; then
+      for f in $files; do
+        if [[ -f "$f" ]]; then
+          local session_id
+          session_id=$(cat "$f")
+          echo "  $(basename "$f" .session): $session_id"
+        fi
+      done
+    else
+      echo "  No sessions saved yet."
+    fi
+  else
+    echo "  No sessions saved yet."
+  fi
+}
+
+# Clean up invalid sessions
+clean_sessions() {
+  echo "Cleaning invalid sessions..."
+  local count=0
+  if [[ -d "$TMC_DATA_DIR" ]]; then
+    local files
+    files=$(ls "${TMC_DATA_DIR}"/*.session 2>/dev/null || true)
+    if [[ -n "$files" ]]; then
+      for f in $files; do
+        if [[ -f "$f" ]]; then
+          local session_id
+          session_id=$(cat "$f")
+          # Remove if session file doesn't exist in any project
+          if ! find "${HOME}/.claude/projects" -name "${session_id}.jsonl" -type f 2>/dev/null | grep -q .; then
+            rm "$f"
+            count=$((count + 1))
+          fi
+        fi
+      done
+    fi
+  fi
+  echo "Removed $count invalid session(s)."
+}
+
+# Main run function
+run_claude() {
+  local force_new=false
+  local claude_args=()
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --new|-n)
+        force_new=true
+        shift
+        ;;
+      *)
+        claude_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  local saved_session
+  saved_session=$(load_session)
+
+  local project_dir
+  project_dir=$(get_claude_project_dir)
+
+  # Get current latest session before starting claude
+  local pre_session
+  pre_session=$(get_latest_claude_session "$project_dir")
+
+  if [[ "$force_new" == false ]] && [[ -n "$saved_session" ]] && is_valid_session "$saved_session"; then
+    echo "[tmc] Resuming session: $saved_session"
+    "$TMC_CLAUDE_CMD" --resume "$saved_session" "${claude_args[@]}"
+  else
+    if [[ -n "$saved_session" ]]; then
+      echo "[tmc] Previous session invalid or --new specified, starting fresh..."
+    fi
+    "$TMC_CLAUDE_CMD" "${claude_args[@]}"
+  fi
+
+  # After claude exits, save the latest session ID
+  local post_session
+  post_session=$(get_latest_claude_session "$project_dir")
+
+  if [[ -n "$post_session" ]]; then
+    save_session "$post_session"
+    echo "[tmc] Session saved: $post_session"
+  fi
+}
+
+# Show usage
+usage() {
+  cat <<EOF
+tmc - tmux claude session manager v${TMC_VERSION}
+
+Usage:
+  tmc [options] [claude-args...]
+
+Options:
+  --new, -n     Start a new session (ignore saved session)
+  --list, -l    List saved sessions
+  --clean, -c   Clean up invalid sessions
+  --help, -h    Show this help message
+
+Environment Variables:
+  TMC_CLAUDE_CMD    Claude command to use (default: claude)
+
+Examples:
+  tmc                           # Resume or start claude session
+  tmc --new                     # Force new session
+  tmc --list                    # Show saved sessions
+  TMC_CLAUDE_CMD=claudec tmc    # Use claudec instead of claude
+
+The session is automatically saved when claude exits and
+restored when tmc is run again in the same tmux pane + directory.
+EOF
+}
+
+# Main entry point
+main() {
+  case "${1:-}" in
+    --help|-h)
+      usage
+      ;;
+    --list|-l)
+      list_sessions
+      ;;
+    --clean|-c)
+      clean_sessions
+      ;;
+    --version|-v)
+      echo "tmc version ${TMC_VERSION}"
+      ;;
+    *)
+      run_claude "$@"
+      ;;
+  esac
+}
+
+main "$@"

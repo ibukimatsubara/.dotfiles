@@ -1,6 +1,9 @@
 #!/usr/bin/env zsh
 # Main zsh configuration file that sources all modules
 
+# Add dotfiles bin directories to PATH
+export PATH="$HOME/.dotfiles/tmux-claude/bin:$PATH"
+
 # Source configuration files
 for config in ~/.dotfiles/zsh/configs/*.zsh; do
   source $config
