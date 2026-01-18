@@ -38,3 +38,10 @@ keybind = super+q=quit
 
 # ターミナル設定
 term = xterm-256color
+
+# カーソル設定
+cursor-style = block
+
+# カスタムシェーダー (カーソルトレイル)
+custom-shader = ~/.dotfiles/ghostty/shaders/cursor_blaze.glsl
+custom-shader-animation = always
