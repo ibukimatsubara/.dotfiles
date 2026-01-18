@@ -23,3 +23,6 @@ fi
 
 # Load local configuration if exists
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+# Initialize zoxide (smart cd)
+eval "$(zoxide init zsh)"

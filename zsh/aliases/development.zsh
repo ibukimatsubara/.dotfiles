@@ -39,3 +39,6 @@ alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd
 # AI Tools (auto-accept mode)
 alias claudec='claude --dangerously-skip-permissions'
 alias codexc='codex --full-auto'
+
+# lazygit
+alias lg='lazygit'
