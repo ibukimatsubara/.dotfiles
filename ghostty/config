@@ -22,8 +22,11 @@ window-decoration = false
 # macOSでOptionキーをAltとして使用
 macos-option-as-alt = true
 
-# URL検出
+# URL検出 (Cmd+クリックで開く)
 link-url = true
+
+# Shiftキーのマウス動作を変更（選択拡張を無効化）
+mouse-shift-capture = always
 
 # スクロール設定 (Ghosttyはデフォルトで滑らかなスクロール)
 # wheel_scroll_multiplier相当の設定はなし
