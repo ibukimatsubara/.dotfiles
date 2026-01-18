@@ -1,8 +1,11 @@
 # Ghostty Configuration
 # Kitty設定から移行
 
-# テーマ (Catppuccin Mocha - Ghostty組み込み)
-theme = Catppuccin Mocha
+# テーマ
+theme = GitHub Dark
+
+# テーマの文字色を上書き（より明るい白に）
+foreground = #e6e6e6
 
 # フォント設定
 font-family = Hack Nerd Font Mono
