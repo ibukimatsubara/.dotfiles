@@ -1,2 +1,10 @@
 .env
 ghostty/wallpapers/*
+
+# Temp/generated files
+.cache/
+.local/
+.nvimlog
+*.log
+nvim/lazy-lock.json
+nvim/*.bak-*
