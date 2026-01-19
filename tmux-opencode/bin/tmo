@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+#
+# tmo - tmux opencode session manager
+# Automatically saves and restores OpenCode sessions per tmux pane
+#
+
+set -euo pipefail
+
+TMO_DATA_DIR="${HOME}/.tmux-opencode"
+TMO_VERSION="0.1.0"
+
+# Get session file path for current pane
+get_session_file() {
+  local pane_id="${TMUX_PANE:-standalone}"
+  local cwd_hash
+  # macOS uses md5, Linux uses md5sum
+  if command -v md5 &>/dev/null; then
+    cwd_hash=$(echo "$(pwd)" | md5 | cut -c1-8)
+  else
+    cwd_hash=$(echo "$(pwd)" | md5sum | cut -c1-8)
+  fi
+  echo "${TMO_DATA_DIR}/${pane_id}_${cwd_hash}.session"
+}
+
+# Save session ID
+save_session() {
+  local session_id="$1"
+  local session_file
+  session_file=$(get_session_file)
+
+  mkdir -p "${TMO_DATA_DIR}"
+  echo "$session_id" > "$session_file"
+}
+
+# Load saved session ID
+load_session() {
+  local session_file
+  session_file=$(get_session_file)
+
+  if [[ -f "$session_file" ]]; then
+    cat "$session_file"
+  fi
+}
+
+# Check if session ID is valid using opencode session list
+is_valid_session() {
+  local session_id="$1"
+  opencode session list 2>/dev/null | grep -q "$session_id"
+}
+
+# Get latest session ID from opencode
+get_latest_session() {
+  # Get the first session ID from the list (most recent)
+  opencode session list 2>/dev/null | tail -n +3 | head -1 | awk '{print $1}'
+}
+
+# List saved sessions
+list_sessions() {
+  echo "Saved tmo sessions:"
+  echo "==================="
+  if [[ -d "$TMO_DATA_DIR" ]]; then
+    local files
+    files=$(ls "${TMO_DATA_DIR}"/*.session 2>/dev/null || true)
+    if [[ -n "$files" ]]; then
+      for f in $files; do
+        if [[ -f "$f" ]]; then
+          local session_id
+          session_id=$(cat "$f")
+          echo "  $(basename "$f" .session): $session_id"
+        fi
+      done
+    else
+      echo "  No sessions saved yet."
+    fi
+  else
+    echo "  No sessions saved yet."
+  fi
+}
+
+# Clean up invalid sessions
+clean_sessions() {
+  echo "Cleaning invalid sessions..."
+  local count=0
+  if [[ -d "$TMO_DATA_DIR" ]]; then
+    local files
+    files=$(ls "${TMO_DATA_DIR}"/*.session 2>/dev/null || true)
+    if [[ -n "$files" ]]; then
+      for f in $files; do
+        if [[ -f "$f" ]]; then
+          local session_id
+          session_id=$(cat "$f")
+          if ! is_valid_session "$session_id"; then
+            rm "$f"
+            count=$((count + 1))
+          fi
+        fi
+      done
+    fi
+  fi
+  echo "Removed $count invalid session(s)."
+}
+
+# Main run function
+run_opencode() {
+  local force_new=false
+  local opencode_args=()
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --new|-n)
+        force_new=true
+        shift
+        ;;
+      *)
+        opencode_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  local saved_session
+  saved_session=$(load_session)
+
+  if [[ "$force_new" == false ]] && [[ -n "$saved_session" ]] && is_valid_session "$saved_session"; then
+    echo "[tmo] Resuming session: $saved_session"
+    opencode --session "$saved_session" "${opencode_args[@]}"
+  else
+    if [[ -n "$saved_session" ]]; then
+      echo "[tmo] Previous session invalid or --new specified, starting fresh..."
+    fi
+    opencode "${opencode_args[@]}"
+  fi
+
+  # After opencode exits, save the latest session ID
+  local post_session
+  post_session=$(get_latest_session)
+
+  if [[ -n "$post_session" ]]; then
+    save_session "$post_session"
+    echo "[tmo] Session saved: $post_session"
+  fi
+}
+
+# Show usage
+usage() {
+  cat <<EOF
+tmo - tmux opencode session manager v${TMO_VERSION}
+
+Usage:
+  tmo [options] [opencode-args...]
+
+Options:
+  --new, -n     Start a new session (ignore saved session)
+  --list, -l    List saved sessions
+  --clean, -c   Clean up invalid sessions
+  --help, -h    Show this help message
+
+Examples:
+  tmo                           # Resume or start opencode session
+  tmo --new                     # Force new session
+  tmo --list                    # Show saved sessions
+  tmo -m anthropic/claude-sonnet-4-5  # Use specific model
+
+The session is automatically saved when opencode exits and
+restored when tmo is run again in the same tmux pane + directory.
+EOF
+}
+
+# Main entry point
+main() {
+  case "${1:-}" in
+    --help|-h)
+      usage
+      ;;
+    --list|-l)
+      list_sessions
+      ;;
+    --clean|-c)
+      clean_sessions
+      ;;
+    --version|-v)
+      echo "tmo version ${TMO_VERSION}"
+      ;;
+    *)
+      run_opencode "$@"
+      ;;
+  esac
+}
+
+main "$@"
