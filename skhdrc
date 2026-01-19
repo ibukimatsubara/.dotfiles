@@ -29,3 +29,9 @@ alt - p : if [ "$(sketchybar --query pomodoro | jq -r '.geometry.drawing')" = "o
 
 # Pomodoroモード切り替え
 shift + alt - p : CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked.right" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
+
+# ========================================
+# 8. SketchyBar表示切り替え
+# ========================================
+# alt + b でSketchyBarの表示/非表示を切り替え
+alt - b : sketchybar --bar hidden=toggle
