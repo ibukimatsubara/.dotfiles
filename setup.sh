@@ -34,6 +34,9 @@ create_directories() {
     mkdir -p ~/.local/share/nvim/undo
     mkdir -p ~/.local/share/nvim/session
 
+    # OpenCode directory
+    mkdir -p ~/.config/opencode
+
     # macOS-specific directories
     if is_macos; then
         mkdir -p ~/.config/yabai
@@ -208,6 +211,19 @@ link_macos_configs() {
     fi
 }
 
+# Link OpenCode configuration
+link_opencode() {
+    print_info "🤖 Linking OpenCode configuration..."
+
+    if [ -f ~/.dotfiles/opencode/opencode.json ]; then
+        backup_file ~/.config/opencode/opencode.json
+        ln -sf ~/.dotfiles/opencode/opencode.json ~/.config/opencode/opencode.json
+        print_success "Linked opencode.json"
+    else
+        print_warning "opencode.json not found in dotfiles"
+    fi
+}
+
 # Install Neovim plugins
 install_neovim_plugins() {
     print_info "📦 Installing Neovim plugins..."
@@ -306,6 +322,9 @@ main() {
     echo ""
 
     install_neovim_plugins
+    echo ""
+
+    link_opencode
     echo ""
 
     print_success "✅ Dotfiles configuration setup complete!"
