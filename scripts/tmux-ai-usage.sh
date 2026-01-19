@@ -65,24 +65,24 @@ if [ -n "$CLAUDE_PRIMARY" ]; then
     OUTPUT+="#[fg=#ff79c6]Claude#[fg=default] ${BAR_P} ${BAR_S}  "
 fi
 
-# Codex (OpenAI)
-CODEX_PRIMARY=$(jq -r '.[] | select(.provider == "codex") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
-CODEX_SECONDARY=$(jq -r '.[] | select(.provider == "codex") | .usage.secondary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
-if [ -n "$CODEX_PRIMARY" ]; then
-    CODEX_REM_P=$((100 - CODEX_PRIMARY))
-    CODEX_REM_S=$((100 - CODEX_SECONDARY))
-    BAR_P=$(make_bar $CODEX_REM_P)
-    BAR_S=$(make_bar $CODEX_REM_S)
-    OUTPUT+="#[fg=#79c0ff]Codex#[fg=default] ${BAR_P} ${BAR_S}  "
-fi
+# Codex (OpenAI) - disabled, uncomment to enable
+# CODEX_PRIMARY=$(jq -r '.[] | select(.provider == "codex") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
+# CODEX_SECONDARY=$(jq -r '.[] | select(.provider == "codex") | .usage.secondary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
+# if [ -n "$CODEX_PRIMARY" ]; then
+#     CODEX_REM_P=$((100 - CODEX_PRIMARY))
+#     CODEX_REM_S=$((100 - CODEX_SECONDARY))
+#     BAR_P=$(make_bar $CODEX_REM_P)
+#     BAR_S=$(make_bar $CODEX_REM_S)
+#     OUTPUT+="#[fg=#79c0ff]Codex#[fg=default] ${BAR_P} ${BAR_S}  "
+# fi
 
-# Gemini
-GEMINI_PRIMARY=$(jq -r '.[] | select(.provider == "gemini") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
-if [ -n "$GEMINI_PRIMARY" ]; then
-    GEMINI_REM=$((100 - GEMINI_PRIMARY))
-    BAR=$(make_bar $GEMINI_REM)
-    OUTPUT+="#[fg=#bd93f9]Gemini#[fg=default] ${BAR}  "
-fi
+# Gemini - disabled, uncomment to enable
+# GEMINI_PRIMARY=$(jq -r '.[] | select(.provider == "gemini") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
+# if [ -n "$GEMINI_PRIMARY" ]; then
+#     GEMINI_REM=$((100 - GEMINI_PRIMARY))
+#     BAR=$(make_bar $GEMINI_REM)
+#     OUTPUT+="#[fg=#bd93f9]Gemini#[fg=default] ${BAR}  "
+# fi
 
 # GitHub Copilot
 COPILOT_PRIMARY=$(jq -r '.[] | select(.provider == "copilot") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
