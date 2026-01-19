@@ -11,11 +11,11 @@ FONT="SF Pro Display"
 
 # Modern Bar Appearance
 bar=(
-  color=0x00000000
+  color=0xcc282a36
   position=top
   topmost=window
   sticky=on
-  height=38
+  height=25
   padding_left=10
   padding_right=10
   corner_radius=0
