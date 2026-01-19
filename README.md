@@ -57,6 +57,7 @@ cd .dotfiles
 
 Optional for full features:
 - [Claude Code CLI](https://claude.ai/code) (for AI commits)
+- [codexbar](https://github.com/1vket/codexbar) (for AI usage display in tmux/SketchyBar)
 - Docker, AWS CLI, Flutter, Poetry/uv
 
 ## 🎯 Key Features
@@ -80,6 +81,7 @@ Optional for full features:
 - **Right-click paste**: Natural workflow
 - **Session auto-save**: Resume your work after restart
 - **Cross-pane selection**: Option+drag for terminal-style selection
+- **AI usage display**: Shows Claude/Copilot usage in status bar (requires codexbar)
 
 ### macOS Window Management
 - **yabai**: Tiling window manager for efficient workspace organization

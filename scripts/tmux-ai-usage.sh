@@ -25,11 +25,14 @@ if [ ! -f "$CACHE_FILE" ]; then
     exit 0
 fi
 
-# キャッシュが古すぎる場合（15分以上）
+# キャッシュが古すぎる場合（2分以上）は強制更新を試みる
 CACHE_AGE=$(($(date +%s) - $(stat -f %m "$CACHE_FILE" 2>/dev/null || echo 0)))
-if [ "$CACHE_AGE" -gt 900 ]; then
-    echo "AI: stale"
-    exit 0
+if [ "$CACHE_AGE" -gt 120 ]; then
+    # バックグラウンドで更新を試みる（表示をブロックしない）
+    if ! refresh_cache; then
+        echo "AI: stale"
+        exit 0
+    fi
 fi
 
 # jqがない場合はシンプルな出力
