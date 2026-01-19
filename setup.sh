@@ -224,6 +224,33 @@ link_opencode() {
     fi
 }
 
+# Setup launchd agents (macOS background tasks)
+setup_launchd() {
+    if ! is_macos; then
+        return
+    fi
+
+    print_info "⏰ Setting up launchd agents..."
+
+    mkdir -p ~/Library/LaunchAgents
+
+    # AI usage cache agent
+    if [ -f ~/.dotfiles/launchd/com.dotfiles.ai-usage-cache.plist ]; then
+        # Unload if already loaded
+        launchctl unload ~/Library/LaunchAgents/com.dotfiles.ai-usage-cache.plist 2>/dev/null
+
+        backup_file ~/Library/LaunchAgents/com.dotfiles.ai-usage-cache.plist
+        ln -sf ~/.dotfiles/launchd/com.dotfiles.ai-usage-cache.plist ~/Library/LaunchAgents/
+
+        # Load the agent
+        launchctl load ~/Library/LaunchAgents/com.dotfiles.ai-usage-cache.plist
+        print_success "Linked and loaded AI usage cache launchd agent"
+        print_info "  Note: Requires 'codexbar' CLI (brew install steipete/tap/codexbar)"
+    else
+        print_warning "AI usage cache plist not found in dotfiles"
+    fi
+}
+
 # Install Neovim plugins
 install_neovim_plugins() {
     print_info "📦 Installing Neovim plugins..."
@@ -325,6 +352,9 @@ main() {
     echo ""
 
     link_opencode
+    echo ""
+
+    setup_launchd
     echo ""
 
     print_success "✅ Dotfiles configuration setup complete!"
