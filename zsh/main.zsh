@@ -1,6 +1,11 @@
 #!/usr/bin/env zsh
 # Main zsh configuration file that sources all modules
 
+# Ghostty起動時にランダム壁紙を設定
+if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
+  ~/.dotfiles/ghostty/random-wallpaper.sh >/dev/null 2>&1
+fi
+
 # Add dotfiles bin directories to PATH
 export PATH="$HOME/.dotfiles/tmux-claude/bin:$PATH"
 

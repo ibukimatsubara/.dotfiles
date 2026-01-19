@@ -15,7 +15,7 @@ font-size = 14
 background-opacity = 1.0
 
 # 背景画像
-background-image = /Users/ketiv/Downloads/aaaa.jpg
+background-image = /Users/ketiv/.dotfiles/ghostty/wallpapers/aaaa.jpg
 background-image-opacity = 0.2
 background-image-fit = contain
 
