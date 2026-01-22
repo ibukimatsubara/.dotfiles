@@ -15,16 +15,14 @@ launchctl unload -F /System/Library/LaunchAgents/com.apple.OSDUIHelper.plist > /
 sketchybar --bar "${bar[@]}" --default "${item_defaults[@]}"
 
 # Custom minimal design - only essential items
-# Left side - Spaces only
-# source "$ITEM_DIR/spaces.sh"  # Disabled
-# source "$ITEM_DIR/front_app.sh"  # Disabled
 
 # Right side - 右から左に配置される
-# 表示順 (左から右): Claude Copilot Zed | CPU MEM BAT | Pomodoro | 日時
+# 表示順 (左から右): TMUX sessions | Claude Copilot Zed | CPU MEM BAT | Pomodoro | 日時
 source "$ITEM_DIR/datetime.sh"
 source "$ITEM_DIR/pomodoro.sh"
 source "$ITEM_DIR/system_stats.sh"
 source "$ITEM_DIR/ai_usage.sh"
+source "$ITEM_DIR/tmux_sessions.sh"
 
 sketchybar --hotload on
 sketchybar --update

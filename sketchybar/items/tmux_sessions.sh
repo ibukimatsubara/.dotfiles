@@ -2,14 +2,20 @@
 
 source "$CONFIG_DIR/colors.sh"
 
-PINK=$(getcolor maroon)
-GREY=$(getcolor white 50)
+# 色定義（他のアイテムと統一）
+GREY="0xff6272a4"
+WHITE="0xfff8f8f2"
 
-sketchybar --add item tmux_sessions left \
+# 右側に配置（AI使用量の左に表示）
+sketchybar --add item tmux_sessions right \
            --set tmux_sessions \
                  update_freq=5 \
                  script="$CONFIG_DIR/plugins/tmux_sessions.sh" \
-                 label.font="Hack Nerd Font Mono:Regular:12" \
-                 label.color=$GREY \
-                 icon.drawing=off \
-                 background.drawing=off
+                 icon="TMUX" \
+                 icon.font="Hack Nerd Font Mono:Bold:11" \
+                 icon.color=$GREY \
+                 icon.padding_right=6 \
+                 label.font="Hack Nerd Font Mono:Regular:11" \
+                 label.color=$WHITE \
+                 background.drawing=off \
+                 padding_left=20
