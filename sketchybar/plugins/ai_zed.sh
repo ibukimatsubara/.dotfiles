@@ -47,7 +47,7 @@ time_until() {
     fi
 }
 
-# 色を残り%で決定 (SketchyBar形式)
+# 色を残り%で決定
 get_color() {
     local remaining=$1
     if [ "$remaining" -ge 50 ]; then
@@ -64,25 +64,18 @@ if [ ! -f "$CACHE_FILE" ]; then
     exit 0
 fi
 
-CLAUDE_P=$(jq -r '.[] | select(.provider == "claude") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
-CLAUDE_S=$(jq -r '.[] | select(.provider == "claude") | .usage.secondary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
-CLAUDE_RESET_P=$(jq -r '.[] | select(.provider == "claude") | .usage.primary.resetsAt // empty' "$CACHE_FILE" 2>/dev/null)
-CLAUDE_RESET_S=$(jq -r '.[] | select(.provider == "claude") | .usage.secondary.resetsAt // empty' "$CACHE_FILE" 2>/dev/null)
+ZAI_P=$(jq -r '.[] | select(.provider == "zai") | .usage.primary.usedPercent // empty' "$CACHE_FILE" 2>/dev/null)
+ZAI_RESET_P=$(jq -r '.[] | select(.provider == "zai") | .usage.primary.resetsAt // empty' "$CACHE_FILE" 2>/dev/null)
 
-if [ -n "$CLAUDE_P" ]; then
-    REM_P=$((100 - CLAUDE_P))
-    REM_S=$((100 - CLAUDE_S))
+if [ -n "$ZAI_P" ]; then
+    REM_P=$((100 - ZAI_P))
     BAR_P=$(make_bar $REM_P)
-    BAR_S=$(make_bar $REM_S)
-    TIME_P=$(time_until "$CLAUDE_RESET_P")
-    TIME_S=$(time_until "$CLAUDE_RESET_S")
+    TIME=$(time_until "$ZAI_RESET_P")
     COLOR=$(get_color $REM_P)
     
     # 名前はアイコンで表示されるので、ラベルには数値のみ
     LABEL="${REM_P}% ${BAR_P}"
-    [ -n "$TIME_P" ] && LABEL+=" ${TIME_P}"
-    LABEL+=" ${REM_S}% ${BAR_S}"
-    [ -n "$TIME_S" ] && LABEL+=" ${TIME_S}"
+    [ -n "$TIME" ] && LABEL+=" ${TIME}"
     
     sketchybar --set $NAME label="$LABEL" label.color=$COLOR
 else

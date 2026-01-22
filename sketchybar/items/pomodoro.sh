@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# Pomodoro timer item (always visible)
-sketchybar --add item pomodoro center \
+# Pomodoro timer item (右側、日時の左に配置)
+# 他のアイテムと同じスタイル（枠線なし、アイコン+ラベル形式）
+GREY="0xff6272a4"
+PINK="0xffff79c6"
+
+sketchybar --add item pomodoro right \
            --set pomodoro \
                  script="$PLUGIN_DIR/pomodoro.sh" \
                  update_freq=1 \
-                 icon.font="sketchybar-app-font:Regular:14" \
-                 icon.color=0xffff79c6 \
-                 icon.padding_left=6 \
+                 icon="POM" \
+                 icon.font="Hack Nerd Font Mono:Bold:11" \
+                 icon.color=$GREY \
                  icon.padding_right=6 \
-                 icon.width=65 \
-                 icon.align=center \
-                 label.drawing=off \
-                 background.color=$BAR_COLOR \
-                 background.border_color=0xffff79c6 \
-                 background.border_width=1 \
-                 background.corner_radius=0 \
-                 background.drawing=on \
+                 label.font="Hack Nerd Font Mono:Regular:11" \
+                 label.color=$PINK \
+                 background.drawing=off \
+                 padding_left=15 \
                  drawing=on \
            --subscribe pomodoro mouse.clicked \
            --subscribe pomodoro mouse.clicked.right

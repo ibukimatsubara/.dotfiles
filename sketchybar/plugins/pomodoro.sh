@@ -158,10 +158,13 @@ if [ "$STATUS" = "running" ] && [ -f "$TIME_FILE" ]; then
     fi
 fi
 
-# Update SketchyBar
+# Update SketchyBar (他のアイテムと同じスタイル)
+# アイコンはPOM固定、ラベルに時間とモードアイコンを表示
+GREY="0xff6272a4"
+
 sketchybar --set pomodoro \
-    icon="$DISPLAY" \
-    background.color="$BG_COLOR" \
-    background.border_color="$BORDER_COLOR" \
-    background.border_width=1 \
-    icon.color="$ICON_COLOR"
+    icon="POM" \
+    icon.color=$GREY \
+    label="$ICON $TIME_DISPLAY" \
+    label.color="$ICON_COLOR" \
+    label.drawing=on
