@@ -7,6 +7,7 @@ GREY="0xff6272a4"
 WHITE="0xfff8f8f2"
 
 # 右側に配置（AI使用量の左に表示）
+# マウスホバーで一時非表示
 sketchybar --add item tmux_sessions right \
            --set tmux_sessions \
                  update_freq=5 \
@@ -17,5 +18,6 @@ sketchybar --add item tmux_sessions right \
                  icon.padding_right=6 \
                  label.font="Hack Nerd Font Mono:Regular:11" \
                  label.color=$WHITE \
-                 background.drawing=off \
-                 padding_left=20
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe tmux_sessions mouse.entered

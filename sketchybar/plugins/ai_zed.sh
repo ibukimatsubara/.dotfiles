@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# マウスホバー時はバー全体を非表示
+if [ "$SENDER" = "mouse.entered" ]; then
+    source "$CONFIG_DIR/plugins/bar_hover.sh"
+    exit 0
+fi
+
 CACHE_FILE="$HOME/.cache/ai-usage.json"
 
 make_bar() {

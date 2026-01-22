@@ -9,6 +9,7 @@ ORANGE="0xffffb86c"    # Zed
 
 # 各プロバイダーを個別アイテムとして追加 (tmuxと同じ: Claude, Copilot, Zed)
 # 右側に配置 (右から左に追加されるので逆順)
+# マウスホバーで一時非表示
 sketchybar --add item ai_zed right \
            --set ai_zed \
                  update_freq=60 \
@@ -19,8 +20,9 @@ sketchybar --add item ai_zed right \
                  icon.font="Hack Nerd Font Mono:Bold:11" \
                  icon.color=$ORANGE \
                  icon.padding_right=6 \
-                 background.drawing=off \
-                 padding_left=20
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe ai_zed mouse.entered
 
 sketchybar --add item ai_copilot right \
            --set ai_copilot \
@@ -32,8 +34,9 @@ sketchybar --add item ai_copilot right \
                  icon.font="Hack Nerd Font Mono:Bold:11" \
                  icon.color=$CYAN \
                  icon.padding_right=6 \
-                 background.drawing=off \
-                 padding_left=20
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe ai_copilot mouse.entered
 
 sketchybar --add item ai_claude right \
            --set ai_claude \
@@ -45,5 +48,6 @@ sketchybar --add item ai_claude right \
                  icon.font="Hack Nerd Font Mono:Bold:11" \
                  icon.color=$PINK \
                  icon.padding_right=6 \
-                 background.drawing=off \
-                 padding_left=20
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe ai_claude mouse.entered

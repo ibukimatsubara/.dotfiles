@@ -11,6 +11,7 @@ GREY="0xff6272a4"      # ラベル(CPU/MEM/BAT)の色 (colour245相当)
 # 日時はdatetime.shで別途追加されるので、ここではCPU/MEM/BATのみ
 
 # CPU使用率 (スパークライン付き)
+# マウスホバーで一時非表示
 sketchybar --add item cpu right \
            --set cpu \
                  update_freq=5 \
@@ -21,8 +22,9 @@ sketchybar --add item cpu right \
                  icon.font="Hack Nerd Font Mono:Bold:11" \
                  icon.color=$GREY \
                  icon.padding_right=6 \
-                 background.drawing=off \
-                 padding_left=15
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe cpu mouse.entered
 
 # メモリ使用率 (スパークライン付き)
 sketchybar --add item memory right \
@@ -35,8 +37,9 @@ sketchybar --add item memory right \
                  icon.font="Hack Nerd Font Mono:Bold:11" \
                  icon.color=$GREY \
                  icon.padding_right=6 \
-                 background.drawing=off \
-                 padding_left=15
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe memory mouse.entered
 
 # バッテリー
 sketchybar --add item battery right \
@@ -49,5 +52,6 @@ sketchybar --add item battery right \
                  icon.font="Hack Nerd Font Mono:Bold:11" \
                  icon.color=$GREY \
                  icon.padding_right=6 \
-                 background.drawing=off \
-                 padding_left=15
+                 background.drawing=on \
+                 padding_left=0 \
+           --subscribe battery mouse.entered

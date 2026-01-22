@@ -15,8 +15,8 @@ sketchybar --add item pomodoro right \
                  icon.padding_right=6 \
                  label.font="Hack Nerd Font Mono:Regular:11" \
                  label.color=$PINK \
-                 background.drawing=off \
-                 padding_left=15 \
+                 background.drawing=on \
+                 padding_left=0 \
                  drawing=on \
            --subscribe pomodoro mouse.clicked \
            --subscribe pomodoro mouse.clicked.right

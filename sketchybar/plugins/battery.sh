@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# マウスホバー時はバー全体を非表示
+if [ "$SENDER" = "mouse.entered" ]; then
+    source "$CONFIG_DIR/plugins/bar_hover.sh"
+    exit 0
+fi
+
 BATTERY_INFO=$(pmset -g batt)
 PERCENTAGE=$(echo "$BATTERY_INFO" | grep -o '[0-9]*%' | head -1 | tr -d '%')
 CHARGING=$(echo "$BATTERY_INFO" | grep -c "AC Power")

@@ -12,4 +12,5 @@ sketchybar --add item datetime right \
                  label.font="Hack Nerd Font Mono:Regular:11" \
                  label.color=$WHITE \
                  icon.drawing=off \
-                 background.drawing=off
+                 background.drawing=on \
+           --subscribe datetime mouse.entered
