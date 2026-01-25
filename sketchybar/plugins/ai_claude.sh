@@ -18,7 +18,7 @@ make_bar() {
     echo "$bar"
 }
 
-# ISO8601からリセットまでの残り時間を計算
+# ISO8601からリセットまでの残り時間を計算 (マイクロ秒付きにも対応)
 time_until() {
     local reset_at=$1
     if [ -z "$reset_at" ] || [ "$reset_at" = "null" ]; then
@@ -26,7 +26,10 @@ time_until() {
         return
     fi
     
-    local reset_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%SZ" "$reset_at" "+%s" 2>/dev/null)
+    # マイクロ秒部分を除去 (2026-01-24T13:00:00.123456Z -> 2026-01-24T13:00:00Z)
+    local clean_time=$(echo "$reset_at" | sed 's/\.[0-9]*Z$/Z/')
+    
+    local reset_epoch=$(TZ=UTC date -j -f "%Y-%m-%dT%H:%M:%SZ" "$clean_time" "+%s" 2>/dev/null)
     if [ -z "$reset_epoch" ]; then
         echo ""
         return
@@ -90,7 +93,7 @@ if [ -n "$CLAUDE_P" ]; then
     LABEL+=" ${REM_S}% ${BAR_S}"
     [ -n "$TIME_S" ] && LABEL+=" ${TIME_S}"
     
-    sketchybar --set $NAME label="$LABEL" label.color=$COLOR
+    sketchybar --set $NAME label="$LABEL" label.color=$COLOR icon.drawing=on
 else
     sketchybar --set $NAME label="" icon.drawing=off
 fi
