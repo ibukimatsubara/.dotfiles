@@ -12,7 +12,7 @@ font-family = Hack Nerd Font Mono
 font-size = 14
 
 # 背景透過
-background-opacity = 1.0
+background-opacity = 1
 
 # 背景画像
 background-image = /Users/ketiv/.dotfiles/ghostty/wallpapers/aaaa.jpg

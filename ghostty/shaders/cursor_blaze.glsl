@@ -84,6 +84,12 @@ const float DRAW_THRESHOLD = 1.5;
 // people expect them.
 const bool HIDE_TRAILS_ON_THE_SAME_LINE = false;
 
+// Pulse/glow effect on keystroke (short-distance cursor movement)
+const vec4 PULSE_COLOR = vec4(0.7, 0.4, 1.0, 1.0); // match trail purple
+const float PULSE_DURATION = 0.4;
+const float PULSE_RADIUS = 0.12; // max glow radius (normalized)
+const float PULSE_INTENSITY = 0.85;
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {
     #if !defined(WEB)
@@ -138,5 +144,28 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         newColor = mix(newColor, TRAIL_COLOR, antialising(sdfTrail));
         newColor = mix(fragColor, newColor, 1.0 - alphaModifier);
         fragColor = mix(newColor, fragColor, step(sdfCursor, 0));
+    }
+
+    // Pulse/glow effect: triggers on any cursor movement (including short-distance typing)
+    float pulseTime = iTime - iTimeCursorChange;
+    float pulseProgress = clamp(pulseTime / PULSE_DURATION, 0.0, 1.0);
+    if (pulseProgress < 1.0) {
+        // Radial distance from the current cursor center
+        float distToCursor = distance(vu, centerCC);
+
+        // Expanding ring radius that grows and fades
+        float currentRadius = PULSE_RADIUS * pulseProgress;
+        float ringWidth = 0.015;
+        float ring = smoothstep(currentRadius - ringWidth, currentRadius, distToCursor)
+                    * (1.0 - smoothstep(currentRadius, currentRadius + ringWidth, distToCursor));
+
+        // Soft inner glow that fades out
+        float innerGlow = exp(-distToCursor * distToCursor / (0.001 + 0.003 * (1.0 - pulseProgress)));
+
+        // Combine ring + inner glow, fade with progress
+        float fadeOut = pow(1.0 - pulseProgress, 3.0);
+        float pulseAlpha = (ring * 0.6 + innerGlow * 0.4) * fadeOut * PULSE_INTENSITY;
+
+        fragColor = mix(fragColor, PULSE_COLOR, pulseAlpha);
     }
 }
