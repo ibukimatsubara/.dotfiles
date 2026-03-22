@@ -31,3 +31,6 @@ fi
 
 # Initialize zoxide (smart cd)
 eval "$(zoxide init zsh)"
+
+# Initialize direnv
+eval "$(direnv hook zsh)"
