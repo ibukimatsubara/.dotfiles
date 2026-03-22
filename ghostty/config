@@ -21,6 +21,7 @@ background-image-fit = contain
 
 # ウィンドウ設定
 window-decoration = false
+macos-titlebar-style = hidden
 
 # macOSでOptionキーをAltとして使用
 macos-option-as-alt = true

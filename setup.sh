@@ -127,6 +127,18 @@ link_tmux() {
     else
         print_warning "tmux.conf not found in dotfiles"
     fi
+
+    # Install TPM (Tmux Plugin Manager)
+    if [ ! -d ~/.tmux/plugins/tpm ]; then
+        print_info "Installing TPM (Tmux Plugin Manager)..."
+        if git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm 2>/dev/null; then
+            print_success "TPM installed"
+        else
+            print_warning "Failed to install TPM"
+        fi
+    else
+        print_success "TPM already installed"
+    fi
 }
 
 # Link macOS window management configurations
@@ -148,10 +160,10 @@ link_macos_configs() {
         print_warning "yabairc not found in dotfiles"
     fi
 
-    # skhd configuration
+    # skhd configuration (skhd reads ~/.skhdrc by default)
     if [ -f ~/.dotfiles/skhdrc ]; then
-        backup_file ~/.config/skhd/skhdrc
-        ln -sf ~/.dotfiles/skhdrc ~/.config/skhd/skhdrc
+        backup_file ~/.skhdrc
+        ln -sf ~/.dotfiles/skhdrc ~/.skhdrc
         print_success "Linked skhdrc"
     else
         print_warning "skhdrc not found in dotfiles"
@@ -317,12 +329,28 @@ main() {
 
     if is_macos; then
         echo ""
-        print_info "🍎 macOS users:"
-        echo "- Consider enabling window management services:"
-        echo "  • brew services start yabai"
-        echo "  • brew services start skhd"
-        echo "  • brew services start felixkratz/formulae/sketchybar"
-        echo "  • Run 'borders &' to start JankyBorders"
+        print_info "🍎 Starting macOS services..."
+        # skhd
+        if command -v skhd >/dev/null 2>&1; then
+            skhd --start-service 2>/dev/null
+            print_success "skhd service started (auto-starts on login)"
+        else
+            print_warning "skhd not found. Install with: brew install koekeishiya/formulae/skhd"
+        fi
+        # sketchybar
+        if command -v sketchybar >/dev/null 2>&1; then
+            brew services start felixkratz/formulae/sketchybar 2>/dev/null
+            print_success "sketchybar service started (auto-starts on login)"
+        else
+            print_warning "sketchybar not found. Install with: brew install felixkratz/formulae/sketchybar"
+        fi
+        # yabai
+        if command -v yabai >/dev/null 2>&1; then
+            yabai --start-service 2>/dev/null
+            print_success "yabai service started (auto-starts on login)"
+        else
+            print_warning "yabai not found. Install with: brew install koekeishiya/formulae/yabai"
+        fi
     fi
 
     echo ""
