@@ -1,7 +1,7 @@
 #!/bin/bash
-# ポモドーロ以外のアイテムにマウスが入ったらバー全体を非表示、5秒後に再表示
+# ポモドーロ以外のアイテムにマウスが入ったらバー全体を非表示、2秒後に再表示
 
-HIDE_DURATION=5
+HIDE_DURATION=2
 LOCK_FILE="/tmp/sketchybar_hover_lock"
 
 case "$SENDER" in
@@ -14,7 +14,7 @@ case "$SENDER" in
             kill $(cat "$LOCK_FILE") 2>/dev/null
         fi
         
-        # 5秒後に再表示（バックグラウンド）
+        # 2秒後に再表示（バックグラウンド）
         (
             echo $$ > "$LOCK_FILE"
             sleep $HIDE_DURATION

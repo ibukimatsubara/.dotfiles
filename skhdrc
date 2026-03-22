@@ -12,7 +12,7 @@
 # 開いていればフォーカス、なければ起動
 cmd - 1 : open -a "Ghostty"
 cmd - 2 : open -a "Google Chrome"
-cmd - 3 : open -a "Antigravity"
+cmd - 3 : open -a "Visual Studio Code"
 cmd - 4 : open -a "Slack"
 cmd - 5 : open -a "Notion"
 cmd - 6 : open -a "Figma"

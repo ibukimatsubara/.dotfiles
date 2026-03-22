@@ -42,3 +42,8 @@ alias codexc='codex --full-auto'
 
 # lazygit
 alias lg='lazygit'
+
+# System diagnosis
+alias freeze='~/.dotfiles/scripts/freeze-diagnosis.sh'
+alias freeze-monitor='~/.dotfiles/scripts/freeze-diagnosis.sh --monitor'
+alias freeze-review='~/.dotfiles/scripts/freeze-diagnosis.sh --review'

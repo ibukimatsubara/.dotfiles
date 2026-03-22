@@ -34,9 +34,6 @@ create_directories() {
     mkdir -p ~/.local/share/nvim/undo
     mkdir -p ~/.local/share/nvim/session
 
-    # OpenCode directory
-    mkdir -p ~/.config/opencode
-
     # macOS-specific directories
     if is_macos; then
         mkdir -p ~/.config/yabai
@@ -211,46 +208,6 @@ link_macos_configs() {
     fi
 }
 
-# Link OpenCode configuration
-link_opencode() {
-    print_info "🤖 Linking OpenCode configuration..."
-
-    if [ -f ~/.dotfiles/opencode/opencode.json ]; then
-        backup_file ~/.config/opencode/opencode.json
-        ln -sf ~/.dotfiles/opencode/opencode.json ~/.config/opencode/opencode.json
-        print_success "Linked opencode.json"
-    else
-        print_warning "opencode.json not found in dotfiles"
-    fi
-}
-
-# Setup launchd agents (macOS background tasks)
-setup_launchd() {
-    if ! is_macos; then
-        return
-    fi
-
-    print_info "⏰ Setting up launchd agents..."
-
-    mkdir -p ~/Library/LaunchAgents
-
-    # AI usage cache agent
-    if [ -f ~/.dotfiles/launchd/com.dotfiles.ai-usage-cache.plist ]; then
-        # Unload if already loaded
-        launchctl unload ~/Library/LaunchAgents/com.dotfiles.ai-usage-cache.plist 2>/dev/null
-
-        backup_file ~/Library/LaunchAgents/com.dotfiles.ai-usage-cache.plist
-        ln -sf ~/.dotfiles/launchd/com.dotfiles.ai-usage-cache.plist ~/Library/LaunchAgents/
-
-        # Load the agent
-        launchctl load ~/Library/LaunchAgents/com.dotfiles.ai-usage-cache.plist
-        print_success "Linked and loaded AI usage cache launchd agent"
-        print_info "  Note: Requires 'codexbar' CLI (brew install steipete/tap/codexbar)"
-    else
-        print_warning "AI usage cache plist not found in dotfiles"
-    fi
-}
-
 # Install Neovim plugins
 install_neovim_plugins() {
     print_info "📦 Installing Neovim plugins..."
@@ -306,7 +263,7 @@ check_requirements() {
 
     if [ ${#missing_tools[@]} -gt 0 ]; then
         print_warning "Missing required tools: ${missing_tools[*]}"
-        print_info "Please run ./install.sh first to install required software"
+        print_info "Please run ./install.sh first to install required software (supports macOS/Ubuntu)"
         return 1
     fi
 
@@ -322,7 +279,7 @@ main() {
     # Check if required software is installed
     if ! check_requirements; then
         echo ""
-        print_error "Please install required software first by running: ./install.sh"
+        print_error "Please install required software first by running: ./install.sh (supports macOS and Ubuntu)"
         exit 1
     fi
 
@@ -349,12 +306,6 @@ main() {
     echo ""
 
     install_neovim_plugins
-    echo ""
-
-    link_opencode
-    echo ""
-
-    setup_launchd
     echo ""
 
     print_success "✅ Dotfiles configuration setup complete!"

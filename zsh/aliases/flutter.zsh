@@ -20,3 +20,12 @@ alias dt='dart test'
 alias da='dart analyze'
 alias dpg='dart pub get'
 alias dpu='dart pub upgrade'
+
+# iOS Simulator aliases (macOS only)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias sim='open -a Simulator'
+    alias sim-iphone='xcrun simctl boot "iPhone 16" && open -a Simulator'
+    alias sim-ipad='xcrun simctl boot "iPad Pro 13-inch (M4)" && open -a Simulator'
+    alias sim-list='xcrun simctl list devices available'
+    alias sim-shutdown='xcrun simctl shutdown all'
+fi

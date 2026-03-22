@@ -73,34 +73,81 @@ make_bar() {
 }
 
 # CPU使用率を取得
-CPU=$(top -l 1 | grep "CPU usage" | awk '{print int($3)}')
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CPU=$(top -l 1 | grep "CPU usage" | awk '{print int($3)}')
+else
+    # Linux: /proc/statから計算（直前のスナップショットと比較）
+    CPU_SNAP="/tmp/tmux_cpu_snap"
+    read -r _ cpu_user cpu_nice cpu_sys cpu_idle _ < /proc/stat
+    cpu_total=$((cpu_user + cpu_nice + cpu_sys + cpu_idle))
+    if [ -f "$CPU_SNAP" ]; then
+        read -r prev_total prev_idle < "$CPU_SNAP"
+        delta_total=$((cpu_total - prev_total))
+        delta_idle=$((cpu_idle - prev_idle))
+        if [ "$delta_total" -gt 0 ]; then
+            CPU=$(( (delta_total - delta_idle) * 100 / delta_total ))
+        else
+            CPU=0
+        fi
+    else
+        CPU=0
+    fi
+    echo "$cpu_total $cpu_idle" > "$CPU_SNAP"
+fi
 CPU_SPARK=$(make_sparkline "$CPU_HISTORY" "$CPU")
 CPU_COLOR=$(get_color $CPU)
 
 # メモリ使用率を取得
-MEM=$(memory_pressure | grep "System-wide memory free percentage" | awk '{print 100 - int($5)}')
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    MEM=$(memory_pressure | grep "System-wide memory free percentage" | awk '{print 100 - int($5)}')
+else
+    # Linux: /proc/meminfoから計算
+    MEM_TOTAL=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+    MEM_AVAIL=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
+    MEM=$(( (MEM_TOTAL - MEM_AVAIL) * 100 / MEM_TOTAL ))
+fi
 MEM_SPARK=$(make_sparkline "$MEM_HISTORY" "$MEM")
 MEM_COLOR=$(get_color $MEM)
 
 # バッテリー情報を取得
-BATTERY_INFO=$(pmset -g batt)
-BAT=$(echo "$BATTERY_INFO" | grep -o '[0-9]*%' | head -1 | tr -d '%')
-CHARGING=$(echo "$BATTERY_INFO" | grep -c "AC Power")
-BAT_BAR=$(make_bar $BAT)
-
-# バッテリー色
-if [ "$BAT" -ge 50 ]; then
-    BAT_COLOR="#79c0ff"
-elif [ "$BAT" -ge 20 ]; then
-    BAT_COLOR="#bd93f9"
+BAT=""
+BAT_OUTPUT=""
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    BATTERY_INFO=$(pmset -g batt)
+    BAT=$(echo "$BATTERY_INFO" | grep -o '[0-9]*%' | head -1 | tr -d '%')
+    CHARGING=$(echo "$BATTERY_INFO" | grep -c "AC Power")
 else
-    BAT_COLOR="#ff79c6"
+    # Linux: /sys/class/power_supply から取得（存在しない場合スキップ）
+    BAT_PATH=$(ls -d /sys/class/power_supply/BAT* 2>/dev/null | head -1)
+    if [ -n "$BAT_PATH" ] && [ -f "$BAT_PATH/capacity" ]; then
+        BAT=$(cat "$BAT_PATH/capacity")
+        CHARGING=0
+        STATUS=$(cat "$BAT_PATH/status" 2>/dev/null)
+        if [ "$STATUS" = "Charging" ] || [ "$STATUS" = "Full" ]; then
+            CHARGING=1
+        fi
+    fi
 fi
 
-# 充電中マーク
-if [ "$CHARGING" -gt 0 ]; then
-    BAT_BAR+=" ⚡"
+if [ -n "$BAT" ]; then
+    BAT_BAR=$(make_bar $BAT)
+
+    # バッテリー色
+    if [ "$BAT" -ge 50 ]; then
+        BAT_COLOR="#79c0ff"
+    elif [ "$BAT" -ge 20 ]; then
+        BAT_COLOR="#bd93f9"
+    else
+        BAT_COLOR="#ff79c6"
+    fi
+
+    # 充電中マーク
+    if [ "$CHARGING" -gt 0 ]; then
+        BAT_BAR+=" ⚡"
+    fi
+
+    BAT_OUTPUT="  #[fg=colour245]BAT#[fg=default] #[fg=${BAT_COLOR}]${BAT_BAR} ${BAT}%#[fg=default]"
 fi
 
 # 出力
-echo "#[fg=colour245]CPU#[fg=default] #[fg=${CPU_COLOR}]${CPU_SPARK} ${CPU}%#[fg=default]  #[fg=colour245]MEM#[fg=default] #[fg=${MEM_COLOR}]${MEM_SPARK} ${MEM}%#[fg=default]  #[fg=colour245]BAT#[fg=default] #[fg=${BAT_COLOR}]${BAT_BAR} ${BAT}%#[fg=default]"
+echo "#[fg=colour245]CPU#[fg=default] #[fg=${CPU_COLOR}]${CPU_SPARK} ${CPU}%#[fg=default]  #[fg=colour245]MEM#[fg=default] #[fg=${MEM_COLOR}]${MEM_SPARK} ${MEM}%#[fg=default]${BAT_OUTPUT}"
