@@ -17,7 +17,7 @@ trap 'rm -f "$PIDFILE"' EXIT
 BLOCK=4
 TOTAL_MIN=8
 
-DASH="┄"
+DASH="─"
 HEAVY="━"
 FG_ACTIVE="#ff79c6"
 FG_INACTIVE="#5a8497"
@@ -101,7 +101,7 @@ while true; do
 
     tmux refresh-client 2>/dev/null || true
     frame=$((frame + 1))
-    sleep 0.05
+    sleep 0.025
 done
 
 clear_all
