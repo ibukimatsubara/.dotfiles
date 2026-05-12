@@ -9,6 +9,9 @@ fi
 # Add dotfiles bin directories to PATH
 export PATH="$HOME/.dotfiles/tmux-claude/bin:$PATH"
 
+# VS Code
+export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+
 # Source configuration files
 for config in ~/.dotfiles/zsh/configs/*.zsh; do
   source $config
