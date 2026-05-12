@@ -218,6 +218,16 @@ link_macos_configs() {
     else
         print_warning "Ghostty config not found in dotfiles"
     fi
+
+    # Hammerspoon configuration
+    if [ -f ~/.dotfiles/hammerspoon/init.lua ]; then
+        mkdir -p ~/.hammerspoon
+        backup_file ~/.hammerspoon/init.lua
+        ln -sf ~/.dotfiles/hammerspoon/init.lua ~/.hammerspoon/init.lua
+        print_success "Linked Hammerspoon configuration"
+    else
+        print_warning "Hammerspoon config not found in dotfiles"
+    fi
 }
 
 # Install Neovim plugins
