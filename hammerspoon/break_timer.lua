@@ -16,7 +16,7 @@
 -- 操作 (⌘P/⌘O は Ghostty にフォーカスがあるときだけ有効。他アプリでは
 -- 本来の「印刷」「開く」のまま):
 --   ⌘P           フェード/休憩中 = スヌーズ(+3分) / 作業中 = 残り時間表示
---   ⌘O           タイマー ON/OFF
+--   ⌘O           タイマー ON/OFF (確認ダイアログ付き)
 --   何かキー      休憩明けに Ghostty 上で押すと再開(そのキー入力は飲み込まれる)
 --   メニューバー   常時状態を表示(☀残り分数/🌙/☕/✨/⏸ OFF)。クリックで
 --                ON/OFF・スヌーズ・今すぐ休憩・デモ
@@ -135,7 +135,15 @@ local snoozeKey = hs.hotkey.new({ "cmd" }, "p", function()
   end
 end)
 
-local toggleKey = hs.hotkey.new({ "cmd" }, "o", function() M.toggle() end)
+local toggleKey = hs.hotkey.new({ "cmd" }, "o", function()
+  -- 押し間違い防止に確認ダイアログを挟む
+  local title = enabled and "休憩タイマーを OFF にしますか?" or "休憩タイマーを ON にしますか?"
+  local detail = enabled
+      and "画面下端のゲージが消え、休憩の誘導が止まります"
+      or ("作業 " .. math.floor(cfg.work / 60) .. "分のサイクルを開始します")
+  local btn = hs.dialog.blockAlert(title, detail, "OK", "キャンセル")
+  if btn == "OK" then M.toggle() end
+end)
 
 local function syncKeys()
   local fw = hs.application.frontmostApplication()
