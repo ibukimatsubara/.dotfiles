@@ -228,6 +228,16 @@ link_macos_configs() {
     else
         print_warning "Hammerspoon config not found in dotfiles"
     fi
+
+    # Break timer configuration (Ghostty shader + Hammerspoon)
+    if [ -f ~/.dotfiles/break-timer/config.lua ]; then
+        mkdir -p ~/.config/break-timer
+        backup_file ~/.config/break-timer/config.lua
+        ln -sf ~/.dotfiles/break-timer/config.lua ~/.config/break-timer/config.lua
+        print_success "Linked break-timer configuration"
+    else
+        print_warning "break-timer config not found in dotfiles"
+    fi
 }
 
 # Install Neovim plugins

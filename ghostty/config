@@ -39,6 +39,8 @@ mouse-shift-capture = always
 keybind = clear
 keybind = super+v=paste_from_clipboard
 keybind = super+q=quit
+# 休憩タイマー(Hammerspoon)からのリロード用フォールバック
+keybind = ctrl+alt+super+r=reload_config
 
 # ターミナル設定
 term = xterm-256color
@@ -48,4 +50,6 @@ cursor-style = block
 
 # カスタムシェーダー (カーソルトレイル)
 custom-shader = ~/.dotfiles/ghostty/shaders/cursor_blaze.glsl
+# 休憩タイマー(Hammerspoonが生成・更新する状態ファイル)
+custom-shader = ~/.cache/ghostty-break/break_state.glsl
 custom-shader-animation = always

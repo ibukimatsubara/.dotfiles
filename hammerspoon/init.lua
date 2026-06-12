@@ -1,5 +1,10 @@
 require("hs.ipc")
 
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/.dotfiles/hammerspoon/?.lua"
+
+-- Ghostty 強制休憩タイマー (30分 → 星空フェード → 3分休憩)
+breaktimer = require("break_timer")
+
 -- Mic priority (higher = preferred)
 local micPriority = {
   ["DJI MIC MINI"]        = 4,
