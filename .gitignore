@@ -1,5 +1,6 @@
 .env
 ghostty/wallpapers/*
+!ghostty/wallpapers/.gitkeep
 
 # Temp/generated files
 .cache/

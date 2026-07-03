@@ -1,8 +1,8 @@
 # Ghostty Configuration
 
-## Random Wallpaper
+## Break Timer Wallpaper
 
-Ghostty起動時にランダムな背景画像を表示する機能。
+休憩タイマーが ON の間だけ、Ghostty に背景画像を表示できます。OFF にすると Hammerspoon が `background-image-opacity = 0` に戻して非表示にします。
 
 ### Setup
 
@@ -11,11 +11,19 @@ Ghostty起動時にランダムな背景画像を表示する機能。
    cp ~/path/to/your/image.jpg ~/.dotfiles/ghostty/wallpapers/
    ```
 
-2. 対応フォーマット: `.jpg`, `.jpeg`, `.png`, `.gif`
+2. 対応フォーマット: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
 
-3. Ghosttyを新しく開くと自動的にランダムな画像が選ばれる
+3. `break-timer/config.lua` で表示方法を調整:
+   ```lua
+   wallpaper_enabled = true,
+   wallpaper_dir = os.getenv("HOME") .. "/.dotfiles/ghostty/wallpapers",
+   wallpaper_opacity = 0.3,
+   wallpaper_fit = "contain",
+   wallpaper_pick = "random",
+   ```
 
 ### Notes
 
 - 壁紙ファイルは `.gitignore` で除外されている (著作権のある画像を含む可能性があるため)
-- 画像の透明度は `config` の `background-image-opacity` で調整可能 (デフォルト: 0.2)
+- 画像の透明度は `break-timer/config.lua` の `wallpaper_opacity` で調整する (デフォルト: 0.3)
+- `wallpaper_pick` は `random` / `keep` / `first` を指定できる

@@ -4,7 +4,7 @@
 -- 休憩明けは何かキーを押すと復帰して次の30分が始まる。
 --
 -- 設定: ~/.config/break-timer/config.lua (実体は ~/.dotfiles/break-timer/config.lua)
--- 時間・休憩シーン・下端ゲージの有無を変更できる。保存すると自動で再読み込み。
+-- 時間・休憩シーン・下端ゲージ・Ghostty 壁紙を変更できる。保存すると自動で再読み込み。
 -- シーンの GLSL (ghostty/shaders/scenes/*.tpl.glsl) を編集した場合も即時反映。
 --
 -- 見た目は全部 Ghostty のカスタムシェーダー
@@ -25,6 +25,7 @@ local M = {}
 
 local HOME = os.getenv("HOME")
 local CONFIG_PATH = HOME .. "/.config/break-timer/config.lua"
+local GHOSTTY_CONFIG_PATH = HOME .. "/.dotfiles/ghostty/config"
 local SCENES_DIR = HOME .. "/.dotfiles/ghostty/shaders/scenes/"
 local STATE_DIR = HOME .. "/.cache/ghostty-break"
 local STATE_PATH = STATE_DIR .. "/break_state.glsl"
@@ -33,6 +34,8 @@ local STATE_PATH = STATE_DIR .. "/break_state.glsl"
 local DEFAULTS = {
   work_minutes = 30, fade_minutes = 3, break_minutes = 3, snooze_minutes = 3,
   scene = "starry", show_work_gauge = true, alerts = false,
+  wallpaper_enabled = true, wallpaper_dir = HOME .. "/.dotfiles/ghostty/wallpapers",
+  wallpaper_opacity = 0.3, wallpaper_fit = "contain", wallpaper_pick = "random",
 }
 local cfg = { work = 1800, fade = 180, brk = 180, snooze = 180 }
 M.cfg = cfg
@@ -40,6 +43,14 @@ local scene = DEFAULTS.scene
 local showWorkGauge = DEFAULTS.show_work_gauge
 local alertsEnabled = DEFAULTS.alerts
 local templatePath = SCENES_DIR .. DEFAULTS.scene .. ".tpl.glsl"
+local wallpaperEnabled = DEFAULTS.wallpaper_enabled
+local wallpaperDir = DEFAULTS.wallpaper_dir
+local wallpaperOpacity = DEFAULTS.wallpaper_opacity
+local wallpaperFit = DEFAULTS.wallpaper_fit
+local wallpaperPick = DEFAULTS.wallpaper_pick
+local currentWallpaper = nil
+local reloadGhostty
+math.randomseed(os.time())
 
 -- state: work | fading | snoozed | break | waiting
 local state = "work"
@@ -58,6 +69,130 @@ local function loadTemplate()
   return true
 end
 
+local function fileExists(path)
+  local f = io.open(path, "r")
+  if not f then return false end
+  f:close()
+  return true
+end
+
+local function readFile(path)
+  local f = io.open(path, "r")
+  if not f then return nil end
+  local body = f:read("*a")
+  f:close()
+  return body
+end
+
+local function writeFile(path, body)
+  local f = io.open(path, "w")
+  if not f then return false end
+  f:write(body)
+  f:close()
+  return true
+end
+
+local function listWallpapers(dir)
+  local files = {}
+  local ok, iter, dirObj = pcall(hs.fs.dir, dir)
+  if not ok or not iter then return files end
+  for name in iter, dirObj do
+    if name ~= "." and name ~= ".." then
+      local path = dir .. "/" .. name
+      local attr = hs.fs.attributes(path)
+      local ext = name:match("%.([^%.]+)$")
+      ext = ext and ext:lower()
+      if attr and attr.mode == "file" and ({ jpg = true, jpeg = true, png = true, gif = true, webp = true })[ext] then
+        table.insert(files, path)
+      end
+    end
+  end
+  table.sort(files)
+  return files
+end
+
+local function chooseWallpaper(avoidCurrent)
+  local files = listWallpapers(wallpaperDir)
+  if #files == 0 then return nil end
+  if wallpaperPick == "first" then return files[1] end
+  if wallpaperPick == "keep" and currentWallpaper and fileExists(currentWallpaper) then return currentWallpaper end
+  if avoidCurrent and currentWallpaper and #files > 1 then
+    local candidates = {}
+    for _, path in ipairs(files) do
+      if path ~= currentWallpaper then table.insert(candidates, path) end
+    end
+    if #candidates > 0 then return candidates[math.random(#candidates)] end
+  end
+  return files[math.random(#files)]
+end
+
+local function upsertGhosttyConfig(lines, key, value)
+  local pattern = "^%s*" .. key:gsub("%-", "%%-") .. "%s*="
+  local replacement = key .. " = " .. value
+  if key == "background-image" then
+    for i = #lines, 1, -1 do
+      if lines[i]:match(pattern) then table.remove(lines, i) end
+    end
+    local insertAt = #lines + 1
+    for i, line in ipairs(lines) do
+      if line:match("^%s*background%-image%-opacity%s*=") then
+        insertAt = i
+        break
+      end
+    end
+    table.insert(lines, insertAt, replacement)
+    return
+  end
+
+  local replaced = false
+  for i, line in ipairs(lines) do
+    if line:match(pattern) then
+      if not replaced then
+        lines[i] = replacement
+        replaced = true
+      else
+        lines[i] = "# " .. line
+      end
+    end
+  end
+  if not replaced then
+    table.insert(lines, replacement)
+  end
+end
+
+local function applyWallpaper(visible, rotate)
+  local body = readFile(GHOSTTY_CONFIG_PATH)
+  if not body then return end
+
+  local image = currentWallpaper
+  if visible and wallpaperEnabled then
+    image = chooseWallpaper(rotate)
+  end
+
+  local opacity = "0"
+  if visible and wallpaperEnabled and image then
+    currentWallpaper = image
+    opacity = string.format("%.3f", wallpaperOpacity):gsub("0+$", ""):gsub("%.$", "")
+  end
+
+  local lines = {}
+  for line in (body .. "\n"):gmatch("([^\n]*)\n") do
+    table.insert(lines, line)
+  end
+  if body:sub(-1) == "\n" and lines[#lines] == "" then
+    table.remove(lines)
+  end
+
+  if image then upsertGhosttyConfig(lines, "background-image", image) end
+  upsertGhosttyConfig(lines, "background-image-opacity", opacity)
+  upsertGhosttyConfig(lines, "background-image-fit", wallpaperFit)
+
+  local nextBody = table.concat(lines, "\n") .. "\n"
+  if nextBody ~= body and writeFile(GHOSTTY_CONFIG_PATH, nextBody) then
+    reloadGhostty()
+  end
+end
+
 -- 設定ファイルを読んで反映する
 local function loadConfig()
   local user = {}
@@ -71,6 +206,11 @@ local function loadConfig()
   scene = type(user.scene) == "string" and user.scene or DEFAULTS.scene
   showWorkGauge = user.show_work_gauge ~= false
   alertsEnabled = (user.alerts == true)
+  wallpaperEnabled = user.wallpaper_enabled ~= false
+  wallpaperDir = type(user.wallpaper_dir) == "string" and user.wallpaper_dir or DEFAULTS.wallpaper_dir
+  wallpaperOpacity = math.max(0, math.min(1, tonumber(user.wallpaper_opacity) or DEFAULTS.wallpaper_opacity))
+  wallpaperFit = type(user.wallpaper_fit) == "string" and user.wallpaper_fit or DEFAULTS.wallpaper_fit
+  wallpaperPick = type(user.wallpaper_pick) == "string" and user.wallpaper_pick or DEFAULTS.wallpaper_pick
   templatePath = SCENES_DIR .. scene .. ".tpl.glsl"
   template = nil -- 次の setShader でシーンを読み直す
 end
@@ -85,7 +225,7 @@ local function notify(msg)
   if alertsEnabled then hs.alert.show(msg) end
 end
 
-local function reloadGhostty()
+reloadGhostty = function()
   local app = hs.application.get("com.mitchellh.ghostty") or hs.application.get("Ghostty")
   if not app then return end
   if not app:selectMenuItem("Reload Configuration") then
@@ -205,11 +345,13 @@ end
 enterState = function(s)
   -- wakeTap とホットキーの二重発火で work が連続再入するのを防ぐ
   if s == "work" and state == "work" and hs.timer.secondsSinceEpoch() - phaseStart < 2 then return end
+  local prevState = state
   state = s
   phaseStart = hs.timer.secondsSinceEpoch()
   if s ~= "waiting" then wakeTap:stop() end
 
   if s == "work" then
+    if prevState == "waiting" then applyWallpaper(true, true) end
     if demoMode then
       demoMode = false
       loadConfig()
@@ -255,9 +397,11 @@ function M.toggle(on)
   if on == nil then on = not enabled end
   enabled = on
   if enabled then
+    applyWallpaper(true)
     enterState("work")
   else
     wakeTap:stop()
+    applyWallpaper(false)
     setShader(0, 0)
     notify("⏸ 休憩タイマー OFF (⌘O か メニューバーで再開)")
     refreshMenubar()
@@ -293,6 +437,7 @@ end
 M.configWatcher = hs.pathwatcher.new(HOME .. "/.dotfiles/break-timer/", function(_)
   loadConfig()
   notify("🔄 休憩タイマー設定を再読み込み")
+  applyWallpaper(enabled)
   if enabled then enterState("work") end
 end):start()
 
@@ -305,6 +450,7 @@ end):start()
 
 os.execute("mkdir -p '" .. STATE_DIR .. "'")
 loadConfig()
+applyWallpaper(enabled)
 setShader(workMode(), 0)
 M.timer = hs.timer.doEvery(1, tick)
 phaseStart = hs.timer.secondsSinceEpoch()

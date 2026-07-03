@@ -14,9 +14,8 @@ font-size = 14
 # 背景透過
 background-opacity = 1
 
-# 背景画像
-background-image = /Users/ketiv/.dotfiles/ghostty/wallpapers/aaaa.jpg
-background-image-opacity = 0.2
+# 背景画像（休憩タイマーが ON/OFF に合わせて更新）
+background-image-opacity = 0
 background-image-fit = contain
 
 # ウィンドウ設定
