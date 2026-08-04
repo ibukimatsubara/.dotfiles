@@ -36,10 +36,7 @@ create_directories() {
 
     # macOS-specific directories
     if is_macos; then
-        mkdir -p ~/.config/yabai
         mkdir -p ~/.config/skhd
-        mkdir -p ~/.config/sketchybar
-        mkdir -p ~/.config/borders
         mkdir -p ~/.config/kitty
         mkdir -p ~/.config/ghostty
     fi
@@ -141,24 +138,14 @@ link_tmux() {
     fi
 }
 
-# Link macOS window management configurations
+# Link macOS configurations
 link_macos_configs() {
     if ! is_macos; then
         print_info "Skipping macOS configurations (not on macOS)"
         return
     fi
 
-    print_info "🪟 Linking macOS window management configurations..."
-
-    # yabai configuration
-    if [ -f ~/.dotfiles/yabairc ]; then
-        backup_file ~/.config/yabai/yabairc
-        ln -sf ~/.dotfiles/yabairc ~/.config/yabai/yabairc
-        chmod +x ~/.config/yabai/yabairc
-        print_success "Linked yabairc"
-    else
-        print_warning "yabairc not found in dotfiles"
-    fi
+    print_info "🍎 Linking macOS configurations..."
 
     # skhd configuration (skhd reads ~/.skhdrc by default)
     if [ -f ~/.dotfiles/skhdrc ]; then
@@ -167,29 +154,6 @@ link_macos_configs() {
         print_success "Linked skhdrc"
     else
         print_warning "skhdrc not found in dotfiles"
-    fi
-
-    # SketchyBar configuration
-    if [ -d ~/.dotfiles/sketchybar ]; then
-        backup_file ~/.config/sketchybar
-        ln -sf ~/.dotfiles/sketchybar ~/.config/sketchybar
-        print_success "Linked SketchyBar configuration"
-
-        # Make scripts executable
-        chmod +x ~/.config/sketchybar/plugins/*.sh 2>/dev/null
-        chmod +x ~/.config/sketchybar/items/*.sh 2>/dev/null
-    else
-        print_warning "SketchyBar config not found in dotfiles"
-    fi
-
-    # JankyBorders configuration
-    if [ -f ~/.dotfiles/bordersrc ]; then
-        backup_file ~/.config/borders/bordersrc
-        ln -sf ~/.dotfiles/bordersrc ~/.config/borders/bordersrc
-        chmod +x ~/.config/borders/bordersrc
-        print_success "Linked JankyBorders configuration"
-    else
-        print_warning "JankyBorders config not found in dotfiles"
     fi
 
     # kitty configuration
@@ -240,6 +204,68 @@ link_macos_configs() {
     fi
 }
 
+# Link VS Code configuration and install the curated extension set.
+link_vscode() {
+    print_info "🧭 Setting up VS Code..."
+
+    if is_macos; then
+        local vscode_user_dir="$HOME/Library/Application Support/Code/User"
+    else
+        local vscode_user_dir="$HOME/.config/Code/User"
+    fi
+
+    mkdir -p "$vscode_user_dir"
+
+    local source_file
+    local target_file
+    for file_name in settings.json keybindings.json; do
+        source_file="$HOME/.dotfiles/vscode/$file_name"
+        target_file="$vscode_user_dir/$file_name"
+
+        if [ ! -f "$source_file" ]; then
+            print_warning "VS Code $file_name not found in dotfiles"
+            continue
+        fi
+
+        if [ -L "$target_file" ] && [ "$(readlink "$target_file")" = "$source_file" ]; then
+            print_success "VS Code $file_name already linked"
+            continue
+        fi
+
+        backup_file "$target_file"
+        ln -sf "$source_file" "$target_file"
+        print_success "Linked VS Code $file_name"
+    done
+
+    if ! command -v code >/dev/null 2>&1; then
+        print_warning "VS Code CLI not found; skipping extension installation"
+        return
+    fi
+
+    local extensions_file="$HOME/.dotfiles/vscode/extensions.txt"
+    if [ ! -f "$extensions_file" ]; then
+        print_warning "VS Code extensions.txt not found"
+        return
+    fi
+
+    local installed_extensions
+    installed_extensions="$(code --list-extensions 2>/dev/null)"
+
+    while IFS= read -r extension_id || [ -n "$extension_id" ]; do
+        case "$extension_id" in
+            ""|\#*) continue ;;
+        esac
+
+        if printf '%s\n' "$installed_extensions" | grep -Fxq "$extension_id"; then
+            print_success "VS Code extension already installed: $extension_id"
+        elif code --install-extension "$extension_id" >/dev/null 2>&1; then
+            print_success "Installed VS Code extension: $extension_id"
+        else
+            print_warning "Failed to install VS Code extension: $extension_id"
+        fi
+    done < "$extensions_file"
+}
+
 # Install Neovim plugins
 install_neovim_plugins() {
     print_info "📦 Installing Neovim plugins..."
@@ -264,28 +290,12 @@ install_neovim_plugins() {
     fi
 }
 
-# Setup assets (sounds, images, etc.)
-setup_assets() {
-    print_info "🔊 Setting up dotfiles assets..."
-
-    # Create directories for SketchyBar assets
-    mkdir -p ~/.config/sketchybar/assets/sounds
-
-    # Copy Pomodoro timer sound
-    if [ -f ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ]; then
-        cp ~/.dotfiles/assets/sounds/kitchen-timer-5sec.mp3 ~/.config/sketchybar/assets/sounds/
-        print_success "Copied Pomodoro timer sound to ~/.config/sketchybar/assets/sounds/"
-    else
-        print_warning "Pomodoro timer sound not found in dotfiles"
-    fi
-}
-
 # Check for required software
 check_requirements() {
     print_info "🔍 Checking for required software..."
 
     local missing_tools=()
-    local tools=("nvim" "tmux" "git")
+    local tools=("tmux" "git")
 
     for tool in "${tools[@]}"; do
         if ! command -v "$tool" >/dev/null 2>&1; then
@@ -301,6 +311,23 @@ check_requirements() {
 
     print_success "All required tools are installed"
     return 0
+}
+
+# Setup Claude Code & Codex CLI status lines
+link_ai_clis() {
+    print_info "🤖 Linking AI CLI configs..."
+
+    # Claude Code statusLine script — dotfiles is the single source of truth.
+    if [ -d ~/.claude ]; then
+        backup_file ~/.claude/statusline-command.sh
+        ln -sf ~/.dotfiles/claude/statusline-command.sh ~/.claude/statusline-command.sh
+        print_success "Linked ~/.claude/statusline-command.sh"
+        print_warning "settings.json must set statusLine.command = bash ~/.claude/statusline-command.sh"
+    fi
+
+    # Codex CLI: config.toml is machine-managed, so we don't symlink it.
+    # Merge codex/statusline.toml's [tui] block by hand, or run /statusline in Codex.
+    print_warning "Codex: merge ~/.dotfiles/codex/statusline.toml [tui] block into ~/.codex/config.toml (or use /statusline)"
 }
 
 # Main setup flow
@@ -334,7 +361,10 @@ main() {
     link_macos_configs
     echo ""
 
-    setup_assets
+    link_vscode
+    echo ""
+
+    link_ai_clis
     echo ""
 
     install_neovim_plugins
@@ -344,8 +374,9 @@ main() {
     echo ""
     print_info "📝 Next steps:"
     echo "1. Restart your terminal or run: source ~/.zshrc"
-    echo "2. Open tmux and press: Prefix + I (to install tmux plugins)"
-    echo "3. Open Neovim to verify the setup"
+    echo "2. Open VS Code and verify Ctrl+h/j/k/l and Ctrl+u/i"
+    echo "3. Open tmux and press: Prefix + I (to install tmux plugins)"
+    echo "4. Import chrome/vimium-c.json from Vimium C Options"
 
     if is_macos; then
         echo ""
@@ -357,27 +388,13 @@ main() {
         else
             print_warning "skhd not found. Install with: brew install koekeishiya/formulae/skhd"
         fi
-        # sketchybar
-        if command -v sketchybar >/dev/null 2>&1; then
-            brew services start felixkratz/formulae/sketchybar 2>/dev/null
-            print_success "sketchybar service started (auto-starts on login)"
-        else
-            print_warning "sketchybar not found. Install with: brew install felixkratz/formulae/sketchybar"
-        fi
-        # yabai
-        if command -v yabai >/dev/null 2>&1; then
-            yabai --start-service 2>/dev/null
-            print_success "yabai service started (auto-starts on login)"
-        else
-            print_warning "yabai not found. Install with: brew install koekeishiya/formulae/yabai"
-        fi
     fi
 
     echo ""
     print_info "💡 Tips:"
     echo "- Previous configs are backed up with timestamp"
     echo "- Run 'gcmc' for AI-powered git commits"
-    echo "- Neovim will auto-reload files changed by AI tools"
+    echo "- Neovim and Kitty are kept as legacy configurations"
 }
 
 # Run main function

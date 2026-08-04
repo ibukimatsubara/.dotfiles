@@ -1,0 +1,35 @@
+{
+	"name": "Vimium C",
+	"@time": "8/4/2026, 7:06:11 PM",
+	"time": 1785837971317,
+	"environment": {
+		"extension": "2.12.2",
+		"platform": "mac",
+		"chromium": 150
+	},
+	"keyLayout": 2,
+	"keyMappings": [
+		"#!no-check",
+		"# --- 既存の不要なマッピングを解除 ---",
+		"unmap o",
+		"unmap O",
+		"unmap b",
+		"unmap B",
+		"unmap gs",
+		"",
+		"# Ctrl + h と Ctrl + l を押したとき、サイト側のイベントを無視してVimium Cのコマンドを優先実行する",
+		"map <c-h> previousTab passKeys=\"<c-h>\"",
+		"map <c-l> nextTab passKeys=\"<c-l>\"",
+		"",
+		"# --- 高速スクロール: Ctrl + j / k ---",
+		"# scrollByY コマンドを使い、引数としてピクセル数を指定します",
+		"map <c-j> scrollDown count=600",
+		"map <c-k> scrollUp count=600",
+		"",
+		"# --- デフォルトの J/K を解除 ---",
+		"unmap J",
+		"unmap K",
+		""
+	],
+	"vimSync": true
+}

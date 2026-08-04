@@ -8,3 +8,6 @@
 - [tmux.md](./tmux.md) - tmux設定の詳細  
 - [neovim.md](./neovim.md) - Neovim設定の詳細
 - [setup.md](./setup.md) - セットアップとインストール手順
+- [skhd.md](./skhd.md) - macOSアプリ起動ショートカット
+- [VS Code](../vscode/README.md) - tmux風キーバインドと拡張機能の復元
+- [Chrome / Vimium C](../chrome/README.md) - Vimium C設定とChrome拡張機能の棚卸し

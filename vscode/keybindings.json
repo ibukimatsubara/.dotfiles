@@ -1,0 +1,62 @@
+[
+  {
+    "key": "ctrl+h",
+    "command": "workbench.action.focusLeftGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.focusBelowGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.focusAboveGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.focusRightGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+u",
+    "command": "workbench.action.previousEditorInGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+i",
+    "command": "workbench.action.nextEditorInGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+h",
+    "command": "workbench.action.moveEditorToLeftGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+j",
+    "command": "workbench.action.moveEditorToBelowGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+k",
+    "command": "workbench.action.moveEditorToAboveGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+l",
+    "command": "workbench.action.moveEditorToRightGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+u",
+    "command": "workbench.action.moveEditorLeftInGroup",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+i",
+    "command": "workbench.action.moveEditorRightInGroup",
+    "when": "!terminalFocus"
+  }
+]

@@ -69,18 +69,56 @@ install_essentials() {
     print_info "🔧 Installing essential tools..."
 
     if is_macos; then
-        local essentials=("neovim" "tmux" "git" "imagemagick" "luarocks" "jq" "fzf" "zoxide")
+        local essentials=("tmux:tmux" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "fnm:fnm")
     else
-        local essentials=("neovim" "tmux" "git" "jq" "fzf" "zoxide" "xclip" "curl")
+        local essentials=("tmux:tmux" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "xclip:xclip" "curl:curl")
     fi
 
-    for tool in "${essentials[@]}"; do
-        if ! command -v "$tool" >/dev/null 2>&1; then
-            print_info "Installing $tool..."
-            pkg_install "$tool"
-            print_success "$tool installed"
+    local spec
+    local package_name
+    local command_name
+    for spec in "${essentials[@]}"; do
+        package_name="${spec%%:*}"
+        command_name="${spec#*:}"
+
+        if ! command -v "$command_name" >/dev/null 2>&1; then
+            print_info "Installing $package_name..."
+            if pkg_install "$package_name"; then
+                print_success "$package_name installed"
+            else
+                print_warning "Failed to install $package_name"
+            fi
         else
-            print_success "$tool already installed"
+            print_success "$package_name already installed"
+        fi
+    done
+}
+
+# Install the desktop applications used in the primary development workflow.
+install_desktop_apps() {
+    if ! is_macos; then
+        print_info "🖥️ Desktop apps on Ubuntu..."
+        print_info "Install VS Code, Chrome, and Ghostty from their official distributions"
+        return
+    fi
+
+    print_info "🖥️ Installing desktop development apps..."
+
+    local desktop_casks=(
+        "ghostty"
+        "visual-studio-code"
+        "google-chrome"
+        "hammerspoon"
+        "codex"
+    )
+
+    for cask in "${desktop_casks[@]}"; do
+        if brew list --cask "$cask" >/dev/null 2>&1; then
+            print_success "$cask already installed"
+        elif brew install --cask "$cask" >/dev/null 2>&1; then
+            print_success "$cask installed"
+        else
+            print_warning "Failed to install $cask; it may already exist outside Homebrew"
         fi
     done
 }
@@ -108,29 +146,21 @@ install_fonts() {
     fi
 }
 
-# Install macOS window management tools
+# Install macOS hotkey tools
 install_macos_tools() {
     if ! is_macos; then
         print_info "Skipping macOS-specific tools (not on macOS)"
         return
     fi
 
-    print_info "🪟 Installing macOS window management tools..."
+    print_info "⌨️ Installing macOS hotkey tools..."
 
-    # Add FelixKratz tap
-    print_info "Adding FelixKratz/formulae tap..."
-    brew tap FelixKratz/formulae >/dev/null 2>&1
-
-    local macos_tools=("yabai" "skhd" "sketchybar" "borders")
+    local macos_tools=("skhd")
 
     for tool in "${macos_tools[@]}"; do
         if ! command -v "$tool" >/dev/null 2>&1; then
             print_info "Installing $tool..."
-            if [ "$tool" = "sketchybar" ] || [ "$tool" = "borders" ]; then
-                brew install "felixkratz/formulae/$tool" >/dev/null 2>&1
-            else
-                brew install "$tool" >/dev/null 2>&1
-            fi
+            brew install "$tool" >/dev/null 2>&1
             print_success "$tool installed"
         else
             print_success "$tool already installed"
@@ -163,28 +193,6 @@ install_optional_tools() {
         print_success "Claude Code CLI already installed"
     fi
 
-    # Terminal file manager
-    if ! command -v nnn >/dev/null 2>&1; then
-        print_info "Installing nnn (terminal file manager)..."
-        pkg_install nnn
-        print_success "nnn installed"
-    else
-        print_success "nnn already installed"
-    fi
-}
-
-# Install vim-plug for Neovim
-install_vim_plug() {
-    print_info "📦 Installing vim-plug for Neovim..."
-
-    if [ ! -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]; then
-        print_info "Downloading vim-plug..."
-        sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-         https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim' >/dev/null 2>&1
-        print_success "vim-plug installed"
-    else
-        print_success "vim-plug already installed"
-    fi
 }
 
 # Main installation flow
@@ -208,6 +216,9 @@ main() {
     install_essentials
     echo ""
 
+    install_desktop_apps
+    echo ""
+
     install_fonts
     echo ""
 
@@ -217,9 +228,6 @@ main() {
     install_optional_tools
     echo ""
 
-    install_vim_plug
-    echo ""
-
     print_success "✅ Software installation complete!"
     echo ""
     print_info "📝 Next steps:"
@@ -227,12 +235,10 @@ main() {
     echo "2. Restart your terminal or run: source ~/.zshrc"
 
     if is_macos; then
-        echo "3. For macOS: Enable yabai and skhd services as needed"
+        echo "3. For macOS: Enable skhd as needed"
         echo ""
         print_info "💡 macOS Services (optional):"
-        echo "- brew services start yabai"
         echo "- brew services start skhd"
-        echo "- brew services start felixkratz/formulae/sketchybar"
     fi
 }
 

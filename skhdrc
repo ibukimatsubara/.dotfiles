@@ -14,24 +14,5 @@ cmd - 1 : open -a "Ghostty"
 cmd - 2 : open -a "Google Chrome"
 cmd - 3 : open -a "Visual Studio Code"
 cmd - 4 : open -a "Slack"
-cmd - 5 : open -a "Notion"
-cmd - 6 : open -a "Figma"
-
-# ========================================
-# 7. Pomodoro Timer制御
-# ========================================
-# Pomodoroタイマー開始/停止（非表示時のみworkモードに設定）
-alt - p : if [ "$(sketchybar --query pomodoro | jq -r '.geometry.drawing')" = "off" ]; then \
-            echo "stopped:work" > /tmp/sketchybar_pomodoro_state 2>/dev/null; \
-          fi; \
-          sketchybar --set pomodoro drawing=on; \
-          CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
-
-# Pomodoroモード切り替え
-shift + alt - p : CONFIG_DIR="/Users/ketiv/.dotfiles/sketchybar" SENDER="mouse.clicked.right" /Users/ketiv/.dotfiles/sketchybar/plugins/pomodoro.sh && sketchybar --trigger pomodoro
-
-# ========================================
-# 8. SketchyBar表示切り替え
-# ========================================
-# alt + b でSketchyBarの表示/非表示を切り替え
-alt - b : sketchybar --bar hidden=toggle
+cmd - 5 : open -a "Figma"
+# cmd - 6 : 空き枠（思いついたら割り当てる）

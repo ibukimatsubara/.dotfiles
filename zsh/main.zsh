@@ -6,9 +6,6 @@ if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
   ~/.dotfiles/ghostty/random-wallpaper.sh >/dev/null 2>&1
 fi
 
-# Add dotfiles bin directories to PATH
-export PATH="$HOME/.dotfiles/tmux-claude/bin:$PATH"
-
 # VS Code
 export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
 
@@ -32,8 +29,17 @@ fi
 # Load local configuration if exists
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
+# Initialize fnm (Node.js version manager)
+if command -v fnm >/dev/null 2>&1; then
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
+
 # Initialize zoxide (smart cd)
-eval "$(zoxide init zsh)"
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
 
 # Initialize direnv
-eval "$(direnv hook zsh)"
+if command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi

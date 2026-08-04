@@ -1,0 +1,19 @@
+# Core
+openai.chatgpt
+vscodevim.vim
+ms-vscode-remote.remote-ssh
+
+# Markdown and diagrams
+shd101wyy.markdown-preview-enhanced
+hediet.vscode-drawio
+pomdtr.excalidraw-editor
+tomoki1207.pdf
+
+# Data files
+mechatroner.rainbow-csv
+development42.csv-excel-viewer
+repreng.csv
+
+# Optional viewers
+lyn-inc.html-speed-viewer
+sharanyaramchandra.code-canvas

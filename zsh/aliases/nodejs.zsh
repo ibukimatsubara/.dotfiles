@@ -38,18 +38,18 @@ alias npt='npm run test'
 alias npb='npm run build'
 alias npd='npm run dev'
 
-# nvm version management
-alias nvm-ls='nvm list'
-alias nvm-lsr='nvm ls-remote'
-alias nvm-use='nvm use'
-alias nvm-install='nvm install'
-alias nvm-current='nvm current'
-alias nvm-default='nvm alias default'
+# fnm version management
+alias fnm-ls='fnm list'
+alias fnm-lsr='fnm list-remote'
+alias fnm-use='fnm use'
+alias fnm-install='fnm install'
+alias fnm-current='fnm current'
+alias fnm-default='fnm default'
 
-# Quick nvm switching (common versions)
-alias nv18='nvm use 18'
-alias nv20='nvm use 20'
-alias nvlts='nvm use --lts'
+# Quick fnm switching (legacy alias names kept for muscle memory)
+alias nv18='fnm use 18'
+alias nv20='fnm use 20'
+alias nvlts='fnm install --lts --use'
 
 # Project initialization
 alias ninit='npm init -y'

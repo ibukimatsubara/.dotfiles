@@ -1,0 +1,19 @@
+# Codex CLI — status line / terminal title
+#
+# NOTE: ~/.codex/config.toml is machine-managed (Codex rewrites trust levels,
+# plugin hashes, MCP env, app version into it), so it is NOT symlinked from
+# dotfiles. Keep only this [tui] block in sync by hand, or configure it
+# interactively with the `/statusline` slash command inside Codex.
+#
+# Layout mirrors the Claude Code statusline (claude/statusline-command.sh):
+#   <dir> - <branch/worktree> - <model> - <ctx%>
+# In a git worktree, `project-root` resolves to the worktree's own directory,
+# so it effectively shows the worktree name; `git-branch` shows the branch.
+
+[tui]
+status_line = ["project-root", "git-branch", "model-with-reasoning", "context-usage"]
+terminal_title = ["project", "git-branch", "status"]
+
+# Other available items you can add to status_line:
+#   model-name, current-dir, context-remaining, context-window-size,
+#   context-used, used-tokens, five-hour-limit, weekly-limit, fast-mode

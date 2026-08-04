@@ -1,0 +1,20 @@
+{
+  "workbench.colorTheme": "Light Modern",
+  "workbench.startupEditor": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "workbench.editor.focusRecentEditorAfterClose": false,
+  "workbench.editor.wrapTabs": true,
+  "editor.minimap.enabled": false,
+  "editor.stickyScroll.enabled": true,
+  "vim.useSystemClipboard": true,
+  "vim.handleKeys": {
+    "<C-h>": false,
+    "<C-j>": false,
+    "<C-k>": false,
+    "<C-l>": false,
+    "<C-u>": false,
+    "<C-i>": false
+  },
+  "hediet.vscode-drawio.resizeImages": null
+}
