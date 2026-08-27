@@ -138,7 +138,7 @@ if [ -n "$BAT" ]; then
     elif [ "$BAT" -ge 20 ]; then
         BAT_COLOR="#bd93f9"
     else
-        BAT_COLOR="#ff79c6"
+        BAT_COLOR="#f85149"
     fi
 
     # 充電中マーク

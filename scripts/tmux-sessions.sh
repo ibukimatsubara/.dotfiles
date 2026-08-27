@@ -6,8 +6,8 @@ CURRENT_SESSION=$(tmux display-message -p '#S')
 SESSIONS=()
 while IFS= read -r session; do
     if [ "$session" = "$CURRENT_SESSION" ]; then
-        # 現在のセッション: ピンクでハイライト
-        SESSIONS+=("#[fg=#ff79c6,bold]$session#[fg=default,nobold]")
+        # 現在のセッション: ミントでハイライト
+        SESSIONS+=("#[fg=#5eead4,bold]$session#[fg=default,nobold]")
     else
         # 他のセッション: グレー
         SESSIONS+=("#[fg=colour245]$session#[fg=default]")

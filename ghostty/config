@@ -15,11 +15,12 @@ font-size = 14
 background-opacity = 1
 
 # 背景画像（休憩タイマーが ON/OFF に合わせて更新）
+background-image = ~/.dotfiles/ghostty/wallpapers/wallpaper-2.jpeg
 background-image-opacity = 0
 background-image-fit = contain
 
 # ウィンドウ設定
-window-decoration = false
+window-decoration = auto
 macos-titlebar-style = hidden
 
 # macOSでOptionキーをAltとして使用
@@ -38,6 +39,10 @@ mouse-shift-capture = always
 keybind = clear
 keybind = super+v=paste_from_clipboard
 keybind = super+q=quit
+# tmux専用キー（通常のCtrlキーとは衝突しないシーケンスを送る）
+keybind = super+t=text:\x1b[5;30001~
+keybind = super+w=text:\x1b[5;30002~
+keybind = super+r=text:\x1b[5;30003~
 # 休憩タイマー(Hammerspoon)からのリロード用フォールバック
 keybind = ctrl+alt+super+r=reload_config
 

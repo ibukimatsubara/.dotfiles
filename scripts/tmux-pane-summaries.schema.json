@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "summaries": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "properties": {
+          "pane_id": {
+            "type": "string",
+            "pattern": "^%[0-9]+$"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 48
+          }
+        },
+        "required": ["pane_id", "summary"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["summaries"],
+  "additionalProperties": false
+}

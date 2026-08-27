@@ -29,6 +29,13 @@ local GHOSTTY_CONFIG_PATH = HOME .. "/.dotfiles/ghostty/config"
 local SCENES_DIR = HOME .. "/.dotfiles/ghostty/shaders/scenes/"
 local STATE_DIR = HOME .. "/.cache/ghostty-break"
 local STATE_PATH = STATE_DIR .. "/break_state.glsl"
+local TIMER_STATUS_PATH = STATE_DIR .. "/tmux_status.tsv"
+local WALLPAPER_CACHE_DIR = HOME .. "/.cache/ghostty-wallpapers"
+local NATIVE_WALLPAPER_EXT = { jpg = true, jpeg = true, png = true }
+local SOURCE_WALLPAPER_EXT = {
+  jpg = true, jpeg = true, png = true, webp = true, gif = true,
+  heic = true, heif = true, tif = true, tiff = true, bmp = true, avif = true,
+}
 
 -- 設定ファイルが無い/壊れているときの既定値
 local DEFAULTS = {
@@ -59,6 +66,7 @@ local enabled = true
 local demoMode = false
 local template = nil
 local lastMode, lastProgress = nil, nil
+local lastTimerStatusBody = nil
 
 local function loadTemplate()
   local f = io.open(templatePath, "r")
@@ -92,6 +100,72 @@ local function writeFile(path, body)
   return true
 end
 
+local function shellQuote(value)
+  return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
+end
+
+local function portablePath(path)
+  if path:sub(1, #HOME + 1) == HOME .. "/" then
+    return "~" .. path:sub(#HOME + 1)
+  end
+  return path
+end
+
+local function ensureStateDir()
+  local attr = hs.fs.attributes(STATE_DIR)
+  if attr then return attr.mode == "directory" end
+
+  local ok = os.execute("mkdir -p " .. shellQuote(STATE_DIR))
+  if ok ~= true and ok ~= 0 then return false end
+  attr = hs.fs.attributes(STATE_DIR)
+  return attr ~= nil and attr.mode == "directory"
+end
+
+local function fileExt(path)
+  local ext = path:match("%.([^%.]+)$")
+  return ext and ext:lower() or ""
+end
+
+local function magickPath()
+  for _, path in ipairs({ "/opt/homebrew/bin/magick", "/usr/local/bin/magick" }) do
+    if fileExists(path) then return path end
+  end
+  return "magick"
+end
+
+local function wallpaperCachePath(path)
+  local safe = path:gsub("[^%w%._%-]", "_")
+  return WALLPAPER_CACHE_DIR .. "/" .. safe .. ".png"
+end
+
+local function hasNativeWallpaperSibling(path)
+  if NATIVE_WALLPAPER_EXT[fileExt(path)] then return false end
+
+  local dir = path:match("^(.*)/[^/]+$") or "."
+  local filename = path:match("([^/]+)$") or path
+  local stem = filename:gsub("%.[^%.]+$", "")
+  for _, ext in ipairs({ "jpg", "jpeg", "png" }) do
+    if fileExists(dir .. "/" .. stem .. "." .. ext) then return true end
+  end
+  return false
+end
+
+local function prepareWallpaper(path)
+  if NATIVE_WALLPAPER_EXT[fileExt(path)] then return path end
+
+  local output = wallpaperCachePath(path)
+  os.execute("mkdir -p " .. shellQuote(WALLPAPER_CACHE_DIR))
+
+  local src = hs.fs.attributes(path)
+  local dst = hs.fs.attributes(output)
+  if not dst or (src and src.modification > dst.modification) then
+    local ok = os.execute(magickPath() .. " " .. shellQuote(path .. "[0]") .. " " .. shellQuote(output))
+    if ok ~= true and ok ~= 0 then return nil end
+  end
+
+  return output
+end
+
 local function listWallpapers(dir)
   local files = {}
   local ok, iter, dirObj = pcall(hs.fs.dir, dir)
@@ -100,9 +174,8 @@ local function listWallpapers(dir)
     if name ~= "." and name ~= ".." then
       local path = dir .. "/" .. name
       local attr = hs.fs.attributes(path)
-      local ext = name:match("%.([^%.]+)$")
-      ext = ext and ext:lower()
-      if attr and attr.mode == "file" and ({ jpg = true, jpeg = true, png = true, gif = true, webp = true })[ext] then
+      local ext = fileExt(name)
+      if attr and attr.mode == "file" and SOURCE_WALLPAPER_EXT[ext] and not hasNativeWallpaperSibling(path) then
         table.insert(files, path)
       end
     end
@@ -166,7 +239,8 @@ local function applyWallpaper(visible, rotate)
 
   local image = currentWallpaper
   if visible and wallpaperEnabled then
-    image = chooseWallpaper(rotate)
+    local sourceImage = chooseWallpaper(rotate)
+    image = sourceImage and prepareWallpaper(sourceImage)
   end
 
   local opacity = "0"
@@ -183,7 +257,7 @@ local function applyWallpaper(visible, rotate)
     table.remove(lines)
   end
 
-  if image then upsertGhosttyConfig(lines, "background-image", image) end
+  if image then upsertGhosttyConfig(lines, "background-image", portablePath(image)) end
   upsertGhosttyConfig(lines, "background-image-opacity", opacity)
   upsertGhosttyConfig(lines, "background-image-fit", wallpaperFit)
 
@@ -237,17 +311,52 @@ end
 -- 状態ファイルを書き換えて Ghostty に反映。内容が変わらないときは何もしない
 local function setShader(mode, progress)
   progress = math.floor(progress * 50 + 0.5) / 50 -- 0.02刻みに量子化してリロード頻度を抑える
-  if mode == lastMode and progress == lastProgress then return end
-  if not template and not loadTemplate() then return end
+  if mode == lastMode and progress == lastProgress and fileExists(STATE_PATH) then return true end
+  if not ensureStateDir() then return false end
+  if not template and not loadTemplate() then return false end
   local body = template
       :gsub("{{MODE}}", tostring(mode))
       :gsub("{{PROGRESS}}", string.format("%.4f", progress))
   local f = io.open(STATE_PATH, "w")
-  if not f then return end
+  if not f then return false end
   f:write(body)
   f:close()
   lastMode, lastProgress = mode, progress
   reloadGhostty()
+  return true
+end
+
+-- tmux はこの小さなスナップショットから残り時間を計算する。
+-- 毎秒 Hammerspoon CLI を起動せず、状態が変わったときだけ atomic に更新する。
+local function writeTimerStatus()
+  local durations = {
+    work = cfg.work,
+    snoozed = cfg.snooze,
+    fading = cfg.fade,
+    ["break"] = cfg.brk,
+    waiting = 0,
+  }
+  local duration = enabled and (durations[state] or 0) or 0
+  local body = table.concat({
+    tostring(enabled),
+    state,
+    tostring(math.floor(phaseStart)),
+    tostring(math.floor(duration)),
+  }, "\t") .. "\n"
+
+  if body == lastTimerStatusBody and fileExists(TIMER_STATUS_PATH) then return true end
+  if not ensureStateDir() then return false end
+
+  local tmpPath = TIMER_STATUS_PATH .. ".tmp"
+  if not writeFile(tmpPath, body) then return false end
+  local ok = os.rename(tmpPath, TIMER_STATUS_PATH)
+  if not ok then
+    os.remove(tmpPath)
+    return false
+  end
+
+  lastTimerStatusBody = body
+  return true
 end
 
 local enterState -- 前方宣言(wakeTap から参照するため)
@@ -325,6 +434,7 @@ end
 
 local function refreshMenubar()
   if menubar then menubar:setTitle(menuTitle()) end
+  writeTimerStatus()
 end
 
 if menubar then
@@ -378,7 +488,10 @@ enterState = function(s)
 end
 
 local function tick()
-  if not enabled then return end
+  if not enabled then
+    refreshMenubar()
+    return
+  end
   local el = hs.timer.secondsSinceEpoch() - phaseStart
   if state == "work" then
     if el >= cfg.work then enterState("fading") elseif showWorkGauge then setShader(4, el / cfg.work) end
@@ -391,6 +504,22 @@ local function tick()
   end
   -- waiting はキー入力待ちなので何もしない(明滅はシェーダーが iTime で勝手に動く)
   refreshMenubar()
+end
+
+function M.refreshVisual()
+  local elapsed = hs.timer.secondsSinceEpoch() - phaseStart
+  local function progress(total)
+    if total <= 0 then return 1 end
+    return math.max(0, math.min(1, elapsed / total))
+  end
+
+  if not enabled then return setShader(0, 0) end
+  if state == "work" then return setShader(workMode(), progress(cfg.work)) end
+  if state == "snoozed" then return setShader(workMode(), progress(cfg.snooze)) end
+  if state == "fading" then return setShader(1, progress(cfg.fade)) end
+  if state == "break" then return setShader(2, progress(cfg.brk)) end
+  if state == "waiting" then return setShader(3, 0) end
+  return false
 end
 
 function M.toggle(on)
@@ -448,7 +577,7 @@ M.sceneWatcher = hs.pathwatcher.new(SCENES_DIR, function(_)
   if m then setShader(m, p or 0) end
 end):start()
 
-os.execute("mkdir -p '" .. STATE_DIR .. "'")
+ensureStateDir()
 loadConfig()
 applyWallpaper(enabled)
 setShader(workMode(), 0)

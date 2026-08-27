@@ -22,7 +22,7 @@ function git-branch {
 		return
 	fi
 
-	echo "`bar`%F{14}$branch_name"
+	echo "`bar`%F{12}$branch_name"
 }
 
 # python prompt
@@ -31,17 +31,17 @@ function python-env {
 	local st
 	# uv environment detection
 	if [ -f "pyproject.toml" ] && [ -f "uv.lock" ]; then
-		echo "`bar`%F{14}uv%f"
+		echo "`bar`%F{12}uv%f"
 		return
 	elif [ -f ".venv/pyvenv.cfg" ]; then
-		echo "`bar`%F{14}.venv%f"
+		echo "`bar`%F{12}.venv%f"
 		return
 	elif [ -n "$VIRTUAL_ENV" ]; then
 		st=`basename $VIRTUAL_ENV`
-		echo "`bar`%F{14}$st%f"
+		echo "`bar`%F{12}$st%f"
 		return
 	elif [ -n "$CONDA_DEFAULT_ENV" ]; then
-		echo "`bar`%F{14}$CONDA_DEFAULT_ENV%f"
+		echo "`bar`%F{12}$CONDA_DEFAULT_ENV%f"
 		return
 	else
 		return
@@ -56,9 +56,9 @@ function node-env {
 			# Check if using nvm
 			local nvm_current=$(nvm current 2>/dev/null)
 			if [ -n "$nvm_current" ] && [ "$nvm_current" != "system" ]; then
-				echo "`bar`%F{14}⬢$node_ver(nvm)%f"
+				echo "`bar`%F{12}⬢$node_ver(nvm)%f"
 			else
-				echo "`bar`%F{14}⬢$node_ver%f"
+				echo "`bar`%F{12}⬢$node_ver%f"
 			fi
 		fi
 	fi
@@ -73,5 +73,5 @@ function ssh-mark {
 
 
 setopt prompt_subst
-PROMPT='$(ssh-mark)%F{14}%~%f`python-env``node-env``git-branch` %F{13}%f
+PROMPT='$(ssh-mark)%F{12}%~%f`python-env``node-env``git-branch` %F{13}%f
 %F{13}%f'
