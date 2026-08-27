@@ -12,8 +12,6 @@ DOMAINS="
 youtube.com
 www.youtube.com
 m.youtube.com
-music.youtube.com
-studio.youtube.com
 youtu.be
 www.youtu.be
 youtube-nocookie.com
@@ -71,6 +69,7 @@ awk '
 mv "$tmp.next" "$tmp"
 
 if cmp -s "$HOSTS_FILE" "$tmp"; then
+  echo "blocklist already enforced: $HOSTS_FILE"
   exit 0
 fi
 
@@ -84,3 +83,5 @@ if [ "$FLUSH_DNS" = "1" ]; then
   /usr/bin/dscacheutil -flushcache
   /usr/bin/killall -HUP mDNSResponder 2>/dev/null || true
 fi
+
+echo "blocklist updated: $HOSTS_FILE"

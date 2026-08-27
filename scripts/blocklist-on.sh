@@ -22,6 +22,8 @@ sudo install -d -m 0755 -o root -g wheel /usr/local/bin
 sudo install -m 0755 -o root -g wheel "$SCRIPT_SRC" "$SCRIPT_DST"
 sudo install -m 0644 -o root -g wheel "$PLIST_SRC" "$PLIST_DST"
 
+sudo "$SCRIPT_DST"
+
 sudo launchctl bootout "system/$LABEL" 2>/dev/null || true
 sudo launchctl enable "system/$LABEL" 2>/dev/null || true
 sudo launchctl bootstrap system "$PLIST_DST"

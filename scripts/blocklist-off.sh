@@ -18,8 +18,13 @@ sudo awk -v begin="$BEGIN_MARKER" -v end="$END_MARKER" '
   skip != 1 { print }
 ' "$HOSTS_FILE" > "$tmp"
 
+if cmp -s "$HOSTS_FILE" "$tmp"; then
+  echo "blocklist already off"
+  exit 0
+fi
+
 sudo install -m 0644 "$tmp" "$HOSTS_FILE"
 sudo /usr/bin/dscacheutil -flushcache
 sudo /usr/bin/killall -HUP mDNSResponder 2>/dev/null || true
 
-echo "blocklist off"
+echo "blocklist removed: $HOSTS_FILE"
