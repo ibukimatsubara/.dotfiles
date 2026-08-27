@@ -168,16 +168,24 @@ EOF
 }
 
 open_rightmost() {
-    local source pane_command source_info window_id source_path rightmost
+    local source pane_command requested_path source_info window_id source_path rightmost
 
     source="${1:-${TMUX_PANE:-}}"
     pane_command="${2:-}"
+    requested_path="${3:-}"
     [ -n "$source" ] || exit 1
 
     source_info=$(tmux display-message -p -t "$source" '#{window_id}|#{pane_current_path}') || exit 1
     IFS='|' read -r window_id source_path <<EOF
 $source_info
 EOF
+    if [ -n "$requested_path" ]; then
+        if [ ! -d "$requested_path" ]; then
+            tmux display-message -d 1200 "Directory not found: $requested_path"
+            exit 1
+        fi
+        source_path=$(cd "$requested_path" 2>/dev/null && pwd -P) || exit 1
+    fi
     rightmost=$(
         tmux list-panes -t "$window_id" -F '#{pane_right} #{pane_top} #{pane_id}' \
             | sort -k1,1nr -k2,2n \
@@ -189,13 +197,14 @@ EOF
 }
 
 open_rightmost_codex() {
-    local source codex_command
+    local source requested_path codex_command
 
     source="${1:-${TMUX_PANE:-}}"
+    requested_path="${2:-}"
     codex_command=$(tmux show-option -gqv @motion-codex-command 2>/dev/null)
     [ -n "$codex_command" ] || codex_command='exec zsh -ic codexc'
 
-    open_rightmost "$source" "$codex_command"
+    open_rightmost "$source" "$codex_command" "$requested_path"
 }
 
 detect_close_axis() {
@@ -421,10 +430,10 @@ case "${1:-}" in
         animate_split vertical "${2:-}"
         ;;
     open-rightmost)
-        open_rightmost "${2:-}"
+        open_rightmost "${2:-}" '' "${3:-}"
         ;;
     open-rightmost-codex)
-        open_rightmost_codex "${2:-}"
+        open_rightmost_codex "${2:-}" "${3:-}"
         ;;
     close-pane)
         animate_close "${2:-}"
@@ -436,7 +445,7 @@ case "${1:-}" in
         undo_last_pane "${2:-}"
         ;;
     *)
-        printf 'usage: %s {split-horizontal|split-vertical|open-rightmost|open-rightmost-codex|close-pane|soft-close-pane|undo-last-pane} [target]\n' "$0" >&2
+        printf 'usage: %s {split-horizontal|split-vertical|open-rightmost|open-rightmost-codex|close-pane|soft-close-pane|undo-last-pane} [target] [path]\n' "$0" >&2
         exit 2
         ;;
 esac

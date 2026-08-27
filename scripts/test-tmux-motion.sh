@@ -5,9 +5,12 @@ set -eu
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 test_socket="dotfiles-tmux-motion-test-$$"
+custom_path=$(mktemp -d "${TMPDIR:-/tmp}/tmux-motion-path.XXXXXX")
+custom_path=$(cd "$custom_path" && pwd -P)
 
 cleanup() {
     tmux -L "$test_socket" kill-server >/dev/null 2>&1 || true
+    rm -rf "$custom_path"
 }
 trap cleanup EXIT HUP INT TERM
 
@@ -81,8 +84,22 @@ if [ "$active_command" != 'sleep' ]; then
     exit 1
 fi
 printf 'PASS open-rightmost-command: command=%s\n' "$active_command"
-
 command_pane=$(tmux -L "$test_socket" display-message -p -t motion-test: '#{pane_id}')
+
+path_source=$(tmux -L "$test_socket" display-message -p -t motion-test: '#{pane_id}')
+tmux -L "$test_socket" run-shell \
+    "$script_dir/tmux-motion.sh open-rightmost '$path_source' '$custom_path'"
+opened_path=$(tmux -L "$test_socket" display-message -p -t motion-test: '#{pane_current_path}')
+if [ "$opened_path" != "$custom_path" ]; then
+    printf 'FAIL open-rightmost-path: expected %s, got %s\n' "$custom_path" "$opened_path" >&2
+    exit 1
+fi
+printf 'PASS open-rightmost-path: path=%s\n' "$opened_path"
+path_pane=$(tmux -L "$test_socket" display-message -p -t motion-test: '#{pane_id}')
+tmux -L "$test_socket" run-shell \
+    "$script_dir/tmux-motion.sh close-pane '$path_pane'"
+assert_equal_widths 'close-custom-path-pane'
+
 tmux -L "$test_socket" run-shell \
     "$script_dir/tmux-motion.sh soft-close-pane '$command_pane'"
 assert_equal_widths 'soft-close-pane'
