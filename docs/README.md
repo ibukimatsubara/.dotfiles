@@ -9,5 +9,6 @@
 - [neovim.md](./neovim.md) - Neovim設定の詳細
 - [setup.md](./setup.md) - セットアップとインストール手順
 - [skhd.md](./skhd.md) - macOSアプリ起動ショートカット
+- [remote-codex-preview.md](./remote-codex-preview.md) - リモートCodexの成果物を手元Macで開く
 - [VS Code](../vscode/README.md) - tmux風キーバインドと拡張機能の復元
 - [Chrome / Vimium C](../chrome/README.md) - Vimium C設定とChrome拡張機能の棚卸し
