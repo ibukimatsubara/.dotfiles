@@ -56,7 +56,7 @@ return {
           end,
         },
 
-        -- キーマップ（Copilotと分離、tmux/yabaiと競合回避）
+        -- キーマップ（Copilotと分離、tmuxと競合回避）
         mapping = cmp.mapping.preset.insert({
           ["<C-]>"] = cmp.mapping.complete(), -- 補完メニュー表示
           ["<C-n>"] = cmp.mapping.select_next_item(), -- 次の候補
