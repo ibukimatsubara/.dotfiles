@@ -80,7 +80,9 @@ legacyは既存環境の互換性のため残していますが、新しいセ�
 ├── setup.sh
 ├── vscode/             # settings、keybindings、extensions
 ├── chrome/             # Vimium C exportと復元メモ
-├── codex/              # Codexの安全な共通設定
+├── agents/skills/      # Codex / Claude共通のpersonal skills
+├── codex/              # Codexのinstructions、agents、安全な共通設定
+├── claude/             # Claude Codeのinstructions、agents、statusline
 ├── ghostty/
 ├── tmux/
 ├── zsh/
@@ -104,12 +106,31 @@ legacyは既存環境の互換性のため残していますが、新しいセ�
 
 秘密情報はパスワードマネージャーまたは暗号化バックアップへ分離します。個人用のシェル設定は`~/.zshrc.local`へ置きます。
 
+## AI agent設定
+
+`setup.sh`は以下のpersonal設定をglobal scopeへ配置します。
+
+- `codex/AGENTS.md` → `~/.codex/AGENTS.md`
+- `codex/agents/` → `~/.codex/agents/`へ同期
+- `agents/skills/` → `~/.agents/skills/`
+- `claude/CLAUDE.md` → `~/.claude/CLAUDE.md`
+- `claude/agents/` → `~/.claude/agents/`へ同期
+- 共通skills → `~/.claude/skills/`内へ個別同期
+
+Codexの共通skillsは公式にsymlink対応しているためlinkを使い、agent定義と
+Claude側のskillsはtoolごとのsymlink差異を避けるため内容比較後に同期します。
+
+plugin cache、OAuth、認証情報、session履歴、Codexのmachine-managed
+`config.toml`、Claudeの`settings.json`は追跡しません。公式pluginとLSPの再導入は
+`scripts/setup-ai-agent-tools.sh`が担当します。
+
 ## ドキュメント
 
 - [セットアップ](docs/setup.md)
 - [VS Code](vscode/README.md)
 - [Chrome / Vimium C](chrome/README.md)
 - [tmux](docs/tmux.md)
+- [Remote Codex preview](docs/remote-codex-preview.md)
 - [Zsh](docs/zsh.md)
 - [skhd](docs/skhd.md)
 - [Neovim（legacy）](docs/neovim.md)

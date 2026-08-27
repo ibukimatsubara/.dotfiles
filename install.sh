@@ -193,6 +193,20 @@ install_optional_tools() {
         print_success "Claude Code CLI already installed"
     fi
 
+    # Pi coding agent CLI
+    if command -v pi >/dev/null 2>&1; then
+        print_success "Pi coding agent CLI already installed"
+    elif ! command -v npm >/dev/null 2>&1; then
+        print_warning "npm not found; skipping Pi coding agent CLI installation"
+    else
+        print_info "Installing Pi coding agent CLI..."
+        if npm install -g --ignore-scripts @earendil-works/pi-coding-agent >/dev/null 2>&1; then
+            print_success "Pi coding agent CLI installed"
+        else
+            print_warning "Failed to install Pi coding agent CLI (requires Node.js 22.19 or newer)"
+        fi
+    fi
+
 }
 
 # Main installation flow

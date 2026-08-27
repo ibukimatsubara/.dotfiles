@@ -1,5 +1,15 @@
 # Claude Code config
 
+## Personal instructions, agents, and skills
+
+- `CLAUDE.md` is linked to `~/.claude/CLAUDE.md`.
+- `agents/` is synchronized to `~/.claude/agents/`.
+- Shared skills live in `../agents/skills/` and are synchronized individually
+  under `~/.claude/skills/`, preserving Claude-only personal skills.
+
+Run `../setup.sh` to create or refresh the links and synchronized copies.
+Existing live paths are backed up before replacement.
+
 ## statusline-command.sh
 
 Custom status line for Claude Code. Renders:

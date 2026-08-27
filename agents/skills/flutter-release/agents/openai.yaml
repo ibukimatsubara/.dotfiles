@@ -1,0 +1,3 @@
+interface:
+  display_name: "Flutter Release"
+  short_description: "Prepare and verify iOS and Android releases"

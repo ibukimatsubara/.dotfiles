@@ -1,5 +1,19 @@
 # Codex CLI config
 
+## Personal instructions and agents
+
+- `AGENTS.md` is linked to `~/.codex/AGENTS.md`.
+- `agents/` is synchronized to `~/.codex/agents/` because custom-agent
+  directory symlink behavior varies by client version.
+- Shared skills live in `../agents/skills/` and are linked to
+  `~/.agents/skills/`.
+
+Run `../setup.sh` to create or refresh the links and synchronized copies.
+Existing live paths are backed up before replacement.
+
+リモートMac上のCodexから生成物を手元Macへ送り、ローカルアプリで開く構成は
+[`remote-codex-preview.md`](../docs/remote-codex-preview.md)を参照。
+
 ## statusline.toml
 
 Reference snippet for the Codex TUI status line + terminal title, matching the

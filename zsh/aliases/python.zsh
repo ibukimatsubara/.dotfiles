@@ -40,7 +40,7 @@ alias uvtr='uv tool run'
 # Python aliases (補足)
 alias p='python'
 alias p3='python3'
-alias pi='pip install'
+alias pipi='pip install'
 alias pir='pip install -r requirements.txt'
 alias pf='pip freeze'
 alias pu='pip uninstall'

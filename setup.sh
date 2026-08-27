@@ -34,6 +34,12 @@ create_directories() {
     mkdir -p ~/.local/share/nvim/undo
     mkdir -p ~/.local/share/nvim/session
 
+    # User-scoped AI agent configuration directories
+    mkdir -p ~/.agents
+    mkdir -p ~/.codex
+    mkdir -p ~/.claude
+    mkdir -p ~/.claude/skills
+
     # macOS-specific directories
     if is_macos; then
         mkdir -p ~/.config/skhd
@@ -51,6 +57,52 @@ backup_file() {
         print_warning "Backing up existing $1 to $backup_name"
         mv "$1" "$backup_name"
     fi
+}
+
+# Link a file or directory managed by this repository without overwriting an
+# existing local path. Existing paths are moved to timestamped backups.
+link_managed_path() {
+    local source_path="$1"
+    local target_path="$2"
+
+    if [ -L "$target_path" ] && [ "$(readlink "$target_path")" = "$source_path" ]; then
+        print_success "$target_path already linked"
+        return
+    fi
+
+    if [ -e "$target_path" ] || [ -L "$target_path" ]; then
+        local backup_path="$target_path.bak-$(date +%Y%m%d-%H%M%S)"
+        print_warning "Backing up existing $target_path to $backup_path"
+        mv "$target_path" "$backup_path"
+    fi
+
+    mkdir -p "$(dirname "$target_path")"
+    ln -s "$source_path" "$target_path"
+    print_success "Linked $target_path"
+}
+
+# Copy a managed directory when the consuming tool does not guarantee that it
+# follows directory symlinks. Replace only when contents differ, and preserve
+# the previous live directory as a timestamped backup.
+sync_managed_tree() {
+    local source_path="$1"
+    local target_path="$2"
+
+    if [ -d "$target_path" ] && [ ! -L "$target_path" ] && \
+       diff -qr "$source_path" "$target_path" >/dev/null 2>&1; then
+        print_success "$target_path already synchronized"
+        return
+    fi
+
+    if [ -e "$target_path" ] || [ -L "$target_path" ]; then
+        local backup_path="$target_path.bak-$(date +%Y%m%d-%H%M%S)"
+        print_warning "Backing up existing $target_path to $backup_path"
+        mv "$target_path" "$backup_path"
+    fi
+
+    mkdir -p "$(dirname "$target_path")"
+    cp -R "$source_path" "$target_path"
+    print_success "Synchronized $target_path"
 }
 
 # Setup Zsh configuration
@@ -317,6 +369,27 @@ check_requirements() {
 link_ai_clis() {
     print_info "🤖 Linking AI CLI configs..."
 
+    # Personal instructions and reusable agents.
+    link_managed_path "$HOME/.dotfiles/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+    sync_managed_tree "$HOME/.dotfiles/codex/agents" "$HOME/.codex/agents"
+    link_managed_path "$HOME/.dotfiles/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+    sync_managed_tree "$HOME/.dotfiles/claude/agents" "$HOME/.claude/agents"
+
+    # Shared Agent Skills. Codex loads ~/.agents/skills directly; Claude gets
+    # per-skill links so unrelated Claude-only skills remain untouched.
+    link_managed_path "$HOME/.dotfiles/agents/skills" "$HOME/.agents/skills"
+
+    local shared_skill
+    for shared_skill in \
+        ai-accuracy-evaluation \
+        customer-technical-deliverable \
+        flutter-release \
+        issue-to-pr-delivery; do
+        sync_managed_tree \
+            "$HOME/.dotfiles/agents/skills/$shared_skill" \
+            "$HOME/.claude/skills/$shared_skill"
+    done
+
     # Claude Code statusLine script — dotfiles is the single source of truth.
     if [ -d ~/.claude ]; then
         backup_file ~/.claude/statusline-command.sh
@@ -328,6 +401,30 @@ link_ai_clis() {
     # Codex CLI: config.toml is machine-managed, so we don't symlink it.
     # Merge codex/statusline.toml's [tui] block by hand, or run /statusline in Codex.
     print_warning "Codex: merge ~/.dotfiles/codex/statusline.toml [tui] block into ~/.codex/config.toml (or use /statusline)"
+
+    if [ -x "$HOME/.dotfiles/scripts/setup-ai-agent-tools.sh" ]; then
+        "$HOME/.dotfiles/scripts/setup-ai-agent-tools.sh"
+    fi
+}
+
+# Install the hourly Codex worker that summarizes tmux pane activity.
+setup_tmux_pane_summaries() {
+    if ! is_macos; then
+        return
+    fi
+
+    print_info "🧠 Setting up hourly tmux pane summaries..."
+
+    if ! command -v codex >/dev/null 2>&1; then
+        print_warning "Codex CLI not found; skipping tmux pane summaries"
+        return
+    fi
+
+    if ~/.dotfiles/scripts/setup-tmux-pane-summaries.sh; then
+        print_success "Hourly tmux pane summaries enabled"
+    else
+        print_warning "Failed to enable hourly tmux pane summaries"
+    fi
 }
 
 # Main setup flow
@@ -365,6 +462,9 @@ main() {
     echo ""
 
     link_ai_clis
+    echo ""
+
+    setup_tmux_pane_summaries
     echo ""
 
     install_neovim_plugins

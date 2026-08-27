@@ -1,0 +1,3 @@
+interface:
+  display_name: "AI Accuracy Evaluation"
+  short_description: "Evaluate OCR, search, and AI quality"
