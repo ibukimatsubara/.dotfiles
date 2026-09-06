@@ -28,8 +28,12 @@ implementation notes. Read relevant current life/learning routine documents befo
 2. Use the available `computer-use` skill and `node_repl` + `@oai/sky` to read Notion Calendar.
    Start with `get_app_state({app:'com.cron.electron'})`. Display-name lookup has previously timed out
    while bundle-ID lookup worked. Retry once and inspect `list_apps` if connection fails.
-3. Select the target date, use day view, and **recheck the date after switching views**: Notion Calendar
-   can reset it to today. Read all visible personal/company accounts, the all-day area, and the entire
+3. Preserve the user's workspace. Before navigation, note the visible week/date, scroll position and any
+   open event details in memory. **Use week view by default; do not routinely switch to day view.**
+   Select the target date within week view and inspect event details for exact times. Only switch to day
+   view temporarily if week view plus event details cannot provide reliable coverage. Recheck the date
+   after any view switch, because Notion Calendar can reset it to today.
+   Read all visible personal/company accounts, the all-day area, and the entire
    16-hour planning horizon by scrolling. For horizons crossing midnight, also read the next day.
    Open event details when needed to confirm exact start/end, ownership, busy/free and multi-day dates.
    Do not change hidden calendar visibility or import other people's hidden calendars by default.
@@ -59,6 +63,18 @@ Do not stop for a skeleton-only confirmation before calendar acquisition. Do not
 `plan_day.py` rhythm/detailed modes for current daily requests: those modes predate the adaptive requirements.
 If acquisition fails after retry/diagnosis, report a system connection failure; do not substitute a synthetic
 fixture or require routine screenshot uploads or transcription. Synthetic data is only for explicit tests.
+
+## Restore the calendar workspace
+
+The owner uses week view and does not want the planner to leave the calendar in day view (2026-09-06).
+After reading or verifying events, restore **week view**, the original visible week/date and scroll
+position where feasible. Close only details or menus opened by this run; preserve pre-existing UI state
+where possible. Do this before reporting completion, including on errors or partial failures. Use a
+cleanup/finally step when automating multiple interactions. Inspect the resulting state and verify the
+week view; do not claim restoration from a keypress alone. If the app cannot be reached after retry,
+report that restoration could not be verified. Do not change calendar visibility, zoom, sidebar layout,
+or other display preferences merely for convenience. A user's explicit request for a different final
+view takes precedence.
 
 ## Engine input
 
