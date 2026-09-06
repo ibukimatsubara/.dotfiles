@@ -11,8 +11,10 @@ in `~/.config/daily-calendar-planner/`. Google Cloud uses project `mibuki-core` 
 `calendar-json.googleapis.com`; the OAuth consent branding is the existing “Mibuki Inbox Agent”, while
 the dedicated client is “Daily Calendar Planner Desktop”. Only the three requested scopes were granted.
 Seven events for 2026-09-07 08:00 were registered and verified; an identical retry inserted zero events.
+The revised break-spacing plan was also applied on 2026-09-06: two entries updated, seven verified,
+zero inserted; an identical retry updated zero entries. Breaks are now 12:00–14:00 and 16:00–18:00.
 The initial read-back required normalizing omitted `transparency` to Google’s `opaque` default; this
-is covered by a regression test. There are 23 passing local tests, including minimum break duration and spacing regressions. The last registration receipt is
+is covered by a regression test. There are 29 passing local tests, including minimum break duration and spacing regressions. The last registration receipt is
 `~/.config/daily-calendar-planner/last-registration.json`.
 
 ## Initial setup (only if missing)
@@ -42,9 +44,29 @@ The writer verifies the authenticated email before Calendar requests. It writes 
 with stable IDs, private visibility, no attendees, disabled reminders, and sendUpdates=none. Every inserted
 or already-present event is read back and compared. Repeating an identical plan should insert zero events.
 
-Existing differing or manually edited events cause a stop. Replacement/deletion and changed-plan
-reconciliation are not implemented. Do not silently change an ID to get around that stop. Started events
-cannot be written. A partial failed write can be retried with the identical plan; a calendar-creation timeout
+Ordinary `apply` refuses differing events. For an explicitly requested revision, `update` supports the same
+event-ID set only. It compares every existing event against the previous verified generated-event preview
+(or the exact original preview previously verified on registration) before any write. Never obtain this
+baseline by copying the current server events, because that would accept manual edits as planner output.
+Manual edits, missing events, additional events, or changes in event count cause a stop. Do not change IDs
+to bypass this check. Started events cannot be written or updated.
+
+```bash
+uv run "$HOME/.agents/skills/daily-calendar-planner/scripts/calendar_api.py" update \
+  --plan - --previous-events "$HOME/.config/daily-calendar-planner/verified-events-2026-09-07.json"
+```
+
+Feed the new plan through stdin. The update uses conditional PATCH requests with `If-Match` ETags,
+`sendUpdates=none`, and the same private destination. If concurrent edits produce HTTP 412, stop and
+inspect; do not force an overwrite. Read all events back after writing. An interrupted update can be retried
+with the original baseline: entries already matching the new plan are skipped. There is no multi-event
+transaction; report a partial failure and retry explicitly with the same revision. Deletion is unsupported.
+Successful apply/update commands save generated-event snapshots and the receipt under
+`~/.config/daily-calendar-planner/`, outside repositories.
+
+API reference: [conditional modifications](https://developers.google.com/workspace/calendar/api/guides/version-resources)
+and [event patch](https://developers.google.com/workspace/calendar/api/v3/reference/events/patch).
+ A partial failed write can be retried with the identical plan; a calendar-creation timeout
 leaves a pending marker and must be inspected before retrying, to avoid creating duplicate calendars.
 
 The browser may be used for initial Google Cloud/OAuth setup and read-only verification, never as the

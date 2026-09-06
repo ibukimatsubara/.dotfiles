@@ -40,7 +40,8 @@ implementation notes. Read relevant current life/learning routine documents befo
 Before allocation on an already-planned date, identify this app’s entries in the configured AI Daily Plan
 calendar using the Calendar API and their private planner marker. Exclude verified, unchanged planner
 entries from the fixed-event input to avoid counting the plan against itself. Do not identify ownership
-by the title prefix alone. Treat manual edits as protected; changed-plan replacement remains unsupported.
+by the title prefix alone. Treat manual edits as protected. On an explicit update request, use the guarded API update procedure
+in references/api-registration.md; only an unchanged event-ID set is supported.
 
 5. Send the JSON envelope below to `scripts/adaptive_day.py` via stdin (shell heredoc or transient
    subprocess input). The skill performs acquisition; the Python engine only allocates. A CLI run alone

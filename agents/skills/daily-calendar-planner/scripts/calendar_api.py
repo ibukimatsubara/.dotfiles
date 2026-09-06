@@ -50,8 +50,9 @@ def session():
     return s
 
 
-def api(s,method,path,body=None,params=None):
-    r=s.request(method,'https://www.googleapis.com/calendar/v3/'+path,json=body,params=params,timeout=30)
+def api(s,method,path,body=None,params=None,headers=None):
+    options = {'headers':headers} if headers else {}
+    r=s.request(method,'https://www.googleapis.com/calendar/v3/'+path,json=body,params=params,timeout=30,**options)
     if not r.ok:raise RuntimeError(f'Calendar API HTTP {r.status_code}: '+r.json().get('error',{}).get('message','Request failed'))
     return r.json() if r.content else {}
 
@@ -84,6 +85,8 @@ def make_events(plan):
 
 
 def matches(actual,desired):
+    if any(actual.get(k) for k in ('location','attachments','recurrence','recurringEventId','conferenceData')):
+        return False
     if actual.get('transparency','opaque') != desired.get('transparency','opaque'):return False
     for key in ('summary','description','visibility','reminders','extendedProperties','colorId'):
         if actual.get(key)!=desired.get(key):return False
@@ -92,7 +95,7 @@ def matches(actual,desired):
     return not actual.get('attendees') and actual.get('status')!='cancelled'
 
 
-def apply(s,plan,config):
+def apply(s,plan,config,previous_events=None):
     if config.get('account')!=ACCOUNT or config.get('created_by')!=MARKER or not config.get('calendar_id','').endswith('@group.calendar.google.com'):
         raise ValueError('Destination is not the configured planner-created calendar')
     wanted=make_events(plan)
@@ -112,17 +115,47 @@ def apply(s,plan,config):
         token=page.get('nextPageToken')
         if not token:break
     desired={e['id']:e for e in wanted}
+    previous = None
+    if previous_events is not None:
+        previous = {e['id']:e for e in previous_events}
+        if len(previous) != len(previous_events) or set(previous) != set(desired):
+            raise ValueError('Updates require the same event IDs; count changes are unsupported')
+        for e in previous.values():
+            if e.get('extendedProperties',{}).get('private') != {'planner':MARKER,'date':plan['date']}:
+                raise ValueError('Previous event is not owned by this planner and date')
+            if datetime.fromisoformat(e['start']['dateTime']) <= datetime.now(timezone.utc):
+                raise ValueError('Started events cannot be updated')
+        if {e['id'] for e in existing} != set(previous):
+            raise ValueError('Existing event set changed; no update performed')
+    changes = {}
     for e in existing:
-        if e['id'] not in desired or not matches(e,desired[e['id']]):
-            raise ValueError('Existing or edited events differ from this plan; automatic replacement is not enabled')
+        uid = e['id']
+        if uid not in desired:
+            raise ValueError('Unrecognized existing event; no write performed')
+        if matches(e,desired[uid]):
+            continue
+        if previous is None or not matches(e,previous[uid]):
+            raise ValueError('Existing event differs from the previous plan; manual edits are protected')
+        if not e.get('etag'):
+            raise ValueError('Update requires an ETag')
+        changes[uid] = e['etag']
     known={e['id'] for e in existing}
-    inserted=0
+    inserted=updated=0
     for e in wanted:
-        if e['id'] not in known:
+        uid=e['id']
+        if uid in changes:
+            body={k:v for k,v in e.items() if k!='id'}
+            api(s,'PATCH',route+'/events/'+uid,body=body,params={'sendUpdates':'none'},
+                headers={'If-Match':changes[uid]})
+            updated+=1
+        elif uid not in known:
             api(s,'POST',route+'/events',body=e,params={'sendUpdates':'none'});inserted+=1
+    # Read all entries after the complete write sequence, including unchanged ones.
+    for e in wanted:
         actual=api(s,'GET',route+'/events/'+e['id'])
         if not matches(actual,e):raise ValueError('Event read-back verification failed')
-    return {'verified':len(wanted),'inserted':inserted,'already_present':len(known),'account':ACCOUNT,'calendar_id':config['calendar_id']}
+    return {'verified':len(wanted),'inserted':inserted,'updated':updated,
+            'already_present':len(known)-updated,'account':ACCOUNT,'calendar_id':config['calendar_id']}
 
 
 def read_plan(path):
@@ -132,9 +165,10 @@ def read_plan(path):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('command',choices=['auth','init-calendar','preview','apply','status'])
+    p.add_argument('command',choices=['auth','init-calendar','preview','apply','update','status'])
     p.add_argument('--client',type=Path)
     p.add_argument('--plan',type=Path)
+    p.add_argument('--previous-events',type=Path,help='Verified generated-event preview before the update')
     a=p.parse_args()
     if a.command=='preview':
         print(json.dumps(make_events(read_plan(a.plan)),ensure_ascii=False,indent=2));return
@@ -157,6 +191,13 @@ def main():
         cal=api(s,'POST','calendars',body={'summary':'AI Daily Plan','description':MARKER,'timeZone':'Asia/Tokyo'})
         save(HOME/'calendar.json',{'account':ACCOUNT,'calendar_id':cal['id'],'created_by':MARKER})
         print('Created and configured AI Daily Plan.');return
-    print(json.dumps(apply(s,read_plan(a.plan),json.loads((HOME/'calendar.json').read_text())),ensure_ascii=False))
+    if a.command=='update' and not a.previous_events:
+        raise ValueError('update requires --previous-events; never use a fresh server copy as the baseline')
+    plan=read_plan(a.plan)
+    previous=json.loads(a.previous_events.read_text()) if a.command=='update' else None
+    result=apply(s,plan,json.loads((HOME/'calendar.json').read_text()),previous)
+    save(HOME/('verified-events-'+plan['date']+'.json'),make_events(plan))
+    save(HOME/'last-registration.json',dict(result,date=plan['date'],verified_at=datetime.now(timezone.utc).isoformat()))
+    print(json.dumps(result,ensure_ascii=False))
 
 if __name__=='__main__':main()
