@@ -1,0 +1,43 @@
+# Daily Calendar Planner
+
+起床時刻と実際のカレンダーから、会社の仕事・自分の活動・休憩を組み立てる個人用Codexスキル。
+
+## 配置と呼び出し
+
+実体は `agents/skills/daily-calendar-planner/`。既存の `setup.sh` が
+`~/.agents/skills` を `~/.dotfiles/agents/skills` にリンクするため、作業フォルダを問わず利用できる。
+変更がスキル一覧に現れない場合はCodexを再起動する。
+
+```text
+$daily-calendar-planner 明日8時起きで計画を立てて
+```
+
+通常はHTMLプレビューのみ。登録を依頼した場合だけGoogle Calendar APIを使い、
+`ibuuun1224@gmail.com` の専用 `AI Daily Plan` カレンダーへ登録する。
+Notion Calendarは既存予定の読み取りに使い、登録操作には使わない。
+
+## 休憩のルール
+
+- 休憩は1回につき最低60分。30分の空き時間を休憩で埋めない。
+- 休憩間はなるべく2時間以上空ける。必要に応じて自分の活動を日中へ動かす。
+- 2時間の間隔は配置上の優先条件で、固定予定は変更しない。
+- 基準は会社8時間（会議込み）、自分の活動4時間、休憩4時間。
+- 確保できない時間や休憩の密集は警告として表示する。ジムは休憩内の連続90分。
+
+## ローカル依存と認証
+
+macOS、Notion Calendar、CodexのComputer Use、Python 3.11以上、uvが必要。
+生活ルールは `~/life-kb/areas/life/2026-09-06-adaptive-daily-planning.md` と関連文書を参照する。
+別端末ではlife-kbとカレンダー接続を別途準備する。
+
+OAuthクライアント・トークン・登録先設定は `~/.config/daily-calendar-planner/` に保存し、
+dotfilesには含めない。レビューHTMLは実行時の作業フォルダの `output/daily-plans/` に保存する。
+
+```bash
+uv run "$HOME/.agents/skills/daily-calendar-planner/scripts/calendar_api.py" status
+uv run python -m unittest discover \
+  -s "$HOME/.agents/skills/daily-calendar-planner/scripts" -p 'test_*.py'
+```
+
+同じ計画の再登録は重複を作らない。既存予定と異なる計画や手動編集が見つかった場合は停止する。
+登録済み計画の置換・削除にはまだ対応していないため、ルール変更だけでは登録済み予定は変わらない。

@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+client.json
+token.json
+calendar.json
+last-registration.json

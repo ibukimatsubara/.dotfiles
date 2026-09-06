@@ -1,0 +1,18 @@
+{
+  "fixture": true,
+  "description": "Synthetic scattered-company-meeting scenario; not an actual calendar day.",
+  "events": [
+    {
+      "start": "09:00",
+      "end": "10:00",
+      "title": "会社ミーティング（朝）",
+      "category": "company"
+    },
+    {
+      "start": "20:00",
+      "end": "21:00",
+      "title": "会社ミーティング（夜）",
+      "category": "company"
+    }
+  ]
+}

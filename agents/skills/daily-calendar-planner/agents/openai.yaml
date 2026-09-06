@@ -1,0 +1,4 @@
+interface:
+  display_name: "Daily Calendar Planner"
+  short_description: "Preview an adaptive day without calendar writes"
+  default_prompt: "Use $daily-calendar-planner to preview today's plan without writing to any calendar."
