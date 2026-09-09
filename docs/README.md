@@ -10,5 +10,6 @@
 - [setup.md](./setup.md) - セットアップとインストール手順
 - [skhd.md](./skhd.md) - macOSアプリ起動ショートカット
 - [remote-codex-preview.md](./remote-codex-preview.md) - リモートCodexの成果物を手元Macで開く
+- [svu-power.md](./svu-power.md) - SVUの自動サスペンド、SVM経由の遠隔復帰、処理の保護
 - [VS Code](../vscode/README.md) - tmux風キーバインドと拡張機能の復元
 - [Chrome / Vimium C](../chrome/README.md) - Vimium C設定とChrome拡張機能の棚卸し

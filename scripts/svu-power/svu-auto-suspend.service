@@ -1,0 +1,9 @@
+[Unit]
+Description=Suspend SVU after a safe idle period
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/svu-auto-suspend
+ExecStart=/usr/local/sbin/svu-auto-suspend
+TimeoutStartSec=30
