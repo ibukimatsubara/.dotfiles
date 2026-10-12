@@ -5,6 +5,9 @@ package.path = package.path .. ";" .. os.getenv("HOME") .. "/.dotfiles/hammerspo
 -- Ghostty 強制休憩タイマー (30分 → 星空フェード → 3分休憩)
 breaktimer = require("break_timer")
 
+-- Rotate matching MacBook/QHD wallpapers every hour.
+wallpaper = require("wallpaper").start()
+
 -- Mic priority (higher = preferred)
 local micPriority = {
   ["DJI MIC MINI"]        = 4,
