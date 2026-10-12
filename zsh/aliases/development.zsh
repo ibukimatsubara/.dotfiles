@@ -19,6 +19,12 @@ alias tr='tmux rename-session -t'
 alias tw='tmux rename-window'
 alias ts='tmux switch -t'
 
+# Remote development
+alias mh='mosh home -- tmux new-session -A -s dev'
+alias mn='mosh home -- tmux new-session -s'
+alias ml='ssh home tmux list-sessions'
+alias mt='mosh home -- tmux attach-session -t'
+
 # Python virtual environment
 alias va='source .venv/bin/activate'
 alias vd='deactivate'
