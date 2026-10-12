@@ -67,7 +67,61 @@ sketchybar --add item brand left \
         background.shadow.angle=90 \
         background.shadow.distance=3
 
-sketchybar --add item pomodoro center \
+sketchybar --add item now_playing.artwork center \
+    --set now_playing.artwork \
+        drawing=off \
+        width=36 \
+        padding_left=6 \
+        padding_right=0 \
+        icon.drawing=off \
+        label.drawing=off \
+        background.drawing=on \
+        background.color="$TRANSPARENT" \
+        background.height=28 \
+        background.corner_radius=10 \
+        background.x_offset=0 \
+        background.y_offset=3 \
+        background.clip=0 \
+        background.image="$CONFIG_DIR/assets/media-placeholder.png" \
+        background.image.drawing=on \
+        background.image.scale=0.4375 \
+        background.image.corner_radius=10
+
+sketchybar --add item now_playing.title center \
+    --set now_playing.title \
+        drawing=off \
+        updates=on \
+        width=264 \
+        padding_left=0 \
+        padding_right=0 \
+        scroll_texts=on \
+        icon.drawing=off \
+        label="Not Playing" \
+        label.font="$FONT:Bold:13.0" \
+        label.max_chars=34 \
+        label.width=248 \
+        label.align=left \
+        label.padding_left=4 \
+        label.padding_right=8 \
+        update_freq=3 \
+        script="$PLUGIN_DIR/now_playing.sh" \
+    --subscribe now_playing.title media_change system_woke
+
+sketchybar --add bracket now_playing now_playing.artwork now_playing.title \
+    --set now_playing \
+        drawing=off \
+        background.drawing=on \
+        background.color="$MODULE_COLOR" \
+        background.border_color="$BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius=10 \
+        background.height=32 \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3
+
+sketchybar --add item pomodoro left \
     --set pomodoro \
         icon="󰔛" \
         icon.color="$ACCENT_COLOR" \

@@ -69,7 +69,7 @@ install_essentials() {
     print_info "🔧 Installing essential tools..."
 
     if is_macos; then
-        local essentials=("tmux:tmux" "mosh:mosh" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "fnm:fnm")
+        local essentials=("tmux:tmux" "mosh:mosh" "media-control:media-control" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "fnm:fnm")
     else
         local essentials=("tmux:tmux" "mosh:mosh" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "xclip:xclip" "curl:curl")
     fi
