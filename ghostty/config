@@ -22,6 +22,11 @@ background-blur = 28
 window-decoration = auto
 macos-titlebar-style = hidden
 macos-window-shadow = true
+# Keep global shortcuts available for Aqua Voice and AeroSpace. Secure Input
+# can still be enabled manually from Ghostty when entering sensitive data.
+macos-auto-secure-input = false
+# Do not leave an empty app entry in Cmd+Tab after the last shell exits.
+quit-after-last-window-closed = true
 window-padding-x = 12
 window-padding-y = 10
 window-padding-balance = true

@@ -8,7 +8,7 @@ auto-reload-config = true
 
 # Keep SketchyBar workspace state synchronized with AeroSpace.
 exec-on-workspace-change = ['/bin/bash', '-c',
-    'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
+    '$HOME/.dotfiles/scripts/aerospace-workspace-changed.sh "$AEROSPACE_FOCUSED_WORKSPACE"'
 ]
 
 enable-normalization-flatten-containers = true

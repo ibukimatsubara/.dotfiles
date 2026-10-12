@@ -8,7 +8,8 @@
 - [tmux.md](./tmux.md) - tmux設定の詳細  
 - [neovim.md](./neovim.md) - Neovim設定の詳細
 - [setup.md](./setup.md) - セットアップとインストール手順
-- [skhd.md](./skhd.md) - macOSアプリ起動ショートカット
+- [skhd.md](./skhd.md) - macOSのワークスペース単位のアプリショートカット
+- [aqua-voice-aerospace-troubleshooting.md](./aqua-voice-aerospace-troubleshooting.md) - Aqua Voiceの表示・ショートカット問題の切り分け
 - [remote-codex-preview.md](./remote-codex-preview.md) - リモートCodexの成果物を手元Macで開く
 - [svu-power.md](./svu-power.md) - SVUの自動サスペンド、SVM経由の遠隔復帰、処理の保護
 - [VS Code](../vscode/README.md) - tmux風キーバインドと拡張機能の復元

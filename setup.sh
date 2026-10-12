@@ -287,6 +287,27 @@ link_macos_configs() {
     fi
 }
 
+# Merge the safe Aqua Voice preferences managed by this repository without
+# copying the app's token or other machine-local state into git.
+apply_aqua_voice_settings() {
+    if ! is_macos; then
+        return
+    fi
+
+    print_info "🎙️  Applying Aqua Voice settings..."
+
+    if [ ! -x "$HOME/.dotfiles/scripts/apply-aqua-voice-settings.sh" ]; then
+        print_warning "Aqua Voice settings helper not found"
+        return
+    fi
+
+    if "$HOME/.dotfiles/scripts/apply-aqua-voice-settings.sh"; then
+        print_success "Aqua Voice settings applied"
+    else
+        print_warning "Aqua Voice settings skipped; quit the app and rerun setup if needed"
+    fi
+}
+
 # Link Herdr configuration
 link_herdr() {
     print_info "🐑 Linking Herdr configuration..."
@@ -503,6 +524,9 @@ main() {
     echo ""
 
     link_macos_configs
+    echo ""
+
+    apply_aqua_voice_settings
     echo ""
 
     link_vscode
