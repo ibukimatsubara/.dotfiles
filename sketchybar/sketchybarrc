@@ -1,0 +1,201 @@
+#!/bin/bash
+
+CONFIG_DIR="${CONFIG_DIR:-$HOME/.config/sketchybar}"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+# shellcheck source=/dev/null
+source "$CONFIG_DIR/colors.sh"
+
+FONT="Hack Nerd Font"
+
+# Keep the canvas transparent and render each section as its own glass capsule.
+bar=(
+    position=top
+    height=36
+    margin=14
+    y_offset=8
+    corner_radius=14
+    border_width=0
+    color="$TRANSPARENT"
+    blur_radius=36
+    padding_left=0
+    padding_right=0
+    shadow=off
+    sticky=on
+    topmost=window
+    font_smoothing=on
+)
+sketchybar --bar "${bar[@]}"
+
+defaults=(
+    updates=when_shown
+    padding_left=3
+    padding_right=3
+    icon.font="$FONT:Bold:13.0"
+    label.font="$FONT:Bold:12.0"
+    icon.color="$TEXT_COLOR"
+    label.color="$TEXT_COLOR"
+    icon.padding_left=7
+    icon.padding_right=4
+    label.padding_left=3
+    label.padding_right=7
+    background.drawing=off
+    background.height=28
+    background.corner_radius=10
+)
+sketchybar --default "${defaults[@]}"
+sketchybar --hotload true
+
+sketchybar --add event tmux_state_changed
+
+sketchybar --add item brand left \
+    --set brand \
+        icon="" \
+        icon.font="$FONT:Bold:16.0" \
+        icon.color="$DARK_COLOR" \
+        icon.padding_left=9 \
+        icon.padding_right=9 \
+        label.drawing=off \
+        background.drawing=on \
+        background.color="$ACCENT_COLOR" \
+        background.border_color="$ACCENT_BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius=12 \
+        background.height=28 \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3
+
+sketchybar --add item pomodoro center \
+    --set pomodoro \
+        icon="󰔛" \
+        icon.color="$ACCENT_COLOR" \
+        label="--:--" \
+        update_freq=1 \
+        background.drawing=on \
+        background.color="$MODULE_COLOR" \
+        background.border_color="$BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius=12 \
+        background.height=28 \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3 \
+        script="$PLUGIN_DIR/pomodoro.sh"
+
+tmux_session_records=()
+if command -v tmux >/dev/null 2>&1; then
+    while IFS= read -r session_record; do
+        [ -n "$session_record" ] && tmux_session_records+=("$session_record")
+    done < <(tmux list-sessions -F '#{session_id}|#{session_name}' 2>/dev/null)
+fi
+
+if [ "${#tmux_session_records[@]}" -gt 0 ]; then
+    sketchybar --add item tmux.icon left \
+        --set tmux.icon \
+            icon="" \
+            icon.color="$GREEN_COLOR" \
+            icon.padding_left=9 \
+            icon.padding_right=4 \
+            label.drawing=off \
+            background.drawing=off \
+            click_script="open -a Ghostty"
+
+    tmux_session_items=()
+    for session_record in "${tmux_session_records[@]}"; do
+        IFS='|' read -r session_id session_name <<< "$session_record"
+        session_number="${session_id#\$}"
+        item_name="tmux.session.$session_number"
+        tmux_session_items+=("$item_name")
+
+        sketchybar --add item "$item_name" left \
+            --set "$item_name" \
+                icon.drawing=off \
+                label="$session_name" \
+                label.color="$MUTED_COLOR" \
+                label.max_chars=18 \
+                label.padding_left=5 \
+                label.padding_right=6 \
+                scroll_texts=on \
+                background.drawing=off \
+                script="$PLUGIN_DIR/tmux_session.sh" \
+                click_script="open -a Ghostty" \
+            --subscribe "$item_name" tmux_state_changed
+    done
+
+    sketchybar --add bracket tmux_group tmux.icon "${tmux_session_items[@]}" \
+        --set tmux_group \
+            background.drawing=on \
+            background.color="$MODULE_COLOR" \
+            background.border_color="$BORDER_COLOR" \
+            background.border_width=1 \
+            background.corner_radius=12 \
+            background.height=28 \
+            background.shadow.drawing=on \
+            background.shadow.color="$SHADOW_COLOR" \
+            background.shadow.angle=90 \
+            background.shadow.distance=3
+fi
+
+# Right-positioned items are added from the display edge towards the center.
+sketchybar --add item clock right \
+    --set clock \
+        icon="󰥔" \
+        icon.color="$ACCENT_COLOR" \
+        update_freq=5 \
+        script="$PLUGIN_DIR/clock.sh"
+
+sketchybar --add item date right \
+    --set date \
+        icon="󰃭" \
+        icon.color="$MAUVE_COLOR" \
+        update_freq=30 \
+        script="$PLUGIN_DIR/date.sh" \
+        click_script="open -a Calendar"
+
+sketchybar --add item battery right \
+    --set battery \
+        update_freq=120 \
+        script="$PLUGIN_DIR/battery.sh" \
+        click_script="open 'x-apple.systempreferences:com.apple.Battery-Settings.extension'" \
+    --subscribe battery system_woke power_source_change
+
+sketchybar --add item volume right \
+    --set volume \
+        icon.color="$BLUE_COLOR" \
+        script="$PLUGIN_DIR/volume.sh" \
+        click_script="$PLUGIN_DIR/volume_click.sh" \
+    --subscribe volume volume_change system_woke
+
+sketchybar --add item memory right \
+    --set memory \
+        icon="󰍛" \
+        icon.color="$GREEN_COLOR" \
+        update_freq=10 \
+        script="$PLUGIN_DIR/memory.sh" \
+        click_script="open -a 'Activity Monitor'"
+
+sketchybar --add item cpu right \
+    --set cpu \
+        icon="" \
+        icon.color="$PEACH_COLOR" \
+        update_freq=5 \
+        script="$PLUGIN_DIR/cpu.sh" \
+        click_script="open -a 'Activity Monitor'"
+
+sketchybar --add bracket status cpu memory volume battery date clock \
+    --set status \
+        background.drawing=on \
+        background.color="$MODULE_COLOR" \
+        background.border_color="$BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius=12 \
+        background.height=28 \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3
+
+sketchybar --update

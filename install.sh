@@ -121,6 +121,26 @@ install_desktop_apps() {
             print_warning "Failed to install $cask; it may already exist outside Homebrew"
         fi
     done
+
+    if ! brew tap | grep -Fxq "nikitabobko/tap"; then
+        print_info "Adding AeroSpace Homebrew tap..."
+        if brew tap nikitabobko/tap >/dev/null 2>&1; then
+            print_success "AeroSpace Homebrew tap added"
+        else
+            print_warning "Failed to add AeroSpace Homebrew tap"
+        fi
+    fi
+
+    # Limit third-party trust to the AeroSpace cask rather than the whole tap.
+    brew trust --cask nikitabobko/tap/aerospace >/dev/null 2>&1
+
+    if brew list --cask aerospace >/dev/null 2>&1; then
+        print_success "aerospace already installed"
+    elif brew install --cask nikitabobko/tap/aerospace >/dev/null 2>&1; then
+        print_success "aerospace installed"
+    else
+        print_warning "Failed to install aerospace"
+    fi
 }
 
 # Install fonts
@@ -155,7 +175,21 @@ install_macos_tools() {
 
     print_info "⌨️ Installing macOS hotkey tools..."
 
-    local macos_tools=("skhd")
+    if ! brew tap | grep -Fxq "FelixKratz/formulae"; then
+        print_info "Adding FelixKratz Homebrew tap..."
+        if brew tap FelixKratz/formulae >/dev/null 2>&1; then
+            print_success "FelixKratz Homebrew tap added"
+        else
+            print_warning "Failed to add FelixKratz Homebrew tap"
+        fi
+    fi
+
+    # Homebrew requires explicit trust before installing formulae from a
+    # third-party tap. Limit that trust to the required formulae.
+    brew trust --formula FelixKratz/formulae/borders >/dev/null 2>&1
+    brew trust --formula FelixKratz/formulae/sketchybar >/dev/null 2>&1
+
+    local macos_tools=("skhd" "borders" "sketchybar")
 
     for tool in "${macos_tools[@]}"; do
         if ! command -v "$tool" >/dev/null 2>&1; then

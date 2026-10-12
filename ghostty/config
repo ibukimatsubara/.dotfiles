@@ -11,17 +11,20 @@ foreground = #e6e6e6
 font-family = Hack Nerd Font Mono
 font-size = 14
 
-# 背景透過
-background-opacity = 1
+# 背景透過・ブラー（Hyprland風ガラス効果）
+background-opacity = 0.78
+background-opacity-cells = true
+background-blur = 28
 
-# 背景画像（休憩タイマーが ON/OFF に合わせて更新）
-background-image = ~/.dotfiles/ghostty/wallpapers/wallpaper-2.jpeg
-background-image-opacity = 0
-background-image-fit = contain
+# 背景画像は使わず、macOSの透過・ブラーだけを表示する
 
 # ウィンドウ設定
 window-decoration = auto
 macos-titlebar-style = hidden
+macos-window-shadow = true
+window-padding-x = 12
+window-padding-y = 10
+window-padding-balance = true
 
 # macOSでOptionキーをAltとして使用
 macos-option-as-alt = true

@@ -41,7 +41,7 @@ local SOURCE_WALLPAPER_EXT = {
 local DEFAULTS = {
   work_minutes = 30, fade_minutes = 3, break_minutes = 3, snooze_minutes = 3,
   scene = "starry", show_work_gauge = true, alerts = false,
-  wallpaper_enabled = true, wallpaper_dir = HOME .. "/.dotfiles/ghostty/wallpapers",
+  wallpaper_enabled = false, wallpaper_dir = HOME .. "/.dotfiles/ghostty/wallpapers",
   wallpaper_opacity = 0.3, wallpaper_fit = "contain", wallpaper_pick = "random",
 }
 local cfg = { work = 1800, fade = 180, brk = 180, snooze = 180 }
@@ -257,9 +257,20 @@ local function applyWallpaper(visible, rotate)
     table.remove(lines)
   end
 
-  if image then upsertGhosttyConfig(lines, "background-image", portablePath(image)) end
-  upsertGhosttyConfig(lines, "background-image-opacity", opacity)
-  upsertGhosttyConfig(lines, "background-image-fit", wallpaperFit)
+  if wallpaperEnabled then
+    if image then upsertGhosttyConfig(lines, "background-image", portablePath(image)) end
+    upsertGhosttyConfig(lines, "background-image-opacity", opacity)
+    upsertGhosttyConfig(lines, "background-image-fit", wallpaperFit)
+  else
+    currentWallpaper = nil
+    for i = #lines, 1, -1 do
+      if lines[i]:match("^%s*background%-image%s*=")
+          or lines[i]:match("^%s*background%-image%-opacity%s*=")
+          or lines[i]:match("^%s*background%-image%-fit%s*=") then
+        table.remove(lines, i)
+      end
+    end
+  end
 
   local nextBody = table.concat(lines, "\n") .. "\n"
   if nextBody ~= body and writeFile(GHOSTTY_CONFIG_PATH, nextBody) then
@@ -280,7 +291,11 @@ local function loadConfig()
   scene = type(user.scene) == "string" and user.scene or DEFAULTS.scene
   showWorkGauge = user.show_work_gauge ~= false
   alertsEnabled = (user.alerts == true)
-  wallpaperEnabled = user.wallpaper_enabled ~= false
+  if user.wallpaper_enabled == nil then
+    wallpaperEnabled = DEFAULTS.wallpaper_enabled
+  else
+    wallpaperEnabled = user.wallpaper_enabled == true
+  end
   wallpaperDir = type(user.wallpaper_dir) == "string" and user.wallpaper_dir or DEFAULTS.wallpaper_dir
   wallpaperOpacity = math.max(0, math.min(1, tonumber(user.wallpaper_opacity) or DEFAULTS.wallpaper_opacity))
   wallpaperFit = type(user.wallpaper_fit) == "string" and user.wallpaper_fit or DEFAULTS.wallpaper_fit

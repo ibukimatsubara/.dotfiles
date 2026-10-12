@@ -45,6 +45,9 @@ create_directories() {
         mkdir -p ~/.config/skhd
         mkdir -p ~/.config/kitty
         mkdir -p ~/.config/ghostty
+        mkdir -p ~/.config/borders
+        mkdir -p ~/.config/aerospace
+        mkdir -p ~/.config/sketchybar
     fi
 
     print_success "Directories created"
@@ -233,6 +236,33 @@ link_macos_configs() {
         print_success "Linked Ghostty configuration"
     else
         print_warning "Ghostty config not found in dotfiles"
+    fi
+
+    # JankyBorders configuration
+    if [ -f ~/.dotfiles/borders/bordersrc ]; then
+        link_managed_path \
+            "$HOME/.dotfiles/borders/bordersrc" \
+            "$HOME/.config/borders/bordersrc"
+    else
+        print_warning "JankyBorders config not found in dotfiles"
+    fi
+
+    # AeroSpace configuration
+    if [ -f ~/.dotfiles/aerospace/aerospace.toml ]; then
+        link_managed_path \
+            "$HOME/.dotfiles/aerospace/aerospace.toml" \
+            "$HOME/.config/aerospace/aerospace.toml"
+    else
+        print_warning "AeroSpace config not found in dotfiles"
+    fi
+
+    # SketchyBar configuration
+    if [ -d ~/.dotfiles/sketchybar ]; then
+        link_managed_path \
+            "$HOME/.dotfiles/sketchybar" \
+            "$HOME/.config/sketchybar"
+    else
+        print_warning "SketchyBar config not found in dotfiles"
     fi
 
     # Hammerspoon configuration
@@ -487,6 +517,36 @@ main() {
             print_success "skhd service started (auto-starts on login)"
         else
             print_warning "skhd not found. Install with: brew install koekeishiya/formulae/skhd"
+        fi
+
+        # JankyBorders
+        if command -v borders >/dev/null 2>&1; then
+            if brew services start borders >/dev/null 2>&1; then
+                print_success "JankyBorders service started (auto-starts on login)"
+            else
+                print_warning "Failed to start JankyBorders service"
+            fi
+        else
+            print_warning "JankyBorders not found. Install with: brew install FelixKratz/formulae/borders"
+        fi
+
+        # SketchyBar
+        if command -v sketchybar >/dev/null 2>&1; then
+            if brew services start sketchybar >/dev/null 2>&1; then
+                print_success "SketchyBar service started (auto-starts on login)"
+            else
+                print_warning "Failed to start SketchyBar service"
+            fi
+        else
+            print_warning "SketchyBar not found. Install with: brew install FelixKratz/formulae/sketchybar"
+        fi
+
+        # AeroSpace
+        if command -v aerospace >/dev/null 2>&1; then
+            open -a AeroSpace
+            print_success "AeroSpace started (auto-starts on login)"
+        else
+            print_warning "AeroSpace not found. Install with: brew install --cask nikitabobko/tap/aerospace"
         fi
     fi
 

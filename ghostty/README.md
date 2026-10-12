@@ -4,6 +4,8 @@
 
 休憩タイマーが ON の間だけ、Ghostty に背景画像を表示できます。OFF にすると Hammerspoon が `background-image-opacity = 0` に戻して非表示にします。
 
+現在の標準設定では `wallpaper_enabled = false` とし、Ghostty の透過・ブラーだけを使用します。背景画像を使う場合のみ `true` に変更してください。
+
 ### Setup
 
 1. `ghostty/wallpapers/` ディレクトリに画像ファイルを配置:

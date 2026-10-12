@@ -109,6 +109,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec2 suv = fragCoord / iResolution.y;  // アスペクト補正済み座標
     float t = iTime;
+    vec4 source = texture(iChannel0, uv);
     vec3 col;
 
 #if MODE == 1
@@ -122,7 +123,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     term = mix(term, vec3(luma), desat);
     col = mix(term, nightSky(uv, suv, t, starA), dark);
 #elif MODE == 4
-    col = texture(iChannel0, uv).rgb;
+    col = source.rgb;
 #else
     col = nightSky(uv, suv, t, 1.0);
 #endif
@@ -148,7 +149,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     col += vec3(0.10, 0.12, 0.20) * wbar;
 #endif
 
-    fragColor = vec4(col, 1.0);
+#if MODE == 1
+    // フェード開始時は端末本来の透過を保ち、夜空への遷移に合わせて不透明にする。
+    float outputAlpha = mix(source.a, 1.0, dark);
+#elif MODE == 4
+    // 作業中は Ghostty の background-opacity / background-blur を壊さない。
+    float outputAlpha = source.a;
+#else
+    float outputAlpha = 1.0;
+#endif
+    fragColor = vec4(col, outputAlpha);
 }
 
 #endif

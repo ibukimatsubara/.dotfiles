@@ -18,8 +18,8 @@ return {
   show_work_gauge = true,
 
   -- タイマーが ON の間だけ Ghostty の背景画像を表示する。
-  -- OFF にすると background-image-opacity を 0 にして非表示にする。
-  wallpaper_enabled = true,
+  -- false の場合は背景画像を使わず、Ghostty の透過・ブラーを維持する。
+  wallpaper_enabled = false,
   wallpaper_dir = os.getenv("HOME") .. "/.dotfiles/ghostty/wallpapers",
   wallpaper_opacity = 0.3,
   wallpaper_fit = "contain", -- contain / cover / stretch など Ghostty の指定に合わせる
