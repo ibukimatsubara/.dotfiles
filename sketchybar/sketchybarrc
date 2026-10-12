@@ -56,8 +56,6 @@ defaults=(
 sketchybar --default "${defaults[@]}"
 sketchybar --hotload true
 
-sketchybar --add event aerospace_workspace_change
-
 sketchybar --add item brand left \
     --set brand \
         icon="" \
@@ -101,7 +99,7 @@ sketchybar --add item now_playing.title center \
     --set now_playing.title \
         drawing=off \
         updates=on \
-        width=264 \
+        width=dynamic \
         padding_left=0 \
         padding_right=0 \
         scroll_texts=on \
@@ -109,7 +107,7 @@ sketchybar --add item now_playing.title center \
         label="Not Playing" \
         label.font="$FONT:Bold:13.0" \
         label.max_chars=34 \
-        label.width=248 \
+        label.width=dynamic \
         label.align=left \
         label.padding_left=4 \
         label.padding_right=8 \
@@ -172,7 +170,7 @@ done
 
 sketchybar --set workspace.1 \
         script="$PLUGIN_DIR/workspace_windows.sh" \
-    --subscribe workspace.1 aerospace_workspace_change front_app_switched space_windows_change system_woke
+    --subscribe workspace.1 space_windows_change system_woke
 
 sketchybar --add bracket workspace_group "${workspace_items[@]}" \
     --set workspace_group \
@@ -311,6 +309,16 @@ sketchybar --add item cpu right \
         script="$PLUGIN_DIR/cpu.sh" \
         click_script="open -a 'Activity Monitor'"
 
+sketchybar --add item weather right \
+    --set weather \
+        icon="󰖐" \
+        icon.color="$MUTED_COLOR" \
+        label="--° 󰖌--%" \
+        label.color="$TEXT_COLOR" \
+        update_freq=900 \
+        script="$PLUGIN_DIR/weather.sh" \
+    --subscribe weather system_woke mouse.clicked
+
 sketchybar --add item codex_usage right \
     --set codex_usage \
         icon="󰪥" \
@@ -404,7 +412,7 @@ sketchybar --add item codex.usage.source popup.codex_usage \
         label.padding_left=0 \
         label.padding_right=10
 
-sketchybar --add bracket status cpu memory volume battery date clock \
+sketchybar --add bracket status weather cpu memory volume battery date clock \
     --set status \
         background.drawing=on \
         background.color="$MODULE_COLOR" \

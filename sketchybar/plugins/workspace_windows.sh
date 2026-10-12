@@ -7,13 +7,6 @@ fi
 # shellcheck source=/dev/null
 . "${CONFIG_DIR:-$HOME/.config/sketchybar}/colors.sh"
 
-focused_workspace="${FOCUSED_WORKSPACE:-}"
-if [ -z "$focused_workspace" ]; then
-    focused_workspace="$(aerospace list-workspaces --focused 2>/dev/null)"
-fi
-
-[ -z "$focused_workspace" ] && exit 0
-
 workspace_1=""
 workspace_2=""
 workspace_3=""
@@ -57,44 +50,61 @@ done <<EOF
 $windows
 EOF
 
-update_workspace() {
-    workspace_id="$1"
-    window_icons="$2"
+workspace_1_label_drawing=off
+workspace_2_label_drawing=off
+workspace_3_label_drawing=off
+workspace_4_label_drawing=off
+workspace_5_label_drawing=off
+workspace_6_label_drawing=off
+workspace_7_label_drawing=off
+workspace_8_label_drawing=off
+workspace_9_label_drawing=off
+workspace_1_icon_padding=7
+workspace_2_icon_padding=7
+workspace_3_icon_padding=7
+workspace_4_icon_padding=7
+workspace_5_icon_padding=7
+workspace_6_icon_padding=7
+workspace_7_icon_padding=7
+workspace_8_icon_padding=7
+workspace_9_icon_padding=7
 
-    if [ "$workspace_id" = "$focused_workspace" ]; then
-        background_drawing=on
-        icon_color="$DARK_COLOR"
-        label_color="$DARK_COLOR"
-    else
-        background_drawing=off
-        icon_color="$MUTED_COLOR"
-        label_color="$TEXT_COLOR"
-    fi
+[ -n "$workspace_1" ] && workspace_1_label_drawing=on && workspace_1_icon_padding=4
+[ -n "$workspace_2" ] && workspace_2_label_drawing=on && workspace_2_icon_padding=4
+[ -n "$workspace_3" ] && workspace_3_label_drawing=on && workspace_3_icon_padding=4
+[ -n "$workspace_4" ] && workspace_4_label_drawing=on && workspace_4_icon_padding=4
+[ -n "$workspace_5" ] && workspace_5_label_drawing=on && workspace_5_icon_padding=4
+[ -n "$workspace_6" ] && workspace_6_label_drawing=on && workspace_6_icon_padding=4
+[ -n "$workspace_7" ] && workspace_7_label_drawing=on && workspace_7_icon_padding=4
+[ -n "$workspace_8" ] && workspace_8_label_drawing=on && workspace_8_icon_padding=4
+[ -n "$workspace_9" ] && workspace_9_label_drawing=on && workspace_9_icon_padding=4
 
-    if [ -n "$window_icons" ]; then
-        label_drawing=on
-        icon_padding_right=4
-    else
-        label_drawing=off
-        icon_padding_right=7
-    fi
+# Refresh labels only. Workspace focus is painted by the AeroSpace callback so
+# a slower window scan can never overwrite a newer highlight.
+sketchybar \
+    --set workspace.1 label="$workspace_1" label.drawing="$workspace_1_label_drawing" icon.padding_right="$workspace_1_icon_padding" \
+    --set workspace.2 label="$workspace_2" label.drawing="$workspace_2_label_drawing" icon.padding_right="$workspace_2_icon_padding" \
+    --set workspace.3 label="$workspace_3" label.drawing="$workspace_3_label_drawing" icon.padding_right="$workspace_3_icon_padding" \
+    --set workspace.4 label="$workspace_4" label.drawing="$workspace_4_label_drawing" icon.padding_right="$workspace_4_icon_padding" \
+    --set workspace.5 label="$workspace_5" label.drawing="$workspace_5_label_drawing" icon.padding_right="$workspace_5_icon_padding" \
+    --set workspace.6 label="$workspace_6" label.drawing="$workspace_6_label_drawing" icon.padding_right="$workspace_6_icon_padding" \
+    --set workspace.7 label="$workspace_7" label.drawing="$workspace_7_label_drawing" icon.padding_right="$workspace_7_icon_padding" \
+    --set workspace.8 label="$workspace_8" label.drawing="$workspace_8_label_drawing" icon.padding_right="$workspace_8_icon_padding" \
+    --set workspace.9 label="$workspace_9" label.drawing="$workspace_9_label_drawing" icon.padding_right="$workspace_9_icon_padding"
 
-    sketchybar --set "workspace.$workspace_id" \
-        icon="$workspace_id" \
-        icon.color="$icon_color" \
-        icon.padding_right="$icon_padding_right" \
-        label="$window_icons" \
-        label.drawing="$label_drawing" \
-        label.color="$label_color" \
-        background.drawing="$background_drawing"
-}
-
-update_workspace 1 "$workspace_1"
-update_workspace 2 "$workspace_2"
-update_workspace 3 "$workspace_3"
-update_workspace 4 "$workspace_4"
-update_workspace 5 "$workspace_5"
-update_workspace 6 "$workspace_6"
-update_workspace 7 "$workspace_7"
-update_workspace 8 "$workspace_8"
-update_workspace 9 "$workspace_9"
+# On initial load or a window-change refresh, converge to the actual focus in
+# one final transaction. The query-to-paint race window is only a few ms.
+focused_workspace="$(aerospace list-workspaces --focused 2>/dev/null)"
+case "$focused_workspace" in
+    1|2|3|4|5|6|7|8|9)
+        sketchybar \
+            --set '/workspace\..*/' \
+                background.drawing=off \
+                icon.color="$MUTED_COLOR" \
+                label.color="$TEXT_COLOR" \
+            --set "workspace.$focused_workspace" \
+                background.drawing=on \
+                icon.color="$DARK_COLOR" \
+                label.color="$DARK_COLOR"
+        ;;
+esac

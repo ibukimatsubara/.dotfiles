@@ -18,7 +18,7 @@ AeroSpaceは非アクティブなワークスペースのウィンドウを画�
 
 そのため、Aqua Voiceを起動したワークスペースから移動すると、バーも元のワークスペースと一緒に画面外へ移動していた。フローティング指定はタイル配置から外すためのもので、全ワークスペースに固定表示する指定ではない。
 
-現在は `scripts/aerospace-workspace-changed.sh` がワークスペース変更のたびにAqua Voiceの全ウィンドウを現在のワークスペースへ移動する。短時間に連続して切り替えた場合も、最後にフォーカスされたワークスペースを再確認して追従する。
+現在は `scripts/aerospace-workspace-changed.sh` がSketchyBarの選択表示だけを即時更新し、Aqua Voiceの移動は非同期workerへ渡す。連続したワークスペース変更は1つのworkerへまとめ、途中の状態を順番に処理せず、最後にフォーカスされたワークスペースへ収束させる。
 
 SketchyBarからの定期的なAeroSpace照会も、フローティングウィンドウが変化するタイミングと競合する機会を増やしていた可能性がある。これは主原因とは断定できないが、点滅を増幅する要因を減らすため、現在はウィンドウ変更イベントでのみ更新している。
 
@@ -33,8 +33,8 @@ AeroSpaceの右下に出る盾アイコンは原因ではなく、Secure Input�
 - `aqua-voice/settings.json`: クラシック版フローティングバーを有効にする安全な設定だけを管理する。
 - `scripts/apply-aqua-voice-settings.sh`: Aqua Voiceの実設定へ管理対象のキーだけをマージする。
 - `aerospace/aerospace.toml`: Aqua Voiceをフローティング表示にし、ワークスペース変更スクリプトを呼ぶ。
-- `scripts/aerospace-workspace-changed.sh`: Aqua Voiceを現在のワークスペースへ追従させる。
-- `sketchybar/sketchybarrc`: ワークスペース状態を定期監視せず、イベント発生時に更新する。
+- `scripts/aerospace-workspace-changed.sh`: SketchyBarを即時更新し、非同期workerでAqua Voiceを現在のワークスペースへ追従させる。
+- `sketchybar/sketchybarrc`: ワークスペース状態を定期監視せず、ウィンドウ変更イベントでアプリアイコンを更新する。
 - `ghostty/config`: `macos-auto-secure-input = false` にして、自動的なSecure Inputの有効化を防ぐ。
 
 Aqua Voiceの実設定ファイルにはトークンなどの端末固有情報が入っているため、実ファイル全体はシンボリックリンクせず、Gitにも含めない。
