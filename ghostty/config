@@ -14,7 +14,9 @@ font-size = 14
 # 背景透過・ブラー（Hyprland風ガラス効果）
 background-opacity = 0.78
 background-opacity-cells = true
-background-blur = 28
+# 高負荷時に無効化。復元する場合は下の false と入れ替える。
+# background-blur = 28
+background-blur = false
 
 # 背景画像は使わず、macOSの透過・ブラーだけを表示する
 
@@ -61,7 +63,10 @@ term = xterm-256color
 cursor-style = block
 
 # カスタムシェーダー (カーソルトレイル)
-custom-shader = ~/.dotfiles/ghostty/shaders/cursor_blaze.glsl
+# custom-shader = ~/.dotfiles/ghostty/shaders/cursor_blaze.glsl
 # 休憩タイマー(Hammerspoonが生成・更新する状態ファイル)
-custom-shader = ~/.cache/ghostty-break/break_state.glsl
-custom-shader-animation = always
+# custom-shader = ~/.cache/ghostty-break/break_state.glsl
+# Animate custom shaders only while the terminal is focused. Keeping every
+# Ghostty window animating across AeroSpace workspaces is unnecessarily costly.
+# custom-shader-animation = true
+custom-shader-animation = false

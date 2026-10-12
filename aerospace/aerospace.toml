@@ -31,54 +31,29 @@ gaps.inner.horizontal = 10
 gaps.inner.vertical = 10
 gaps.outer.left = 16
 gaps.outer.bottom = 16
-gaps.outer.top = 48
+gaps.outer.top = 52
 gaps.outer.right = 16
 
-# Keep the normal macOS overlapping-window behavior by default.
-# A specific window can still be toggled to tiling with Ctrl+Alt+Shift+Space.
+# Keep launcher and dictation utility windows floating so they do not consume
+# a tile. Aqua Voice's recorder follows the focused workspace via the callback
+# above, while its settings window remains a normal floating utility window.
 [[on-window-detected]]
-if = 'true'
+if = 'test %{app-bundle-id} = com.electron.aqua-voice || test %{app-bundle-id} = com.raycast.macos'
 run = 'layout floating'
 
 [mode.main.binding]
-    # Ctrl+Alt avoids taking Ghostty's plain Option/Alt shortcuts.
-    ctrl-alt-h = 'focus left'
-    ctrl-alt-j = 'focus down'
-    ctrl-alt-k = 'focus up'
-    ctrl-alt-l = 'focus right'
+    # Move only between tiled windows. Floating overlays such as Aqua Voice
+    # and Raycast should not interrupt directional focus navigation.
+    ctrl-cmd-h = 'focus --ignore-floating left'
+    ctrl-cmd-j = 'focus --ignore-floating down'
+    ctrl-cmd-k = 'focus --ignore-floating up'
+    ctrl-cmd-l = 'focus --ignore-floating right'
 
-    ctrl-alt-shift-h = 'move left'
-    ctrl-alt-shift-j = 'move down'
-    ctrl-alt-shift-k = 'move up'
-    ctrl-alt-shift-l = 'move right'
-
-    ctrl-alt-minus = 'resize smart -50'
-    ctrl-alt-equal = 'resize smart +50'
-    ctrl-alt-slash = 'layout tiles horizontal vertical'
     ctrl-alt-comma = 'layout accordion horizontal vertical'
 
     # AeroSpace fullscreen keeps the configured outer gaps by default.
-    ctrl-alt-f = 'fullscreen'
-    ctrl-alt-shift-space = 'layout floating tiling'
+    ctrl-f = 'fullscreen'
 
-    ctrl-alt-1 = 'workspace 1'
-    ctrl-alt-2 = 'workspace 2'
-    ctrl-alt-3 = 'workspace 3'
-    ctrl-alt-4 = 'workspace 4'
-    ctrl-alt-5 = 'workspace 5'
-    ctrl-alt-6 = 'workspace 6'
-    ctrl-alt-7 = 'workspace 7'
-    ctrl-alt-8 = 'workspace 8'
-    ctrl-alt-9 = 'workspace 9'
-
-    ctrl-alt-shift-1 = 'move-node-to-workspace 1'
-    ctrl-alt-shift-2 = 'move-node-to-workspace 2'
-    ctrl-alt-shift-3 = 'move-node-to-workspace 3'
-    ctrl-alt-shift-4 = 'move-node-to-workspace 4'
-    ctrl-alt-shift-5 = 'move-node-to-workspace 5'
-    ctrl-alt-shift-6 = 'move-node-to-workspace 6'
-    ctrl-alt-shift-7 = 'move-node-to-workspace 7'
-    ctrl-alt-shift-8 = 'move-node-to-workspace 8'
-    ctrl-alt-shift-9 = 'move-node-to-workspace 9'
-
-    ctrl-alt-tab = 'workspace-back-and-forth'
+    # Cycle through workspaces without relying on their numeric names.
+    ctrl-y = 'workspace --wrap-around prev'
+    ctrl-o = 'workspace --wrap-around next'
