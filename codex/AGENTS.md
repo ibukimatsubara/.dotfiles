@@ -2,6 +2,16 @@ GitHubのIssueやPRに言及するときは、番号だけで示さず、必ず 
 
 ユーザーが作業対象のファイルやプロジェクトをエディタで開くことを望んでいる場合は、原則としてシェルから Visual Studio Code CLI を使う。まず `code {project root}` で対象プロジェクトのルートを開いておき、必要に応じて `code {filepath}` で個別ファイルを開く。`code` CLI で実行できる操作に Computer Use やGUI操作を使わない。`code` CLI が利用できない場合、またはユーザーがGUI操作を明示的に求めた場合に限り、別の操作方法を検討する。
 
+## ブラウザ操作
+
+Webページの移動、クリック、入力、フォーム送信、スクリーンショット、表示内容の抽出、Webアプリのテストなど、ブラウザ操作が必要なタスクでは、原則として `agent-browser` skillとCLIを最優先で使用する。組み込みのブラウザ操作、Chrome操作、Computer Use、Web操作ツールは、ユーザーが別の方法を明示した場合、または`agent-browser`では必要な状態や機能を扱えない場合に限って使用する。UI操作を伴わない通常のWeb検索や情報調査は対象外とする。
+
+`agent-browser`を使う前に、導入済みskillの指示に従って `agent-browser skills get core` を読み、タスクごとに名前付きsessionを作成する。Electron、Slack、exploratory testingなどの対象では、対応するspecialized skillも先に読む。
+
+ユーザーから別の指定がない限り、`agent-browser`の起動には `--profile Default` を指定し、既存のChrome Default profileをread-only snapshotとして再利用する。agent専用profileは作成しない。既存profileの認証状態を利用できることは、ユーザーが依頼していない操作を行う権限を意味しない。
+
+macOSでheaded browserを起動するとapp focusを奪う可能性があるため、`--headed`はデフォルトで使用しない。通常はheadlessで操作し、ユーザーがそのタスクで表示を明示的に求めた場合に限ってheaded modeを使う。Observability Dashboardも自動起動せず、ユーザーが明示的に求めた場合だけ使用する。
+
 ## チャット回答の日英ミックス
 
 Codexがユーザーに直接表示するチャット上の説明、進捗報告、質問、最終回答では、自然言語部分に理解可能な英語を全体の50%程度混ぜる。

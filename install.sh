@@ -207,6 +207,35 @@ install_optional_tools() {
         fi
     fi
 
+    # agent-browser CLI and its managed Chrome runtime
+    if command -v agent-browser >/dev/null 2>&1; then
+        print_success "agent-browser CLI already installed"
+    elif ! command -v npm >/dev/null 2>&1; then
+        print_warning "npm not found; skipping agent-browser CLI installation"
+    else
+        print_info "Installing agent-browser CLI..."
+        if npm install -g agent-browser >/dev/null 2>&1; then
+            print_success "agent-browser CLI installed"
+        else
+            print_warning "Failed to install agent-browser CLI"
+        fi
+    fi
+
+    if command -v agent-browser >/dev/null 2>&1; then
+        print_info "Ensuring the agent-browser runtime is installed..."
+        if is_linux; then
+            if agent-browser install --with-deps >/dev/null 2>&1; then
+                print_success "agent-browser runtime installed"
+            else
+                print_warning "Failed to install the agent-browser runtime and Linux dependencies"
+            fi
+        elif agent-browser install >/dev/null 2>&1; then
+            print_success "agent-browser runtime installed"
+        else
+            print_warning "Failed to install the agent-browser runtime"
+        fi
+    fi
+
 }
 
 # Main installation flow
