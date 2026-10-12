@@ -1,0 +1,85 @@
+# Herdr configuration managed by ~/.dotfiles.
+# Workspace = tmux session, Tab = tmux window, Pane = tmux pane.
+
+onboarding = false
+
+[theme]
+# Ghostty の配色を引き継ぎ、tmux と同じ端末全体のトーンに揃える。
+name = "terminal"
+
+[terminal]
+shell_mode = "auto"
+new_cwd = "follow"
+kitty_graphics = true
+
+[update]
+channel = "stable"
+
+[keys]
+# tmux と同じ prefix。
+prefix = "ctrl+b"
+
+# tmux の session 操作に合わせ、Workspace を切り替える。
+settings = "prefix+comma"
+detach = "prefix+d"
+workspace_picker = "prefix+s"
+previous_workspace = "ctrl+u"
+next_workspace = "ctrl+i"
+
+# tmux window 相当の Tab 操作。
+new_tab = "prefix+c"
+previous_tab = "prefix+p"
+next_tab = "prefix+n"
+switch_tab = "prefix+1..9"
+
+# tmux と同じ prefix なしの Vim-style pane navigation。
+focus_pane_left = "ctrl+h"
+focus_pane_down = "ctrl+j"
+focus_pane_up = "ctrl+k"
+focus_pane_right = "ctrl+l"
+
+# prefix + \ で左右、prefix + - で上下に分割する。
+split_vertical = "prefix+backslash"
+split_horizontal = "prefix+minus"
+close_pane = "prefix+x"
+zoom = "prefix+z"
+
+# tmux の prefix + H/J/K/L に合わせる。
+resize_pane_left = "prefix+shift+h"
+resize_pane_down = "prefix+shift+j"
+resize_pane_up = "prefix+shift+k"
+resize_pane_right = "prefix+shift+l"
+
+[ui]
+sidebar_start_collapsed = true
+sidebar_collapsed_mode = "hidden"
+mouse_capture = true
+copy_on_select = true
+pane_borders = "auto"
+pane_outer_borders = false
+pane_scrollbars = false
+pane_gaps = false
+show_agent_labels_on_pane_borders = true
+tab_bar_position = "bottom"
+tab_bar_right = [
+  { type = "zoom" },
+  { type = "hostname" },
+  { type = "datetime", format = "%H:%M" },
+]
+tab_bar_right_separator = " · "
+window_title = "{workspace}: {tab}"
+status_indicators = "symbols"
+accent = "#5eead4"
+
+[session]
+resume_agents_on_restore = true
+startup_per_agent_delay_ms = 100
+
+[experimental]
+# 日本語入力中でも prefix 後のコマンドを安定して認識させる。
+switch_ascii_input_source_in_prefix = true
+# server restart 後も直近の pane 表示を復元する。
+pane_history = true
+
+[advanced]
+scrollback_limit_bytes = 10000000

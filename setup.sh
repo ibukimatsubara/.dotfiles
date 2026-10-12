@@ -39,6 +39,7 @@ create_directories() {
     mkdir -p ~/.codex
     mkdir -p ~/.claude
     mkdir -p ~/.claude/skills
+    mkdir -p "$HOME/.config/herdr"
 
     # macOS-specific directories
     if is_macos; then
@@ -286,6 +287,19 @@ link_macos_configs() {
     fi
 }
 
+# Link Herdr configuration
+link_herdr() {
+    print_info "🐑 Linking Herdr configuration..."
+
+    if [ -f "$HOME/.dotfiles/herdr/config.toml" ]; then
+        link_managed_path \
+            "$HOME/.dotfiles/herdr/config.toml" \
+            "$HOME/.config/herdr/config.toml"
+    else
+        print_warning "Herdr config not found in dotfiles"
+    fi
+}
+
 # Link VS Code configuration and install the curated extension set.
 link_vscode() {
     print_info "🧭 Setting up VS Code..."
@@ -483,6 +497,9 @@ main() {
     echo ""
 
     link_tmux
+    echo ""
+
+    link_herdr
     echo ""
 
     link_macos_configs
