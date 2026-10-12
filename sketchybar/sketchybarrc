@@ -8,16 +8,26 @@ source "$CONFIG_DIR/colors.sh"
 
 FONT="Hack Nerd Font"
 
+# Shared geometry tokens keep every module on the same visual rhythm.
+BAR_HEIGHT=40
+MODULE_HEIGHT=32
+INNER_HEIGHT=26
+ARTWORK_SIZE=28
+RADIUS_LARGE=14
+RADIUS_MEDIUM=12
+RADIUS_SMALL=8
+BLUR_RADIUS=50
+
 # Keep the canvas transparent and render each section as its own glass capsule.
 bar=(
     position=top
-    height=36
+    height="$BAR_HEIGHT"
     margin=14
     y_offset=8
-    corner_radius=14
+    corner_radius="$RADIUS_LARGE"
     border_width=0
-    color="$TRANSPARENT"
-    blur_radius=36
+    color="$BAR_COLOR"
+    blur_radius="$BLUR_RADIUS"
     padding_left=0
     padding_right=0
     shadow=off
@@ -40,13 +50,13 @@ defaults=(
     label.padding_left=3
     label.padding_right=7
     background.drawing=off
-    background.height=28
-    background.corner_radius=10
+    background.height="$MODULE_HEIGHT"
+    background.corner_radius="$RADIUS_MEDIUM"
 )
 sketchybar --default "${defaults[@]}"
 sketchybar --hotload true
 
-sketchybar --add event tmux_state_changed
+sketchybar --add event aerospace_workspace_change
 
 sketchybar --add item brand left \
     --set brand \
@@ -60,8 +70,8 @@ sketchybar --add item brand left \
         background.color="$ACCENT_COLOR" \
         background.border_color="$ACCENT_BORDER_COLOR" \
         background.border_width=1 \
-        background.corner_radius=12 \
-        background.height=28 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
         background.shadow.drawing=on \
         background.shadow.color="$SHADOW_COLOR" \
         background.shadow.angle=90 \
@@ -77,15 +87,15 @@ sketchybar --add item now_playing.artwork center \
         label.drawing=off \
         background.drawing=on \
         background.color="$TRANSPARENT" \
-        background.height=28 \
-        background.corner_radius=10 \
+        background.height="$ARTWORK_SIZE" \
+        background.corner_radius="$RADIUS_SMALL" \
         background.x_offset=0 \
         background.y_offset=3 \
         background.clip=0 \
         background.image="$CONFIG_DIR/assets/media-placeholder.png" \
         background.image.drawing=on \
         background.image.scale=0.4375 \
-        background.image.corner_radius=10
+        background.image.corner_radius="$RADIUS_SMALL"
 
 sketchybar --add item now_playing.title center \
     --set now_playing.title \
@@ -114,8 +124,8 @@ sketchybar --add bracket now_playing now_playing.artwork now_playing.title \
         background.color="$MODULE_COLOR" \
         background.border_color="$BORDER_COLOR" \
         background.border_width=1 \
-        background.corner_radius=10 \
-        background.height=32 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
         background.shadow.drawing=on \
         background.shadow.color="$SHADOW_COLOR" \
         background.shadow.angle=90 \
@@ -131,67 +141,51 @@ sketchybar --add item pomodoro left \
         background.color="$MODULE_COLOR" \
         background.border_color="$BORDER_COLOR" \
         background.border_width=1 \
-        background.corner_radius=12 \
-        background.height=28 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
         background.shadow.drawing=on \
         background.shadow.color="$SHADOW_COLOR" \
         background.shadow.angle=90 \
         background.shadow.distance=3 \
         script="$PLUGIN_DIR/pomodoro.sh"
 
-tmux_session_records=()
-if command -v tmux >/dev/null 2>&1; then
-    while IFS= read -r session_record; do
-        [ -n "$session_record" ] && tmux_session_records+=("$session_record")
-    done < <(tmux list-sessions -F '#{session_id}|#{session_name}' 2>/dev/null)
-fi
+workspace_items=()
+for workspace_id in 1 2 3 4 5 6 7 8 9; do
+    item_name="workspace.$workspace_id"
+    workspace_items+=("$item_name")
 
-if [ "${#tmux_session_records[@]}" -gt 0 ]; then
-    sketchybar --add item tmux.icon left \
-        --set tmux.icon \
-            icon="" \
-            icon.color="$GREEN_COLOR" \
-            icon.padding_left=9 \
-            icon.padding_right=4 \
+    sketchybar --add item "$item_name" left \
+        --set "$item_name" \
+            icon="$workspace_id" \
+            icon.color="$MUTED_COLOR" \
+            icon.padding_left=7 \
+            icon.padding_right=7 \
             label.drawing=off \
+            label.color="$TEXT_COLOR" \
+            label.padding_left=0 \
+            label.padding_right=7 \
             background.drawing=off \
-            click_script="open -a Ghostty"
+            background.color="$ACCENT_COLOR" \
+            background.corner_radius="$RADIUS_SMALL" \
+            background.height="$INNER_HEIGHT"
+done
 
-    tmux_session_items=()
-    for session_record in "${tmux_session_records[@]}"; do
-        IFS='|' read -r session_id session_name <<< "$session_record"
-        session_number="${session_id#\$}"
-        item_name="tmux.session.$session_number"
-        tmux_session_items+=("$item_name")
+sketchybar --set workspace.1 \
+        script="$PLUGIN_DIR/workspace_windows.sh" \
+    --subscribe workspace.1 aerospace_workspace_change front_app_switched space_windows_change system_woke
 
-        sketchybar --add item "$item_name" left \
-            --set "$item_name" \
-                icon.drawing=off \
-                label="$session_name" \
-                label.color="$MUTED_COLOR" \
-                label.max_chars=18 \
-                label.padding_left=5 \
-                label.padding_right=6 \
-                scroll_texts=on \
-                background.drawing=off \
-                script="$PLUGIN_DIR/tmux_session.sh" \
-                click_script="open -a Ghostty" \
-            --subscribe "$item_name" tmux_state_changed
-    done
-
-    sketchybar --add bracket tmux_group tmux.icon "${tmux_session_items[@]}" \
-        --set tmux_group \
-            background.drawing=on \
-            background.color="$MODULE_COLOR" \
-            background.border_color="$BORDER_COLOR" \
-            background.border_width=1 \
-            background.corner_radius=12 \
-            background.height=28 \
-            background.shadow.drawing=on \
-            background.shadow.color="$SHADOW_COLOR" \
-            background.shadow.angle=90 \
-            background.shadow.distance=3
-fi
+sketchybar --add bracket workspace_group "${workspace_items[@]}" \
+    --set workspace_group \
+        background.drawing=on \
+        background.color="$MODULE_COLOR" \
+        background.border_color="$BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3
 
 # Right-positioned items are added from the display edge towards the center.
 sketchybar --add item clock right \
@@ -207,7 +201,85 @@ sketchybar --add item date right \
         icon.color="$MAUVE_COLOR" \
         update_freq=30 \
         script="$PLUGIN_DIR/date.sh" \
-        click_script="open -a Calendar"
+        popup.align=center \
+        popup.y_offset=8 \
+        popup.height="$MODULE_HEIGHT" \
+        popup.blur_radius="$BLUR_RADIUS" \
+        popup.background.color="$MODULE_COLOR" \
+        popup.background.border_color="$BORDER_COLOR" \
+        popup.background.border_width=1 \
+        popup.background.corner_radius="$RADIUS_LARGE" \
+        popup.background.shadow.drawing=on \
+        popup.background.shadow.color="$SHADOW_COLOR" \
+        popup.background.shadow.angle=90 \
+        popup.background.shadow.distance=4 \
+    --subscribe date mouse.clicked mouse.exited.global
+
+sketchybar --add item calendar.today popup.date \
+    --set calendar.today \
+        icon="--" \
+        icon.font="$FONT:Bold:20.0" \
+        icon.color="$DARK_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=8 \
+        label="TODAY" \
+        label.font="$FONT:Bold:11.0" \
+        label.color="$DARK_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10 \
+        background.drawing=on \
+        background.color="$MAUVE_COLOR" \
+        background.corner_radius="$RADIUS_SMALL" \
+        background.height=34
+
+sketchybar --add item calendar.month popup.date \
+    --set calendar.month \
+        icon.drawing=off \
+        label="Month" \
+        label.font="$FONT:Bold:13.0" \
+        label.color="$TEXT_COLOR" \
+        label.align=center \
+        label.padding_left=12 \
+        label.padding_right=12
+
+sketchybar --add item calendar.weekdays popup.date \
+    --set calendar.weekdays \
+        icon.drawing=off \
+        label="Su Mo Tu We Th Fr Sa" \
+        label.font="$FONT:Bold:12.0" \
+        label.color="$MUTED_COLOR" \
+        label.align=center \
+        label.padding_left=12 \
+        label.padding_right=12
+
+for week_number in 1 2 3 4 5 6; do
+    week_item="calendar.week.$week_number"
+    sketchybar --add item "$week_item" popup.date \
+        --set "$week_item" \
+            icon.drawing=off \
+            label="" \
+            label.font="$FONT:Regular:12.0" \
+            label.color="$TEXT_COLOR" \
+            label.align=center \
+            label.padding_left=12 \
+            label.padding_right=12
+done
+
+sketchybar --add item calendar.open popup.date \
+    --set calendar.open \
+        icon="󰃭" \
+        icon.color="$MAUVE_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=6 \
+        label="Open Calendar" \
+        label.color="$MUTED_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10 \
+        background.drawing=on \
+        background.color="$SURFACE_COLOR" \
+        background.corner_radius="$RADIUS_SMALL" \
+        background.height="$MODULE_HEIGHT" \
+        click_script="open -a Calendar; sketchybar --set date popup.drawing=off"
 
 sketchybar --add item battery right \
     --set battery \
@@ -239,14 +311,107 @@ sketchybar --add item cpu right \
         script="$PLUGIN_DIR/cpu.sh" \
         click_script="open -a 'Activity Monitor'"
 
+sketchybar --add item codex_usage right \
+    --set codex_usage \
+        icon="󰪥" \
+        icon.font="$FONT:Regular:15.0" \
+        icon.color="$GREEN_COLOR" \
+        label="--%" \
+        label.color="$TEXT_COLOR" \
+        update_freq=60 \
+        background.drawing=on \
+        background.color="$MODULE_COLOR" \
+        background.border_color="$BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3 \
+        popup.align=center \
+        popup.y_offset=8 \
+        popup.height="$MODULE_HEIGHT" \
+        popup.blur_radius="$BLUR_RADIUS" \
+        popup.background.color="$MODULE_COLOR" \
+        popup.background.border_color="$BORDER_COLOR" \
+        popup.background.border_width=1 \
+        popup.background.corner_radius="$RADIUS_LARGE" \
+        popup.background.shadow.drawing=on \
+        popup.background.shadow.color="$SHADOW_COLOR" \
+        popup.background.shadow.angle=90 \
+        popup.background.shadow.distance=4 \
+        script="$PLUGIN_DIR/codex_usage.sh" \
+    --subscribe codex_usage mouse.clicked mouse.exited.global
+
+sketchybar --add item codex.usage.title popup.codex_usage \
+    --set codex.usage.title \
+        icon="󰚩" \
+        icon.color="$DARK_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="CODEX USAGE" \
+        label.font="$FONT:Bold:11.0" \
+        label.color="$DARK_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10 \
+        background.drawing=on \
+        background.color="$ACCENT_COLOR" \
+        background.corner_radius="$RADIUS_SMALL" \
+        background.height="$MODULE_HEIGHT"
+
+sketchybar --add item codex.usage.primary popup.codex_usage \
+    --set codex.usage.primary \
+        icon="󰪥" \
+        icon.color="$GREEN_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="LIMIT · --% LEFT" \
+        label.padding_left=0 \
+        label.padding_right=10
+
+sketchybar --add item codex.usage.secondary popup.codex_usage \
+    --set codex.usage.secondary \
+        drawing=off \
+        icon="󰪥" \
+        icon.color="$GREEN_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="LIMIT · --% LEFT" \
+        label.padding_left=0 \
+        label.padding_right=10
+
+sketchybar --add item codex.usage.reset popup.codex_usage \
+    --set codex.usage.reset \
+        icon="󰥔" \
+        icon.color="$MAUVE_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="Reset unavailable" \
+        label.color="$MUTED_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10
+
+sketchybar --add item codex.usage.source popup.codex_usage \
+    --set codex.usage.source \
+        icon="󰋼" \
+        icon.color="$MUTED_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="LOCAL SESSION SNAPSHOT" \
+        label.font="$FONT:Bold:9.0" \
+        label.color="$MUTED_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10
+
 sketchybar --add bracket status cpu memory volume battery date clock \
     --set status \
         background.drawing=on \
         background.color="$MODULE_COLOR" \
         background.border_color="$BORDER_COLOR" \
         background.border_width=1 \
-        background.corner_radius=12 \
-        background.height=28 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
         background.shadow.drawing=on \
         background.shadow.color="$SHADOW_COLOR" \
         background.shadow.angle=90 \
