@@ -4,73 +4,83 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a personal dotfiles repository containing configuration files for:
-- **Neovim** - Text editor configuration with plugins
-- **tmux** - Terminal multiplexer configuration
-- **Zsh** - Shell configuration with aliases and settings
+Personal dotfiles for macOS (with Ubuntu support in `install.sh`). Configs live here and are symlinked (or copied) into place by `setup.sh`.
 
-## Installation and Setup
+- **VS Code** — primary editor (settings, keybindings, curated extension list)
+- **tmux** — terminal multiplexer, plus many helper scripts (status line, project picker, pane summaries)
+- **Zsh** — modular aliases, settings, and functions
+- **Ghostty** — main terminal (shaders, wallpapers); Kitty is kept as a legacy config
+- **Claude Code / Codex** — global instructions, custom agents, shared skills, status lines
+- **macOS tooling** — skhd hotkeys, Hammerspoon (break timer), launchd agents
+- **Neovim** — legacy Lua config with Lazy.nvim
 
-The repository uses symlinks to configure the user's environment without modifying original locations.
+## Setup Commands
 
-### Setup Command
 ```bash
-sh setup.sh
+./install.sh   # Install Homebrew/apt packages and core tooling (once per machine)
+./setup.sh     # Create dirs, back up existing configs, link/sync everything
 ```
 
-This script:
-1. Appends sourcing of `~/.dotfiles/zshrc` to `~/.zshrc`
-2. Creates necessary directories (`~/.config/nvim/`, `~/.config/nvim/dein/`, `~/.config/nvim/toml/`)
-3. Creates symlinks:
-   - `~/.config/nvim/init.vim` → `~/.dotfiles/init.vim`
-   - `~/.tmux.conf` → `~/.dotfiles/tmux.conf`
-4. Installs vim-plug for Neovim plugin management
+Both scripts should stay idempotent. Existing files are moved to `*.bak-YYYYMMDD-HHMMSS` before being replaced.
 
 ## Repository Structure
 
 ```
 .dotfiles/
-├── init.vim          # Neovim configuration
-├── tmux.conf         # tmux configuration
-├── zshrc            # Zsh aliases and settings
-├── coc-settings.json # CoC plugin settings
-├── setup.sh         # Installation script
-├── config/          # Additional configurations
-│   └── tmux/
-│       └── tmux.conf
-├── docs/            # Documentation in Japanese
-│   ├── neovim.md
-│   ├── setup.md
-│   ├── tmux.md
-│   └── zsh.md
-└── theme/           # Theme files
-    └── simple
+├── install.sh / setup.sh   # Entry points
+├── AGENTS.md               # Repo guidelines for Codex (and other agents)
+├── claude/                 # Claude Code: CLAUDE.md (global), agents/, statusline-command.sh
+├── codex/                  # Codex: AGENTS.md (global), agents/*.toml, statusline.toml
+├── agents/skills/          # Shared Agent Skills for Claude Code and Codex
+├── vscode/                 # settings.json, keybindings.json, extensions.txt
+├── tmux/tmux.conf
+├── zsh/                    # main.zsh, aliases/, configs/, functions/
+├── ghostty/                # config, shaders/, wallpapers/
+├── hammerspoon/, break-timer/  # Break timer (Hammerspoon + Ghostty shader)
+├── launchd/                # macOS LaunchAgents (blocklist, taildrop, tmux pane summaries)
+├── scripts/                # Utilities, tmux helpers, setup-*.sh, test-*.sh
+├── nvim/                   # Legacy Neovim (init.lua, lua/, plugin/)
+├── kitty.conf, kitty/      # Legacy Kitty config and color themes
+├── skhdrc                  # macOS hotkeys
+├── chrome/                 # Vimium C export
+├── theme/simple            # Zsh prompt theme
+└── docs/                   # Per-tool notes (mostly Japanese)
 ```
 
-## Key Configuration Details
+## Where Things Are Linked
 
-### Neovim (init.vim)
-- Uses vim-plug for plugin management
-- Configured with CoC (Conquer of Completion) for code completion
-- Tab settings: 2 spaces, expandtab enabled
-- Leader key set to `,`
-- Requires manual plugin installation after setup: `:PlugInstall`
+| Source | Target |
+|---|---|
+| `zsh/main.zsh` | sourced from `~/.zshrc` |
+| `tmux/tmux.conf` | `~/.tmux.conf` |
+| `vscode/{settings,keybindings}.json` | `~/Library/Application Support/Code/User/` (Linux: `~/.config/Code/User/`) |
+| `ghostty/config` | `~/.config/ghostty/config` |
+| `hammerspoon/init.lua` | `~/.hammerspoon/init.lua` |
+| `break-timer/config.lua` | `~/.config/break-timer/config.lua` |
+| `skhdrc` | `~/.skhdrc` |
+| `nvim/{init.lua,lua,plugin}` | `~/.config/nvim/` |
+| `claude/CLAUDE.md` | `~/.claude/CLAUDE.md` (symlink) |
+| `claude/agents/` | `~/.claude/agents/` (copied) |
+| `codex/AGENTS.md` | `~/.codex/AGENTS.md` (symlink) |
+| `codex/agents/` | `~/.codex/agents/` (copied) |
+| `agents/skills/` | `~/.agents/skills` (symlink); each listed skill is also copied to `~/.claude/skills/<name>` |
+| `claude/statusline-command.sh` | `~/.claude/statusline-command.sh` |
 
-### Zsh (zshrc)
-- Contains extensive aliases for common commands:
-  - Git shortcuts (g, gst, ga, gc, gcm, etc.)
-  - tmux shortcuts (t, tn, tk, tt, tl)
-  - Docker Compose shortcuts (dc, dcu, dcd, etc.)
-  - Python virtual environment shortcuts (va, vd, vc)
-- Settings: auto_cd, correct, sharehistory
+Notes:
+- `claude/agents/`, `codex/agents/`, and the Claude copies of shared skills are **copied, not symlinked**. Re-run `./setup.sh` after editing them.
+- The list of shared skills copied into `~/.claude/skills/` is hardcoded in `link_ai_clis` in `setup.sh`. Update it when adding a skill.
+- `~/.claude/settings.json` and `~/.codex/config.toml` are not tracked. Merge `codex/statusline.toml` into the Codex config by hand.
 
-### tmux (tmux.conf)
-- Custom configuration for terminal multiplexing
-- Requires manual plugin installation after setup: `Prefix + I`
+## Verification
 
-## Development Notes
+- Shell scripts: `bash -n <script>`; tmux helpers have tests under `scripts/test-*.sh`.
+- JSON: `jq empty vscode/settings.json vscode/keybindings.json chrome/vimium-c.json`
+- Daily planner skill: `python3 -m unittest` in `agents/skills/daily-calendar-planner/scripts/`
+- Reload changed configs (`tmux source ~/.tmux.conf`, `source ~/.zshrc`, reload Hammerspoon/skhd) to confirm they apply.
 
-- Documentation is primarily in Japanese
-- The repository expects Nerd Font to be installed for proper icon display
-- Configuration files use UTF-8 encoding
-- Changes to configuration files require re-sourcing or restarting the respective applications
+## Conventions
+
+- Commits follow Conventional Commits with short scopes (e.g., `feat(tmux): ...`, `fix(planner): ...`).
+- Never commit secrets or machine-specific values; use `~/.zshrc.local` and `$HOME` instead of hardcoded paths.
+- Documentation in `docs/` is primarily Japanese.
+- See `AGENTS.md` for detailed style and testing guidelines.
