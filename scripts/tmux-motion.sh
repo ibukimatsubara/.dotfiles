@@ -55,7 +55,10 @@ motion_delay() {
 }
 
 pane_exists() {
-    tmux display-message -p -t "$1" '#{pane_id}' >/dev/null 2>&1
+    local pane_id
+
+    pane_id=$(tmux display-message -p -t "$1" '#{pane_id}' 2>/dev/null)
+    [ "$pane_id" = "$1" ]
 }
 
 balance_horizontal() {
@@ -255,11 +258,17 @@ animate_close() {
     local min_size frames delay step value
 
     target="${1:-}"
+    window_id=''
     [ -n "$target" ] || exit 1
     pane_exists "$target" || exit
 
-    # 途中で失敗しても dead pane を残さない。
-    trap 'tmux kill-pane -t "'"$target"'" >/dev/null 2>&1 || true' EXIT HUP INT TERM
+    # 途中で失敗しても dead pane を残さず、削除元の window だけを整列する。
+    # after-kill-pane の hook context には削除元の window ID が残らないため、
+    # pane が存在するうちに取得した window_id をここで使う。
+    trap '
+        tmux kill-pane -t "$target" >/dev/null 2>&1 || true
+        [ -z "$window_id" ] || balance_horizontal "$window_id"
+    ' EXIT HUP INT TERM
 
     geometry=$(tmux display-message -p -t "$target" \
         '#{pane_width} #{pane_height} #{pane_left} #{pane_top} #{window_width} #{window_height} #{window_id}') || exit
