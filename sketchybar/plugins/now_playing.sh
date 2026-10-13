@@ -28,21 +28,33 @@ if [ "$playing" != "true" ] || [ -z "$title" ]; then
     exit 0
 fi
 
+bundle_identifier="$(printf '%s' "$metadata" | jq -r '.bundleIdentifier // empty')"
+use_media_artwork=true
+case "$bundle_identifier" in
+    com.google.Chrome)
+        # Chrome commonly publishes its app icon as media artwork rather than
+        # the page's cover image. Prefer the intentional placeholder instead.
+        use_media_artwork=false
+        ;;
+esac
+
 track_key="v2|$(printf '%s' "$metadata" | jq -r '[.bundleIdentifier, .contentItemIdentifier, .title, .artist] | map(. // "") | join("|")')"
 track_hash="$(printf '%s' "$track_key" | shasum -a 256 | awk '{ print substr($1, 1, 16) }')"
 
 mkdir -p "$cache_dir"
 
 artwork_path=""
-for extension in jpg png image; do
-    candidate="$cache_dir/media-artwork-$track_hash.$extension"
-    if [ -s "$candidate" ]; then
-        artwork_path="$candidate"
-        break
-    fi
-done
+if [ "$use_media_artwork" = "true" ]; then
+    for extension in jpg png image; do
+        candidate="$cache_dir/media-artwork-$track_hash.$extension"
+        if [ -s "$candidate" ]; then
+            artwork_path="$candidate"
+            break
+        fi
+    done
+fi
 
-if [ -z "$artwork_path" ]; then
+if [ "$use_media_artwork" = "true" ] && [ -z "$artwork_path" ]; then
     payload="$(media-control get 2>/dev/null)"
     artwork_data="$(printf '%s' "$payload" | jq -r '.artworkData // empty' 2>/dev/null)"
     artwork_mime="$(printf '%s' "$payload" | jq -r '.artworkMimeType // empty' 2>/dev/null)"
@@ -88,6 +100,9 @@ fi
 
 if [ -z "$artwork_path" ]; then
     artwork_path="$placeholder"
+    if [ "$use_media_artwork" = "false" ]; then
+        find "$cache_dir" -type f -name "media-artwork-$track_hash.*" -delete 2>/dev/null
+    fi
 else
     find "$cache_dir" -type f -name 'media-artwork-*' ! -name "$(basename "$artwork_path")" -delete 2>/dev/null
 fi
