@@ -140,6 +140,15 @@ setup_zsh() {
 link_neovim() {
     print_info "📝 Linking Neovim configuration..."
 
+    # Older setups may link the whole Neovim config directory to this repo.
+    # In that case, linking children would replace the source files with
+    # self-referencing symlinks.
+    if [ -L ~/.config/nvim ] && \
+       [ "$(readlink ~/.config/nvim)" = "$HOME/.dotfiles/nvim" ]; then
+        print_success "Neovim configuration root already linked"
+        return
+    fi
+
     # Main init.lua (Lazy.nvim)
     if [ -f ~/.dotfiles/nvim/init.lua ]; then
         backup_file ~/.config/nvim/init.lua
