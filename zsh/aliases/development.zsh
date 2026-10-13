@@ -45,6 +45,7 @@ alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd
 # AI Tools (dangerous mode)
 alias claudec='claude --dangerously-skip-permissions'
 alias codexc='codex -a never -s danger-full-access'
+alias dcode='dsh --profile dsh-tui'
 
 # lazygit
 alias lg='lazygit'
