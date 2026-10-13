@@ -32,7 +32,7 @@ cd .dotfiles
 
 ### macOS
 
-- skhd: `Cmd+1`〜`Cmd+5`のアプリ起動
+- skhd: `Cmd+1`〜`Cmd+3`のワークスペース単位のアプリ起動・フォーカス
 - Hammerspoon: break timerとマイク自動選択
 - blocklist: `/etc/hosts`とLaunchDaemonによるサイト制限
 

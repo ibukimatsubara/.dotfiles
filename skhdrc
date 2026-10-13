@@ -1,18 +1,10 @@
 #!/usr/bin/env sh
 
 # ========================================
-# 最小限のskhd設定 - 基本操作のみ
+# skhd設定 - ワークスペース単位のアプリ切り替え
 # ========================================
-
-
-# ========================================
-# 6. アプリケーション起動
-# ========================================
-# アプリケーション切り替え（cmd + 数字キー）
-# 開いていればフォーカス、なければ起動
-cmd - 1 : open -a "Ghostty"
-cmd - 2 : open -a "Google Chrome"
-cmd - 3 : open -a "Visual Studio Code"
-cmd - 4 : open -a "Slack"
-cmd - 5 : open -a "Figma"
-# cmd - 6 : 空き枠（思いついたら割り当てる）
+# 現在のワークスペースに対象アプリがあればフォーカスし、
+# なければ現在のワークスペースに新しいウィンドウを開く。
+cmd - 1 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh ghostty
+cmd - 2 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh chrome
+cmd - 3 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh vscode
