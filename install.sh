@@ -109,12 +109,15 @@ install_desktop_apps() {
         "visual-studio-code"
         "google-chrome"
         "hammerspoon"
+        "tailscale-app"
         "codex"
         "shottr"
     )
 
     for cask in "${desktop_casks[@]}"; do
-        if brew list --cask "$cask" >/dev/null 2>&1; then
+        if [ "$cask" = "tailscale-app" ] && [ -d /Applications/Tailscale.app ]; then
+            print_success "$cask already installed"
+        elif brew list --cask "$cask" >/dev/null 2>&1; then
             print_success "$cask already installed"
         elif brew install --cask "$cask" >/dev/null 2>&1; then
             print_success "$cask installed"
