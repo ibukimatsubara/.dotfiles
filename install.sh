@@ -110,6 +110,7 @@ install_desktop_apps() {
         "google-chrome"
         "hammerspoon"
         "codex"
+        "shottr"
     )
 
     for cask in "${desktop_casks[@]}"; do
