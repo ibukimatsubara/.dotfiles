@@ -16,7 +16,7 @@ case "$enabled:$state" in
     false:*)
         icon=""
         label="OFF"
-        color="$MUTED_COLOR"
+        color="$FOCUS_COLOR"
         ;;
     true:waiting)
         icon=""
@@ -48,7 +48,7 @@ case "$enabled:$state" in
     *)
         icon=""
         label="OFF"
-        color="$MUTED_COLOR"
+        color="$FOCUS_COLOR"
         ;;
 esac
 

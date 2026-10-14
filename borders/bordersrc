@@ -1,9 +1,17 @@
 #!/bin/bash
 
+colors_file="${CONFIG_DIR:-$HOME/.config/sketchybar}/colors.sh"
+if [ -r "$colors_file" ]; then
+    # shellcheck source=/dev/null
+    . "$colors_file"
+else
+    FOCUS_COLOR=0xff8ab4ff
+fi
+
 options=(
     style=round
     width=6.0
-    active_color=0xff8ab4ff
+    active_color="$FOCUS_COLOR"
     inactive_color=0x996b7280
 )
 

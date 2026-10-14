@@ -18,14 +18,8 @@ esac
 # shellcheck source=/dev/null
 . "$CONFIG_DIR/colors.sh"
 
-color="$TEXT_COLOR"
 if printf '%s\n' "$battery_state" | grep -q 'AC Power'; then
     icon=""
-    color="$GREEN_COLOR"
-elif [ "$percentage" -le 20 ]; then
-    color="$RED_COLOR"
-elif [ "$percentage" -le 40 ]; then
-    color="$YELLOW_COLOR"
 fi
 
-sketchybar --set "$NAME" icon="$icon" icon.color="$color" label="${percentage}%"
+sketchybar --set "$NAME" icon="$icon" icon.color="$STATUS_ICON_COLOR" label="${percentage}%"

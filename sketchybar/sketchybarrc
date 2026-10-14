@@ -58,15 +58,15 @@ sketchybar --hotload true
 
 sketchybar --add item brand left \
     --set brand \
-        icon="" \
-        icon.font="$FONT:Bold:16.0" \
+        icon="○" \
+        icon.font="$FONT:Regular:17.0" \
         icon.color="$DARK_COLOR" \
         icon.padding_left=9 \
         icon.padding_right=9 \
         label.drawing=off \
         background.drawing=on \
-        background.color="$ACCENT_COLOR" \
-        background.border_color="$ACCENT_BORDER_COLOR" \
+        background.color="$FOCUS_COLOR" \
+        background.border_color="$FOCUS_BORDER_COLOR" \
         background.border_width=1 \
         background.corner_radius="$RADIUS_MEDIUM" \
         background.height="$MODULE_HEIGHT" \
@@ -132,7 +132,7 @@ sketchybar --add bracket now_playing now_playing.artwork now_playing.title \
 sketchybar --add item pomodoro left \
     --set pomodoro \
         icon="󰔛" \
-        icon.color="$ACCENT_COLOR" \
+        icon.color="$FOCUS_COLOR" \
         label="--:--" \
         update_freq=1 \
         background.drawing=on \
@@ -163,7 +163,7 @@ for workspace_id in 1 2 3 4 5 6 7 8 9; do
             label.padding_left=0 \
             label.padding_right=7 \
             background.drawing=off \
-            background.color="$ACCENT_COLOR" \
+            background.color="$FOCUS_COLOR" \
             background.corner_radius="$RADIUS_SMALL" \
             background.height="$INNER_HEIGHT"
 done
@@ -189,14 +189,14 @@ sketchybar --add bracket workspace_group "${workspace_items[@]}" \
 sketchybar --add item clock right \
     --set clock \
         icon="󰥔" \
-        icon.color="$ACCENT_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         update_freq=5 \
         script="$PLUGIN_DIR/clock.sh"
 
 sketchybar --add item date right \
     --set date \
         icon="󰃭" \
-        icon.color="$MAUVE_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         update_freq=30 \
         script="$PLUGIN_DIR/date.sh" \
         popup.align=center \
@@ -281,6 +281,7 @@ sketchybar --add item calendar.open popup.date \
 
 sketchybar --add item battery right \
     --set battery \
+        icon.color="$STATUS_ICON_COLOR" \
         update_freq=120 \
         script="$PLUGIN_DIR/battery.sh" \
         click_script="open 'x-apple.systempreferences:com.apple.Battery-Settings.extension'" \
@@ -288,7 +289,7 @@ sketchybar --add item battery right \
 
 sketchybar --add item volume right \
     --set volume \
-        icon.color="$BLUE_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         script="$PLUGIN_DIR/volume.sh" \
         click_script="$PLUGIN_DIR/volume_click.sh" \
     --subscribe volume volume_change system_woke
@@ -296,7 +297,7 @@ sketchybar --add item volume right \
 sketchybar --add item memory right \
     --set memory \
         icon="󰍛" \
-        icon.color="$GREEN_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         update_freq=10 \
         script="$PLUGIN_DIR/memory.sh" \
         click_script="open -a 'Activity Monitor'"
@@ -304,7 +305,7 @@ sketchybar --add item memory right \
 sketchybar --add item cpu right \
     --set cpu \
         icon="" \
-        icon.color="$PEACH_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         update_freq=5 \
         script="$PLUGIN_DIR/cpu.sh" \
         click_script="open -a 'Activity Monitor'"
@@ -312,7 +313,7 @@ sketchybar --add item cpu right \
 sketchybar --add item weather right \
     --set weather \
         icon="󰖐" \
-        icon.color="$MUTED_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         label="--° 󰖌--%" \
         label.color="$TEXT_COLOR" \
         update_freq=900 \
@@ -323,7 +324,7 @@ sketchybar --add item codex_usage right \
     --set codex_usage \
         icon="󰪥" \
         icon.font="$FONT:Regular:15.0" \
-        icon.color="$GREEN_COLOR" \
+        icon.color="$STATUS_ICON_COLOR" \
         label="--%" \
         label.color="$TEXT_COLOR" \
         update_freq=60 \

@@ -101,7 +101,7 @@ latest_record="$({
 ' 2>/dev/null | sort | tail -n 1)"
 
 if [ -z "$latest_record" ]; then
-    sketchybar --set "$NAME" icon="○" icon.color="$MUTED_COLOR" label="--%" \
+    sketchybar --set "$NAME" icon="○" icon.color="$STATUS_ICON_COLOR" label="--%" \
                --set codex.usage.primary drawing=on icon="○" icon.color="$MUTED_COLOR" label="NO USAGE SNAPSHOT" \
                --set codex.usage.secondary drawing=off \
                --set codex.usage.reset label="Run Codex to refresh"
@@ -159,7 +159,7 @@ EOF
 
     sketchybar --set "$NAME" \
         icon="$selected_icon" \
-        icon.color="$selected_color" \
+        icon.color="$STATUS_ICON_COLOR" \
         label="$selected_remaining%" \
         label.color="$selected_color" \
         --set codex.usage.reset label="$reset_label"
