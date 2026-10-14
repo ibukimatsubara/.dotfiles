@@ -43,3 +43,8 @@ fi
 if command -v direnv >/dev/null 2>&1; then
   eval "$(direnv hook zsh)"
 fi
+
+# Keep agent routing ahead of application CLI paths in nested login shells.
+if [[ -n "$AGENT_ORIGIN_WINDOW_ID" && -n "$AGENT_ORIGIN_APP_PID" ]]; then
+  export PATH="$HOME/.dotfiles/scripts/agent-bin:$PATH"
+fi

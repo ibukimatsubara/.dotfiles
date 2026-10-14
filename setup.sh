@@ -330,6 +330,15 @@ link_herdr() {
     fi
 }
 
+# Install the explicit open helper; agent launchers add scoped open/code wrappers.
+link_agent_workspace_tools() {
+    if is_macos; then
+        link_managed_path \
+            "$HOME/.dotfiles/scripts/agent-open" \
+            "$HOME/.local/bin/agent-open"
+    fi
+}
+
 # Link VS Code configuration and install the curated extension set.
 link_vscode() {
     print_info "🧭 Setting up VS Code..."
@@ -536,6 +545,9 @@ main() {
     echo ""
 
     apply_aqua_voice_settings
+    echo ""
+
+    link_agent_workspace_tools
     echo ""
 
     link_vscode
