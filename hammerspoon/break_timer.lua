@@ -320,8 +320,21 @@ local function workMode() return showWorkGauge and 4 or 0 end
 
 -- 状態遷移などで自動的に出る通知。既定では出さない(定例・画面共有への
 -- 誤爆防止)。状態は Ghostty 内の表示(下端ゲージ/フェード/星空/明滅)で分かる
+local feedbackStyle = {
+  textFont = ".AppleSystemUIFont", textSize = 14,
+  textColor = { white = 0.94, alpha = 1 },
+  fillColor = { red = 0.12, green = 0.12, blue = 0.16, alpha = 0.96 },
+  strokeWidth = 0, radius = 8, padding = 10,
+  atScreenEdge = 2, fadeInDuration = 0.1, fadeOutDuration = 0.15,
+}
+local feedbackAlert
+local function showFeedback(msg)
+  if feedbackAlert then hs.alert.closeSpecific(feedbackAlert, 0) end
+  feedbackAlert = hs.alert.show(msg, feedbackStyle, 3)
+end
+
 local function notify(msg)
-  if alertsEnabled then hs.alert.show(msg) end
+  if alertsEnabled then showFeedback(msg) end
 end
 
 -- オブジェクトを保持し、通知をポップアップ設定や通知センターに依存させない。
@@ -407,6 +420,16 @@ end
 
 local enterState
 
+function M.showStatus()
+  if not enabled then return showFeedback("タイマー OFF") end
+  if state == "waiting" then return showFeedback("作業の開始待ち · ⌘P") end
+  if state == "ready" then return showFeedback("休憩の開始待ち · ⌘P") end
+  local total = ({ work = cfg.work, snoozed = cfg.snooze, fading = cfg.fade, ["break"] = cfg.brk })[state]
+  local remain = math.max(0, total - (hs.timer.secondsSinceEpoch() - phaseStart))
+  showFeedback(string.format("%s  %02d:%02d", state == "break" and "休憩残り" or "休憩まで",
+      math.floor(remain / 60), math.floor(remain % 60)))
+end
+
 -- ⌘P/⌘O は Ghostty フォーカス中だけ有効化する(他アプリのショートカットを奪わない)
 local snoozeKey = hs.hotkey.new({ "cmd" }, "p", function()
   if not enabled or state == "waiting" or state == "ready" then
@@ -414,9 +437,7 @@ local snoozeKey = hs.hotkey.new({ "cmd" }, "p", function()
   elseif state == "fading" or state == "break" then
     enterState("snoozed")
   elseif state == "work" or state == "snoozed" then
-    local total = (state == "work") and cfg.work or cfg.snooze
-    local remain = math.max(0, total - (hs.timer.secondsSinceEpoch() - phaseStart))
-    hs.alert.show(string.format("⏳ 休憩まで あと%d分%02d秒", math.floor(remain / 60), math.floor(remain % 60)))
+    M.showStatus()
   end
 end)
 
@@ -499,25 +520,25 @@ enterState = function(s)
     if demoMode then
       demoMode = false
       loadConfig()
-      hs.alert.show("🧪 デモ終了 — 通常設定で再開 (" .. math.floor(cfg.work / 60) .. "分)")
+      showFeedback("デモ終了 · 作業 " .. math.floor(cfg.work / 60) .. "分")
     else
-      notify("▶ 作業スタート (" .. math.floor(cfg.work / 60) .. "分)")
+      notify("作業スタート · " .. math.floor(cfg.work / 60) .. "分")
     end
     setShader(workMode(), 0)
   elseif s == "fading" then
-    notify("🌙 そろそろ休憩 — " .. math.floor(cfg.fade / 60) .. "分かけて休憩画面になります\n(⌘P でスヌーズ)")
+    notify("休憩まで " .. math.floor(cfg.fade / 60) .. "分 · ⌘P で延長")
     setShader(1, 0)
   elseif s == "snoozed" then
-    notify("⏰ スヌーズ +" .. math.floor(cfg.snooze / 60) .. "分")
+    notify("スヌーズ +" .. math.floor(cfg.snooze / 60) .. "分")
     setShader(workMode(), 0)
   elseif s == "break" then
-    notify("☕ 休憩 (" .. math.floor(cfg.brk / 60) .. "分)")
+    notify("休憩スタート · " .. math.floor(cfg.brk / 60) .. "分")
     setShader(2, 0)
   elseif s == "ready" then
-    notify("☕ 作業おわり — ⌘P で休憩をスタート")
+    notify("作業おわり · ⌘P で休憩")
     setShader(0, 0)
   elseif s == "waiting" then
-    notify("▶ ⌘P で作業をスタート")
+    notify("作業の開始待ち · ⌘P")
     setShader(0, 0)
   end
   refreshMenubar()
@@ -594,7 +615,7 @@ function M.toggle(on)
   else
     applyWallpaper(false)
     setShader(0, 0)
-    notify("⏸ 休憩タイマー OFF (⌘O か メニューバーで再開)")
+    notify("タイマー OFF · ⌘O で再開")
     refreshMenubar()
   end
 end
@@ -612,9 +633,9 @@ function M.demo()
   if not enabled then return end
   demoMode = true
   cfg.work, cfg.fade, cfg.brk, cfg.snooze = 8, 20, 12, 10
-  hs.alert.show(cfg.autoStartBreak
-      and "🧪 デモ: 8秒作業 → 20秒フェード → 12秒休憩"
-      or "🧪 デモ: 8秒作業 → ⌘Pで12秒休憩 → ⌘Pで通常設定")
+  showFeedback(cfg.autoStartBreak
+      and "デモ: 8秒作業 → 20秒フェード → 12秒休憩"
+      or "デモ: 8秒作業 → ⌘Pで12秒休憩 → ⌘Pで通常設定")
   enterState("work")
 end
 
@@ -630,7 +651,7 @@ end
 -- 設定ファイルの変更を監視して即反映(サイクルは仕切り直し)
 M.configWatcher = hs.pathwatcher.new(HOME .. "/.dotfiles/break-timer/", function(_)
   loadConfig()
-  notify("🔄 休憩タイマー設定を再読み込み")
+  notify("タイマー設定を再読み込み")
   applyWallpaper(enabled)
   if enabled then enterState(cfg.autoStartWork and "work" or "waiting") end
 end):start()

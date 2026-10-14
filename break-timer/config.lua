@@ -36,7 +36,7 @@ return {
   wallpaper_fit = "contain", -- contain / cover / stretch など Ghostty の指定に合わせる
   wallpaper_pick = "random", -- random: ON にするたび選ぶ / keep: 同じ画像を維持 / first: 名前順の先頭
 
-  -- 状態が変わったときに画面中央へポップアップ通知を出すか。
+  -- 状態が変わったときに画面下端へ小さな通知を出すか。
   -- false なら状態表示は Ghostty 内(下端ゲージ/フェード/星空/明滅)だけになり、
   -- 画面共有や定例中に余計なものが写らない
   alerts = false,
