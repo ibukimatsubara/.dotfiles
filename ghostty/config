@@ -42,6 +42,9 @@ link-url = true
 # Shiftキーのマウス動作を変更（選択拡張を無効化）
 mouse-shift-capture = always
 
+# ドラッグで選択した文字を、Cmd+Vで貼り付けるクリップボードにもコピーする。
+copy-on-select = clipboard
+
 # スクロール設定 (Ghosttyはデフォルトで滑らかなスクロール)
 # wheel_scroll_multiplier相当の設定はなし
 

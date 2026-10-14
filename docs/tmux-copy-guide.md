@@ -13,6 +13,14 @@
 2. 自動的にクリップボードにコピーされる
 3. `Cmd+V` または tmux内で `Prefix + ]` でペースト
 
+## Ghosttyでtmuxを使っていない場合
+
+`ghostty/config` の `copy-on-select = clipboard` により、ドラッグで選択した文字はマウスを離すとmacOSのクリップボードへコピーされる。追加のコピー操作は不要で、`Cmd+V` で貼り付けられる。
+
+Ghosttyの既定値 `true` は選択用クリップボードを優先するため、通常のクリップボードにもコピーする `clipboard` を明示している。tmux内の通常ドラッグは、既存のtmux設定がコピーを処理する。
+
+設定を変更した場合はGhosttyの「Reload Configuration」を実行する。参考: [Ghostty公式設定リファレンス](https://ghostty.org/docs/config/reference#copy-on-select)。
+
 ## キーボードでのコピー方法
 
 ### コピーモードに入る
