@@ -37,12 +37,22 @@ hs = {
     return task
   end },
 }
+local modules, accessed = hs, {}
+hs = setmetatable({}, { __index = function(_, name)
+  accessed[name] = true
+  return modules[name]
+end })
 local navigation = dofile(repo .. "/hammerspoon/ghostty_navigation.lua")
+for _, name in ipairs({ "application", "axuielement", "keycodes", "task" }) do
+  assert(accessed[name], "module must be loaded before the first keypress: " .. name)
+end
+accessed = {}
 local function key(code, flags)
   return callback({ getKeyCode = function() return code end,
     getFlags = function() return flags or { ctrl = true } end })
 end
 for _, code in ipairs({ 4, 38, 40, 37, 32, 34 }) do assert(key(code)) end
+assert(next(accessed) == nil, "keypress must not trigger initial module loading")
 assert(table.concat(launched, ",") == "focus --ignore-floating --wrap-around left,focus --ignore-floating --wrap-around down,focus --ignore-floating --wrap-around up,focus --ignore-floating --wrap-around right,workspace --wrap-around prev,workspace --wrap-around next")
 for _, entry in ipairs(running) do
   assert(navigation.tasks[entry.task])

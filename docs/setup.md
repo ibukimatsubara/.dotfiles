@@ -6,7 +6,7 @@
 
 ```bash
 cd ~
-git clone https://github.com/1vket/.dotfiles.git
+git clone https://github.com/ibukimatsubara/.dotfiles.git
 cd .dotfiles
 ./install.sh
 ./setup.sh
@@ -42,6 +42,23 @@ VS Codeのリンク先はOSごとに自動で切り替わります。
 - macOSのAccessibility / Input Monitoring権限
 
 Vimium Cは`chrome/vimium-c.json`をOptionsページの`Import settings`から読み込みます。
+
+## Ghosttyのキー操作を別のMacで復元する
+
+`Ctrl+H/J/K/L` と `Ctrl+U/I` の条件付き操作は、Codex自身の設定ではなくHammerspoonが実装している。Ghosttyのtmux外でキーを受け取り、AeroSpaceへフォーカス・ワークスペース移動を依頼する。tmux内ではキーを通し、tmuxがペイン・セッション移動を処理する。
+
+`install.sh`でHammerspoonとAeroSpaceを導入し、`setup.sh`で設定をリンクして両アプリを起動する。Hammerspoon CLIが使える場合は設定の再読み込みも予約する。CLIが使えない場合や接続に失敗した場合は、Hammerspoonのメニューから `Reload Configuration` を実行する。`hammerspoon/init.lua` はHammerspoonのログイン時自動起動を有効にする。キー処理に使う拡張は起動時に読み込み、最初のキー入力中の初回ロードを避ける。
+
+新しいMacでは、システム設定の「プライバシーとセキュリティ → アクセシビリティ」でHammerspoonとAeroSpaceを許可する。権限はGit経由では復元できない。Hammerspoonを許可した後はアプリを終了・再起動する。
+
+```bash
+open -g -a Hammerspoon
+hs -A -t 3 -c 'return hs.inspect({autoLaunch=hs.autoLaunch(),accessibility=hs.accessibilityState(),navigation=ghosttynavigation and ghosttynavigation.status(),secureInput=hs.eventtap.isSecureInputEnabled()})' </dev/null
+```
+
+`autoLaunch = true`、`accessibility = true`、`navigation.enabled = true` が期待値。Ghosttyのtmux外で確認すると `route = "aerospace"` になる。`secureInput = true` の間はキー監視が遮断されるため、パスワード入力欄や発生元のアプリを確認する。
+
+キーがCodexへ届いて「disabled」と表示される場合の確認・復帰手順は、[Aqua Voice・AeroSpace トラブルシューティング](./aqua-voice-aerospace-troubleshooting.md#ghosttyのctrlhlでcodex-cliにdisabledと表示される)を参照する。これらは起動・権限・初回ロードの不足を減らす対策であり、未再現の一時的な取り逃がしが完全になくなると断定するものではない。
 
 ## Ubuntuについて
 

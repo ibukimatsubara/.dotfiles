@@ -24,6 +24,28 @@ is_macos() {
     [[ "$OSTYPE" == "darwin"* ]]
 }
 
+start_hammerspoon() {
+    if ! is_macos; then
+        return
+    fi
+
+    if open -g -a Hammerspoon >/dev/null 2>&1; then
+        print_success "Hammerspoon started (managed config enables launch on login)"
+        if command -v hs >/dev/null 2>&1; then
+            if hs -A -t 3 -c 'hs.timer.doAfter(0.1, hs.reload); return true' </dev/null >/dev/null 2>&1; then
+                print_success "Hammerspoon configuration reload scheduled"
+            else
+                print_warning "Reload Configuration from the Hammerspoon menu to apply the linked config."
+            fi
+        else
+            print_warning "Hammerspoon CLI is unavailable. Reload Configuration from the Hammerspoon menu."
+        fi
+        print_info "Allow Hammerspoon in System Settings > Privacy & Security > Accessibility, then relaunch it if needed."
+    else
+        print_warning "Hammerspoon could not start. Install with: brew install --cask hammerspoon"
+    fi
+}
+
 # Create necessary directories
 create_directories() {
     print_info "📁 Creating configuration directories..."
@@ -561,6 +583,8 @@ main() {
     if is_macos; then
         echo ""
         print_info "🍎 Starting macOS services..."
+        start_hammerspoon
+
         # skhd
         if command -v skhd >/dev/null 2>&1; then
             skhd --start-service 2>/dev/null

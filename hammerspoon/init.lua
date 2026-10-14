@@ -1,5 +1,8 @@
 require("hs.ipc")
 
+-- 次のログインでも Ghostty のキー振り分けを利用できるようにする。
+hs.autoLaunch(true)
+
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/.dotfiles/hammerspoon/?.lua"
 
 -- Ghostty 休憩タイマー (30分作業 / 3分休憩、⌘Pで手動開始)

@@ -122,6 +122,46 @@ osascript -l JavaScript \
 
 Secure Input自体はmacOSの安全機能なので、システム全体で恒久的に無効化するのではなく、有効にしたアプリを特定して解除する。
 
+### GhosttyのCtrl+H/LでCodex CLIに「disabled」と表示される
+
+2026-10-14、GhosttyでCodex CLIのタスク実行中に次の表示が出た。
+
+```text
+Ctrl+L is disabled while a task is in progress.
+```
+
+これはCodex CLI自身のメッセージ。Ctrl+Lに割り当てられたCodex側の操作が、タスク実行中のため拒否されたことを示す。Ghosttyのtmux外では、本来 `hammerspoon/ghostty_navigation.lua` がこのキーを消費してAeroSpaceのフォーカス移動を実行する。表示が出た時点では、キーがCodexまで届いていた。
+
+調査中にユーザーの再操作で正常な移動へ復旧した。復旧までに常設の設定・コード変更はしていない。最初にキーを取り逃がした理由は、発生時の入力記録がないため未確定。Secure Inputやタスク実行中の負荷を原因と断定しない。
+
+追加確認では、この端末のHammerspoonのログイン時自動起動が `false` で、`setup.sh` にもHammerspoonの起動処理がなかった。これは別のMacや次のログインで起動漏れを起こし得る不足だが、今回の取り逃がしの原因だったとは確認していない。
+
+その後、別のMacで復元する際の起動不足を防ぐため、`setup.sh` でHammerspoonを起動し、`hammerspoon/init.lua` でログイン時自動起動を有効にした。初回キー入力中に拡張をロードしないよう、ナビゲーション処理が使う拡張も起動時に読み込む。[別のMacでの復元手順](./setup.md#ghosttyのキー操作を別のmacで復元する)と、今回の未確定の発生原因を区別する。
+
+確認できた状態:
+
+- Hammerspoonのキー監視は `enabled = true`、振り分け先は `route = "aerospace"`。
+- 調査時のSecure Inputは `false`。
+- 復旧後の実際のCtrl+L/Hは `ctrl = true` のみで、tmux外の通常のGhosttyウィンドウから入力されていた。
+- Hammerspoonコンソールに、この監視処理のエラーは見つからなかった。
+- 切り分けに使った一時的な入力監視は、調査後に停止した。常設の入力ログは残さない。
+
+再発したら、監視を再起動する前に次の状態を記録する。
+
+```bash
+hs -A -t 3 -c 'return hs.inspect({navigation=ghosttynavigation and ghosttynavigation.status(),secureInput=hs.eventtap.isSecureInputEnabled()})' </dev/null
+```
+
+tmux外のGhosttyで `enabled = true`、`route = "aerospace"`、`secureInput = false` が期待値。`route = "tmux"` ならtmuxのペイン・セッション操作へ通す正常な状態。`route = "passthrough"` なら、前面アプリ、選択中のウィンドウ、入力欄のフォーカスを確認する。Secure Inputが `true` なら、上の「ショートカットが反応せず、盾アイコンが出る」の手順で発生元を確認する。
+
+状態を保存した後、キー監視だけを停止・再開して再操作する。タイマーや作業中のCodexを終了する必要はない。
+
+```bash
+hs -A -t 3 -c 'assert(ghosttynavigation,"Ghostty navigation is not loaded"); ghosttynavigation.tap:stop(); ghosttynavigation.tap:start(); return hs.inspect(ghosttynavigation.status())' </dev/null
+```
+
+この操作にはHammerspoonの [`hs.eventtap:stop()/start()`](https://www.hammerspoon.org/docs/hs.eventtap.html) を使う。監視再起動は再発時に試す復帰手順であり、今回の原因が特定できたことを意味しない。
+
 ## 設定を変更した後の再読み込み
 
 ```bash

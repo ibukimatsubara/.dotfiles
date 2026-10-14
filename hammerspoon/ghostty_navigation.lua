@@ -2,6 +2,11 @@
 -- Ctrl+u/i は Ctrl+y/o と同じ前・次のワークスペース移動。
 -- tmux はタイトル先頭の [tmux] で識別し、元のキー入力をそのまま通す。
 local M = { tasks = {} }
+-- 最初のキー入力を処理する間に拡張の初回ロードが走らないようにする。
+local application = hs.application
+local axuielement = hs.axuielement
+local keycodes = hs.keycodes
+local taskModule = hs.task
 local DIRECTIONS = { h = "left", j = "down", k = "up", l = "right" }
 local WORKSPACES = { u = "prev", i = "next" }
 local TMUX_TITLE_PREFIX = "[tmux] "
@@ -15,11 +20,11 @@ for _, path in ipairs({ "/opt/homebrew/bin/aerospace", "/usr/local/bin/aerospace
 end
 
 local function context()
-  local app = hs.application.frontmostApplication()
+  local app = application.frontmostApplication()
   if not app or app:bundleID() ~= "com.mitchellh.ghostty" then return nil end
   local window = app:focusedWindow()
   if not window or window:subrole() ~= "AXStandardWindow" then return nil end
-  local element = hs.axuielement.applicationElement(app):attributeValue("AXFocusedUIElement")
+  local element = axuielement.applicationElement(app):attributeValue("AXFocusedUIElement")
   if not element or element:attributeValue("AXRole") ~= "AXTextArea" then return nil end
   local title = window:title()
   if not title or title == "" then return nil end
@@ -29,7 +34,7 @@ end
 M.tap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
   local flags = event:getFlags()
   if not flags.ctrl or flags.cmd or flags.alt or flags.shift or flags.fn then return false end
-  local key = hs.keycodes.map[event:getKeyCode()]
+  local key = keycodes.map[event:getKeyCode()]
   local direction, workspace = DIRECTIONS[key], WORKSPACES[key]
   if not (direction or workspace) or not aerospacePath then return false end
   local current = context()
@@ -39,7 +44,7 @@ M.tap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
   local args = workspace and { "workspace", "--wrap-around", workspace }
       or { "focus", "--ignore-floating", "--wrap-around", direction }
   local task
-  task = hs.task.new(aerospacePath, function() M.tasks[task] = nil end, args)
+  task = taskModule.new(aerospacePath, function() M.tasks[task] = nil end, args)
   if not task then return false end
   M.tasks[task] = true
   if not task:start() then
