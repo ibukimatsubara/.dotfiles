@@ -17,7 +17,7 @@ skhd --start-service
 
 | ショートカット | 動作 |
 |---|---|
-| `Cmd+1` | Ghosttyを開く・フォーカスする |
+| `Cmd+1` | Ghosttyの新しいウィンドウを開く |
 | `Cmd+2` | Google Chromeを開く・フォーカスする |
 | `Cmd+3` | Visual Studio Codeを開く・フォーカスする |
 

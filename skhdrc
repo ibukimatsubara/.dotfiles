@@ -3,8 +3,9 @@
 # ========================================
 # skhd設定 - ワークスペース単位のアプリ切り替え
 # ========================================
-# 現在のワークスペースに対象アプリがあればフォーカスし、
-# なければ現在のワークスペースに新しいウィンドウを開く。
-cmd - 1 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh ghostty
+# Ghosttyは毎回新しいウィンドウを開く。
+# ChromeとVS Codeは現在のワークスペースにあればフォーカスし、
+# なければ新しいウィンドウを開く。
+cmd - 1 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh ghostty new-window
 cmd - 2 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh chrome
 cmd - 3 : $HOME/.dotfiles/scripts/aerospace-focus-or-open.sh vscode

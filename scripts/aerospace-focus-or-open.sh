@@ -1,6 +1,12 @@
 #!/bin/sh
 
 app_key="${1:-}"
+open_mode="${2:-focus-or-open}"
+
+case "$open_mode" in
+    focus-or-open|new-window) ;;
+    *) exit 64 ;;
+esac
 
 case "$app_key" in
     ghostty)
@@ -17,7 +23,7 @@ case "$app_key" in
         ;;
 esac
 
-if command -v aerospace >/dev/null 2>&1; then
+if [ "$open_mode" != "new-window" ] && command -v aerospace >/dev/null 2>&1; then
     focused_workspace="$(aerospace list-workspaces --focused 2>/dev/null)"
 
     if [ -n "$focused_workspace" ]; then
