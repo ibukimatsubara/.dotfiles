@@ -9,6 +9,21 @@
 - `auto_cd`: ディレクトリ名だけでcdを実行
 - `correct`: コマンドのタイプミスを自動修正
 
+### 起動時のMibukiロゴ
+
+新しい対話ターミナルの最初のプロンプトの前に、Mibukiのアイコンだけを文字アートで表示します。
+元画像は `mibuki-homepage/web/public/mibuki512.png` です。システム情報の取得や外部コマンドの実行はありません。
+表示はUnicodeの点字文字で細かな輪郭を表現したD案です。
+
+- 設定・文字アート: `zsh/configs/startup-banner.zsh`
+- 再表示: `mibuki_banner`
+- 無効化: `~/.zshrc.local` に `MIBUKI_BANNER=0` を設定
+- 幅36列未満・高さ18行未満のターミナル、非対話シェル、`zsh -c` などのコマンド実行時は表示しません。
+- `source ~/.zshrc` で設定を読み直しても、自動表示は同じシェル内で一度だけです。
+
+macOSの `Last login` とローカルメール通知を非表示にするには `touch ~/.hushlogin` を実行します。
+`~/.zshrc` にSSH鍵の読み込みがある場合は `ssh-add -q <鍵ファイル>` とすると、成功通知だけを抑制できます。
+
 ## エイリアス一覧
 
 ### 基本コマンド
