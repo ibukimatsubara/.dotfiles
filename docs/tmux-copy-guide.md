@@ -13,11 +13,17 @@
 2. 自動的にクリップボードにコピーされる
 3. `Cmd+V` または tmux内で `Prefix + ]` でペースト
 
-## Ghosttyでtmuxを使っていない場合
+## Ghosttyのドラッグ選択
 
 `ghostty/config` の `copy-on-select = clipboard` により、ドラッグで選択した文字はマウスを離すとmacOSのクリップボードへコピーされる。追加のコピー操作は不要で、`Cmd+V` で貼り付けられる。
 
-Ghosttyの既定値 `true` は選択用クリップボードを優先するため、通常のクリップボードにもコピーする `clipboard` を明示している。tmux内の通常ドラッグは、既存のtmux設定がコピーを処理する。
+Ghosttyの既定値 `true` は選択用クリップボードを優先するため、通常のクリップボードにもコピーする `clipboard` を明示している。
+
+`copy-on-select` だけでは、マウス入力を受け取るTUIがドラッグを処理する場合にGhosttyの選択が作られない。このため、`mouse-reporting = false` として通常のドラッグをGhosttyの文字選択に使う。tmux内もこの状態ではGhosttyが選択・コピーを処理する。
+
+TUIやtmuxにマウス入力を渡したいときは、`Ctrl+Option+Cmd+M` で現在のターミナルだけ切り替えられる。ONの間はクリックによるペイン操作やtmuxのマウススクロールが使える。tmuxの通常ドラッグは既存のtmux設定がコピーを処理する。Ghosttyの選択を使う場合は `Shift+ドラッグ` を押す。もう一度同じキーを押すと、通常のドラッグ選択に戻る。
+
+この切り替えは一時的な状態で、設定をリロードすると既定のOFFに戻る。
 
 設定を変更した場合はGhosttyの「Reload Configuration」を実行する。参考: [Ghostty公式設定リファレンス](https://ghostty.org/docs/config/reference#copy-on-select)。
 
