@@ -1,7 +1,7 @@
 -- break_timer.lua — Ghostty 強制休憩タイマー
 --
--- 30分作業 → 3分かけて画面の色が抜け・ぼやけ・星空に変わる → 3分休憩 →
--- 休憩明けは何かキーを押すと復帰して次の30分が始まる。
+-- 30分作業 → 休憩の開始待ち → 3分休憩 → 作業の開始待ち。
+-- 作業・休憩は明示的に開始する。残り1分と終了時に通知音が鳴る。
 --
 -- 設定: ~/.config/break-timer/config.lua (実体は ~/.dotfiles/break-timer/config.lua)
 -- 時間・休憩シーン・下端ゲージ・Ghostty 壁紙を変更できる。保存すると自動で再読み込み。
@@ -15,11 +15,10 @@
 --
 -- 操作 (⌘P/⌘O は Ghostty にフォーカスがあるときだけ有効。他アプリでは
 -- 本来の「印刷」「開く」のまま):
---   ⌘P           フェード/休憩中 = スヌーズ(+3分) / 作業中 = 残り時間表示
+--   ⌘P           開始待ち = 作業/休憩をスタート
+--                フェード/休憩中 = スヌーズ(+3分) / 作業中 = 残り時間表示
 --   ⌘O           タイマー ON/OFF
---   何かキー      休憩明けに Ghostty 上で押すと再開(そのキー入力は飲み込まれる)
---   メニューバー   常時状態を表示(☀残り分数/🌙/☕/✨/⏸ OFF)。クリックで
---                ON/OFF・スヌーズ・今すぐ休憩・デモ
+--   メニューバー   常時状態を表示(☀残り分数/🌙/☕/開始待ち/⏸ OFF)
 
 local M = {}
 
@@ -30,6 +29,8 @@ local SCENES_DIR = HOME .. "/.dotfiles/ghostty/shaders/scenes/"
 local STATE_DIR = HOME .. "/.cache/ghostty-break"
 local STATE_PATH = STATE_DIR .. "/break_state.glsl"
 local TIMER_STATUS_PATH = STATE_DIR .. "/tmux_status.tsv"
+local SOUND_DIR = HOME .. "/.dotfiles/break-timer/sounds/"
+local SOUND_FILES = { warning = "warning-beep.mp3", finished = "timer-complete.mp3" }
 local WALLPAPER_CACHE_DIR = HOME .. "/.cache/ghostty-wallpapers"
 local NATIVE_WALLPAPER_EXT = { jpg = true, jpeg = true, png = true }
 local SOURCE_WALLPAPER_EXT = {
@@ -41,6 +42,8 @@ local SOURCE_WALLPAPER_EXT = {
 local DEFAULTS = {
   work_minutes = 30, fade_minutes = 3, break_minutes = 3, snooze_minutes = 3,
   scene = "starry", show_work_gauge = true, alerts = false,
+  auto_start_work = false, auto_start_break = false,
+  sounds = true, sound_volume = 1.0, warning_seconds = 60,
   wallpaper_enabled = false, wallpaper_dir = HOME .. "/.dotfiles/ghostty/wallpapers",
   wallpaper_opacity = 0.3, wallpaper_fit = "contain", wallpaper_pick = "random",
 }
@@ -59,14 +62,16 @@ local currentWallpaper = nil
 local reloadGhostty
 math.randomseed(os.time())
 
--- state: work | fading | snoozed | break | waiting
-local state = "work"
+-- state: work | fading | snoozed | break | ready (休憩待ち) | waiting (作業待ち)
+local state = "waiting"
 local phaseStart = hs.timer.secondsSinceEpoch()
 local enabled = true
 local demoMode = false
 local template = nil
 local lastMode, lastProgress = nil, nil
 local lastTimerStatusBody = nil
+local warningPlayed = false
+local sounds = {}
 
 local function loadTemplate()
   local f = io.open(templatePath, "r")
@@ -288,6 +293,11 @@ local function loadConfig()
   cfg.fade   = num("fade_minutes") * 60
   cfg.brk    = num("break_minutes") * 60
   cfg.snooze = num("snooze_minutes") * 60
+  cfg.autoStartWork = user.auto_start_work == true
+  cfg.autoStartBreak = user.auto_start_break == true
+  cfg.sounds = user.sounds ~= false
+  cfg.soundVolume = math.max(0, math.min(1, num("sound_volume")))
+  cfg.warningSeconds = math.max(0, num("warning_seconds"))
   scene = type(user.scene) == "string" and user.scene or DEFAULTS.scene
   showWorkGauge = user.show_work_gauge ~= false
   alertsEnabled = (user.alerts == true)
@@ -312,6 +322,26 @@ local function workMode() return showWorkGauge and 4 or 0 end
 -- 誤爆防止)。状態は Ghostty 内の表示(下端ゲージ/フェード/星空/明滅)で分かる
 local function notify(msg)
   if alertsEnabled then hs.alert.show(msg) end
+end
+
+-- オブジェクトを保持し、通知をポップアップ設定や通知センターに依存させない。
+local function playSound(kind)
+  if not cfg.sounds then return false end
+  if not sounds[kind] then
+    sounds[kind] = hs.sound.getByFile(SOUND_DIR .. SOUND_FILES[kind])
+        or hs.sound.getByName(kind == "warning" and "Tink" or "Ping")
+  end
+  local sound = sounds[kind]
+  if not sound then return false end
+  local output = hs.audiodevice.defaultOutputDevice()
+  if output then sound:device(output:uid()) end
+  sound:stop()
+  sound:volume(cfg.soundVolume)
+  return sound:play() ~= false
+end
+
+function M.testSound(kind)
+  return playSound(kind == "warning" and "warning" or "finished")
 end
 
 reloadGhostty = function()
@@ -349,6 +379,7 @@ local function writeTimerStatus()
     snoozed = cfg.snooze,
     fading = cfg.fade,
     ["break"] = cfg.brk,
+    ready = 0,
     waiting = 0,
   }
   local duration = enabled and (durations[state] or 0) or 0
@@ -374,23 +405,13 @@ local function writeTimerStatus()
   return true
 end
 
-local enterState -- 前方宣言(wakeTap から参照するため)
-
--- 休憩明けにどのキーでも復帰できるようにする監視(waiting 中だけ動かす)。
--- Ghostty にフォーカスがあるときだけ反応し、他アプリでの入力は素通しする
-local wakeTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(_)
-  local fw = hs.application.frontmostApplication()
-  if not (fw and fw:bundleID() == "com.mitchellh.ghostty") then return false end
-  -- eventtap のコールバック内で重い処理(メニュー操作)をするとタップが
-  -- タイムアウトで無効化されるため、復帰処理は次のループに逃がす
-  hs.timer.doAfter(0, function() enterState("work") end)
-  return true -- 復帰用のキー入力はアプリに渡さない
-end)
+local enterState
 
 -- ⌘P/⌘O は Ghostty フォーカス中だけ有効化する(他アプリのショートカットを奪わない)
 local snoozeKey = hs.hotkey.new({ "cmd" }, "p", function()
-  if not enabled then return end
-  if state == "fading" or state == "break" then
+  if not enabled or state == "waiting" or state == "ready" then
+    M.start()
+  elseif state == "fading" or state == "break" then
     enterState("snoozed")
   elseif state == "work" or state == "snoozed" then
     local total = (state == "work") and cfg.work or cfg.snooze
@@ -436,7 +457,9 @@ local function menuTitle()
     local remain = math.max(0, cfg.brk - el)
     return string.format("☕ %d:%02d", math.floor(remain / 60), math.floor(remain % 60))
   elseif state == "waiting" then
-    return "✨"
+    return "▶ 作業待ち"
+  elseif state == "ready" then
+    return "☕ 休憩待ち"
   end
   return "☀"
 end
@@ -449,9 +472,13 @@ end
 if menubar then
   menubar:setMenu(function()
     local items = {
+      { title = (enabled and state == "ready" and "休憩" or "作業") .. "をスタート (⌘P)",
+        fn = function() M.start() end,
+        disabled = enabled and state ~= "waiting" and state ~= "ready" },
       { title = (enabled and "タイマーを OFF にする" or "タイマーを ON にする") .. " (⌘O)", fn = function() M.toggle() end },
       { title = "-" },
-      { title = "今すぐ休憩へ", fn = function() enterState("fading") end, disabled = not enabled },
+      { title = "今すぐ休憩へ", fn = function() M.skip() end, disabled = not enabled },
+      { title = "通知音をテスト", fn = function() M.testSound("warning") end },
       { title = "デモ実行 (短縮サイクル)", fn = function() M.demo() end, disabled = not enabled },
     }
     if state == "fading" or state == "break" then
@@ -462,12 +489,10 @@ if menubar then
 end
 
 enterState = function(s)
-  -- wakeTap とホットキーの二重発火で work が連続再入するのを防ぐ
-  if s == "work" and state == "work" and hs.timer.secondsSinceEpoch() - phaseStart < 2 then return end
   local prevState = state
   state = s
   phaseStart = hs.timer.secondsSinceEpoch()
-  if s ~= "waiting" then wakeTap:stop() end
+  warningPlayed = false
 
   if s == "work" then
     if prevState == "waiting" then applyWallpaper(true, true) end
@@ -488,10 +513,12 @@ enterState = function(s)
   elseif s == "break" then
     notify("☕ 休憩 (" .. math.floor(cfg.brk / 60) .. "分)")
     setShader(2, 0)
+  elseif s == "ready" then
+    notify("☕ 作業おわり — ⌘P で休憩をスタート")
+    setShader(0, 0)
   elseif s == "waiting" then
-    notify("✨ 休憩おわり — 何かキーを押すと再開")
-    setShader(3, 0)
-    wakeTap:start()
+    notify("▶ ⌘P で作業をスタート")
+    setShader(0, 0)
   end
   refreshMenubar()
 end
@@ -502,16 +529,31 @@ local function tick()
     return
   end
   local el = hs.timer.secondsSinceEpoch() - phaseStart
+  local total = ({ work = cfg.work, snoozed = cfg.snooze, ["break"] = cfg.brk })[state]
+  if total and total > cfg.warningSeconds and cfg.warningSeconds > 0
+      and not warningPlayed and el >= total - cfg.warningSeconds and el < total then
+    warningPlayed = true
+    playSound("warning")
+  end
   if state == "work" then
-    if el >= cfg.work then enterState("fading") elseif showWorkGauge then setShader(4, el / cfg.work) end
+    if el >= cfg.work then
+      playSound("finished")
+      enterState(cfg.autoStartBreak and "fading" or "ready")
+    elseif showWorkGauge then setShader(4, el / cfg.work) end
   elseif state == "snoozed" then
-    if el >= cfg.snooze then enterState("fading") elseif showWorkGauge then setShader(4, el / cfg.snooze) end
+    if el >= cfg.snooze then
+      playSound("finished")
+      enterState(cfg.autoStartBreak and "fading" or "ready")
+    elseif showWorkGauge then setShader(4, el / cfg.snooze) end
   elseif state == "fading" then
     if el >= cfg.fade then enterState("break") else setShader(1, el / cfg.fade) end
   elseif state == "break" then
-    if el >= cfg.brk then enterState("waiting") else setShader(2, el / cfg.brk) end
+    if el >= cfg.brk then
+      playSound("finished")
+      enterState(cfg.autoStartWork and "work" or "waiting")
+    else setShader(2, el / cfg.brk) end
   end
-  -- waiting はキー入力待ちなので何もしない(明滅はシェーダーが iTime で勝手に動く)
+  -- 開始待ちの間は何もしない。普通のキー入力では再開しない。
   refreshMenubar()
 end
 
@@ -527,8 +569,20 @@ function M.refreshVisual()
   if state == "snoozed" then return setShader(workMode(), progress(cfg.snooze)) end
   if state == "fading" then return setShader(1, progress(cfg.fade)) end
   if state == "break" then return setShader(2, progress(cfg.brk)) end
-  if state == "waiting" then return setShader(3, 0) end
+  if state == "waiting" or state == "ready" then return setShader(0, 0) end
   return false
+end
+
+function M.start()
+  if not enabled then
+    enabled = true
+    applyWallpaper(true)
+    enterState("work")
+  elseif state == "ready" then
+    enterState("break")
+  elseif state == "waiting" then
+    enterState("work")
+  end
 end
 
 function M.toggle(on)
@@ -536,9 +590,8 @@ function M.toggle(on)
   enabled = on
   if enabled then
     applyWallpaper(true)
-    enterState("work")
+    enterState(cfg.autoStartWork and "work" or "waiting")
   else
-    wakeTap:stop()
     applyWallpaper(false)
     setShader(0, 0)
     notify("⏸ 休憩タイマー OFF (⌘O か メニューバーで再開)")
@@ -546,24 +599,27 @@ function M.toggle(on)
   end
 end
 
--- スリープ復帰時はサイクルを仕切り直す
+-- スリープ復帰時も、手動モードでは作業の開始を待つ
 M.wakeWatcher = hs.caffeinate.watcher.new(function(ev)
   if ev == hs.caffeinate.watcher.systemDidWake and enabled then
-    enterState("work")
+    enterState(cfg.autoStartWork and "work" or "waiting")
   end
 end)
 M.wakeWatcher:start()
 
--- 短縮サイクルで一通りの動きを確認する(終わったら自動で通常モードに戻る)
+-- 短縮サイクルで確認する。通常設定は次の作業開始時に復元する。
 function M.demo()
+  if not enabled then return end
   demoMode = true
   cfg.work, cfg.fade, cfg.brk, cfg.snooze = 8, 20, 12, 10
-  hs.alert.show("🧪 デモ: 8秒作業 → 20秒フェード → 12秒休憩")
+  hs.alert.show(cfg.autoStartBreak
+      and "🧪 デモ: 8秒作業 → 20秒フェード → 12秒休憩"
+      or "🧪 デモ: 8秒作業 → ⌘Pで12秒休憩 → ⌘Pで通常設定")
   enterState("work")
 end
 
-function M.skip() -- 今すぐフェードを始める
-  enterState("fading")
+function M.skip() -- 明示操作で今すぐ休憩を始める
+  if enabled then enterState(cfg.autoStartBreak and "fading" or "break") end
 end
 
 function M.status()
@@ -576,7 +632,7 @@ M.configWatcher = hs.pathwatcher.new(HOME .. "/.dotfiles/break-timer/", function
   loadConfig()
   notify("🔄 休憩タイマー設定を再読み込み")
   applyWallpaper(enabled)
-  if enabled then enterState("work") end
+  if enabled then enterState(cfg.autoStartWork and "work" or "waiting") end
 end):start()
 
 -- シーンの GLSL 編集も監視して、いま表示中の画面に当て直す
@@ -589,7 +645,7 @@ end):start()
 ensureStateDir()
 loadConfig()
 applyWallpaper(enabled)
-setShader(workMode(), 0)
+enterState(cfg.autoStartWork and "work" or "waiting")
 M.timer = hs.timer.doEvery(1, tick)
 phaseStart = hs.timer.secondsSinceEpoch()
 refreshMenubar()

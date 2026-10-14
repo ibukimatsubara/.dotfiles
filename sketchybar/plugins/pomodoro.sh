@@ -19,9 +19,14 @@ case "$enabled:$state" in
         color="$FOCUS_COLOR"
         ;;
     true:waiting)
-        icon=""
-        label="READY"
+        icon=""
+        label="WORK ⌘P"
         color="$GREEN_COLOR"
+        ;;
+    true:ready)
+        icon=""
+        label="BREAK ⌘P"
+        color="$MAUVE_COLOR"
         ;;
     true:work|true:snoozed|true:fading|true:break)
         case "$started:$duration" in

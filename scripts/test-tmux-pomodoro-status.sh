@@ -41,7 +41,11 @@ assert_rendered 'fg=#c084fc'
 printf 'true\twaiting\t2000\t0\n' > "$status_file"
 assert_rendered '◷ ready'
 
+printf 'true\tready\t2000\t0\n' > "$status_file"
+assert_rendered '◷ break ready'
+assert_rendered 'fg=#c084fc'
+
 printf 'false\twork\t2000\t1800\n' > "$status_file"
 assert_rendered '◷ off'
 
-printf 'PASS: tmux Pomodoro status renders work, break, ready, and off states\n'
+printf 'PASS: tmux Pomodoro status renders work, break, both waiting states, and off\n'

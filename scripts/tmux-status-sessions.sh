@@ -38,10 +38,14 @@ if [ -r "$timer_status_path" ]; then
                     timer_color="$accent"
                     timer_label='◷ ready'
                     ;;
+                ready)
+                    timer_color="$purple"
+                    timer_label='◷ break ready'
+                    ;;
                 *) timer_state='' ;;
             esac
 
-            if [ -n "$timer_state" ] && [ "$timer_state" != 'waiting' ]; then
+            if [ -n "$timer_state" ] && [ "$timer_state" != 'waiting' ] && [ "$timer_state" != 'ready' ]; then
                 elapsed=$((now_epoch - timer_start))
                 [ "$elapsed" -lt 0 ] && elapsed=0
                 remaining=$((timer_duration - elapsed))

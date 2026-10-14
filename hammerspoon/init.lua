@@ -2,7 +2,7 @@ require("hs.ipc")
 
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/.dotfiles/hammerspoon/?.lua"
 
--- Ghostty 強制休憩タイマー (30分 → 星空フェード → 3分休憩)
+-- Ghostty 休憩タイマー (30分作業 / 3分休憩、⌘Pで手動開始)
 breaktimer = require("break_timer")
 
 -- Rotate matching MacBook/QHD wallpapers every hour.
