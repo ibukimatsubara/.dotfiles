@@ -9,6 +9,24 @@
 - `auto_cd`: ディレクトリ名だけでcdを実行
 - `correct`: コマンドのタイプミスを自動修正
 
+### Node.js・Pythonの初期化
+
+Node.jsのバージョン管理はfnmに統一します。`zsh/main.zsh` で `fnm env --use-on-cd --shell zsh` を読み込み、`.nvmrc` / `.node-version` があるディレクトリでは、その指定を使います。指定ファイルがないディレクトリでは直前の選択を維持し、新しいシェルではfnmの既定バージョンを使います。プロンプトのNode表示もfnmに対応し、表示のたびにバージョン管理ツールを呼び出しません。
+
+古い `~/.zshrc` に残っている `nvm.sh` とnvm用bash completionの読み込みは削除します。通常のZsh補完は `zsh/configs/completion.zsh` で標準の `compinit` を読み込み、標準の権限チェックも維持します。HomebrewやローカルツールのPATH設定を先に行い、最後に `source ~/.dotfiles/zsh/main.zsh` を実行してください。後からHomebrewのPATHを先頭へ追加すると、fnmが選んだNodeよりHomebrewのNodeが優先されてしまいます。
+
+移行前に `node --version`、`command -v node`、`npm --version` と使用中のグローバルCLIを確認します。使用中のNodeと同じバージョンをfnmへ導入し、`fnm default <version>` で既定値を合わせます。Nodeの保存先ごとにグローバルパッケージは分かれるため、使用中のCLIも引き継いでください。nvmの既存バージョンやパッケージは、移行が確認できるまで残しておけます。
+
+Python用のpyenvは維持し、`~/.zshrc` の初期化に `--no-rehash` を付けます。
+
+```zsh
+eval "$(pyenv init --path --no-rehash)"
+```
+
+これにより、ターミナルを開くたびに実行ファイル一覧を再生成する処理を省きます。新しいPython CLIをインストールしてコマンドが見つからない場合は、`pyenv rehash` を手動で実行してください。Pythonのバージョン指定や既存の仮想環境は変更しません。
+
+参照: [fnm](https://github.com/Schniz/fnm)、[pyenv init](https://github.com/pyenv/pyenv/blob/master/COMMANDS.md#pyenv-init)。
+
 ### 起動時のMibukiロゴ
 
 新しい対話ターミナルの最初のプロンプトの前に、Mibukiのアイコンを文字アートで表示します。
