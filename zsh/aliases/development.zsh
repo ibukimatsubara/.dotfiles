@@ -25,6 +25,27 @@ alias mn='mosh home -- tmux new-session -s'
 alias ml='ssh home tmux list-sessions'
 alias mt='mosh home -- tmux attach-session -t'
 
+_ubuntu_desktop() {
+  local rdp_password
+  rdp_password="$(security find-generic-password -a 'iv@home' -s 'GNOME RDP home' -w)" || return 1
+
+  print -r -- "$rdp_password" | /opt/homebrew/bin/sdl-freerdp \
+    /v:iv-G5-5090.tail4b3505.ts.net \
+    /u:iv \
+    /from-stdin:force \
+    /cert:tofu \
+    /network:auto \
+    /size:1600x900 \
+    +smart-sizing \
+    +clipboard
+  local rdp_status=$pipestatus[2]
+
+  unset rdp_password
+  return "$rdp_status"
+}
+alias ubuntu-desktop='_ubuntu_desktop'
+alias urdp='_ubuntu_desktop'
+
 # Python virtual environment
 alias va='source .venv/bin/activate'
 alias vd='deactivate'
