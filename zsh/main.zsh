@@ -29,7 +29,7 @@ fi
 # Load local configuration if exists
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
-# Initialize fnm (Node.js version manager)
+# Initialize fnm as the sole Node.js version manager, after local PATH setup.
 if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env --use-on-cd --shell zsh)"
 fi

@@ -51,12 +51,12 @@ function python-env {
 # node prompt
 function node-env {
 	if [ -f "package.json" ]; then
-		local node_ver=`node -v 2>/dev/null | sed 's/v//'`
+		local node_ver=$(node -v 2>/dev/null)
 		if [ -n "$node_ver" ]; then
-			# Check if using nvm
-			local nvm_current=$(nvm current 2>/dev/null)
-			if [ -n "$nvm_current" ] && [ "$nvm_current" != "system" ]; then
-				echo "`bar`%F{12}⬢$node_ver(nvm)%f"
+			node_ver=${node_ver#v}
+			# Read the resolved command path instead of running a version manager.
+			if [[ -n ${FNM_MULTISHELL_PATH:-} && ${commands[node]:-} == "$FNM_MULTISHELL_PATH/bin/node" ]]; then
+				echo "`bar`%F{12}⬢$node_ver(fnm)%f"
 			else
 				echo "`bar`%F{12}⬢$node_ver%f"
 			fi
