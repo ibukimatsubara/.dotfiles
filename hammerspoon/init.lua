@@ -8,7 +8,7 @@ package.path = package.path .. ";" .. os.getenv("HOME") .. "/.dotfiles/hammerspo
 -- Ghostty 休憩タイマー (30分作業 / 3分休憩、⌘Pで手動開始)
 breaktimer = require("break_timer")
 
--- Ghostty の tmux 外では Ctrl+h/j/k/l を AeroSpace のフォーカス移動に使う。
+-- Ghostty の Ctrl+h/j/k/l は TUI・tmux 内でも AeroSpace のフォーカス移動に使う。
 ghosttynavigation = require("ghostty_navigation")
 
 -- Rotate matching MacBook/QHD wallpapers every hour.

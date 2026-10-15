@@ -62,8 +62,15 @@ end
 assert(navigation.status().route == "aerospace")
 
 title = "[tmux] project:0 ~/project"
-for _, code in ipairs({ 4, 38, 40, 37, 32, 34 }) do assert(not key(code)) end
-assert(navigation.status().route == "tmux")
+for _, code in ipairs({ 4, 38, 40, 37 }) do assert(key(code)) end
+for _, code in ipairs({ 32, 34 }) do assert(not key(code)) end
+assert(navigation.status().route == "aerospace")
+assert(navigation.status().workspaceRoute == "tmux")
+-- Claude's title updates must not change directional routing inside tmux.
+title = "[tmux] project:0 ✳ Claude Code"
+assert(key(4))
+title = "✳ Claude Code"
+assert(key(37))
 title = "~/project"
 bundle = "com.microsoft.VSCode"
 for _, code in ipairs({ 4, 32, 34 }) do assert(not key(code)) end
@@ -87,9 +94,10 @@ assert(not key(4))
 title = "~/project"
 canStart = false
 assert(not key(4))
+for _, entry in ipairs(running) do entry.finished() end
 assert(next(navigation.tasks) == nil)
-assert(#launched == 6, "passthrough must not change window focus")
+assert(#launched == 12, "passthrough must not change window focus")
 local config = assert(io.open(repo .. "/tmux/tmux.conf")):read("*a")
 assert(config:find("set -g set-titles on", 1, true))
 assert(config:find("set -g set-titles-string '[tmux] ", 1, true))
-print("PASS: wrapping directions/workspaces, tmux passthrough, Tab, app/dialog scope, modifiers, and task cleanup")
+print("PASS: TUI/tmux direction routing, tmux workspace passthrough, wrapping, Tab, app/dialog scope, modifiers, and task cleanup")
