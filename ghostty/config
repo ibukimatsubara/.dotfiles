@@ -39,9 +39,9 @@ macos-option-as-alt = true
 # URL検出 (Cmd+クリックで開く)
 link-url = true
 
-# 通常のドラッグはGhosttyの文字選択に使う。
-# TUIのマウス操作が必要なときだけ Ctrl+Option+Cmd+M で切り替える。
-mouse-reporting = false
+# tmuxや会話TUIにスクロール・マウス操作を渡す。
+# TUI内でGhosttyの文字選択を使う場合は Shift+ドラッグする。
+mouse-reporting = true
 # マウス入力を有効にした場合も、Shift+ドラッグはGhosttyの選択に使う。
 mouse-shift-capture = never
 
