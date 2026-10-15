@@ -1,6 +1,6 @@
--- Ghostty の tmux 外だけ Ctrl+h/j/k/l で AeroSpace のタイルへ移動し、端で循環する。
+-- Ghostty の Ctrl+h/j/k/l は TUI・tmux 内でも AeroSpace のタイルへ移動する。
 -- Ctrl+u/i は Ctrl+y/o と同じ前・次のワークスペース移動。
--- tmux はタイトル先頭の [tmux] で識別し、元のキー入力をそのまま通す。
+-- tmux はタイトル先頭の [tmux] で識別し、Ctrl+u/i だけ元のキー入力を通す。
 local M = { tasks = {} }
 -- 最初のキー入力を処理する間に拡張の初回ロードが走らないようにする。
 local application = hs.application
@@ -38,7 +38,7 @@ M.tap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
   local direction, workspace = DIRECTIONS[key], WORKSPACES[key]
   if not (direction or workspace) or not aerospacePath then return false end
   local current = context()
-  if not current or current.tmux then return false end
+  if not current or (workspace and current.tmux) then return false end
 
   -- 外部コマンドは非同期で実行し、イベントタップを待たせない。
   local args = workspace and { "workspace", "--wrap-around", workspace }
@@ -59,7 +59,8 @@ function M.status()
   return {
     enabled = M.tap:isEnabled() and aerospacePath ~= nil,
     window = current and current.window,
-    route = current and (current.tmux and "tmux" or "aerospace") or "passthrough",
+    route = current and "aerospace" or "passthrough",
+    workspaceRoute = current and (current.tmux and "tmux" or "aerospace") or "passthrough",
   }
 end
 

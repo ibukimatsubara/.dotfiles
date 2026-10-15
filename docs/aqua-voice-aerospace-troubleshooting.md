@@ -152,7 +152,7 @@ Ctrl+L is disabled while a task is in progress.
 hs -A -t 3 -c 'return hs.inspect({navigation=ghosttynavigation and ghosttynavigation.status(),secureInput=hs.eventtap.isSecureInputEnabled()})' </dev/null
 ```
 
-tmux外のGhosttyで `enabled = true`、`route = "aerospace"`、`secureInput = false` が期待値。`route = "tmux"` ならtmuxのペイン・セッション操作へ通す正常な状態。`route = "passthrough"` なら、前面アプリ、選択中のウィンドウ、入力欄のフォーカスを確認する。Secure Inputが `true` なら、上の「ショートカットが反応せず、盾アイコンが出る」の手順で発生元を確認する。
+tmux外のGhosttyで `enabled = true`、`route = "aerospace"`、`secureInput = false` が期待値。tmux内でも方向キーは `route = "aerospace"` が期待値。`workspaceRoute = "tmux"` なら `Ctrl+U/I` だけtmuxのセッション操作へ通す。`route = "passthrough"` なら、前面アプリ、選択中のウィンドウ、入力欄のフォーカスを確認する。Secure Inputが `true` なら、上の「ショートカットが反応せず、盾アイコンが出る」の手順で発生元を確認する。
 
 状態を保存した後、キー監視だけを停止・再開して再操作する。タイマーや作業中のCodexを終了する必要はない。
 

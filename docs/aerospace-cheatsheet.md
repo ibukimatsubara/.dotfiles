@@ -7,12 +7,12 @@
 | キー | 動作 |
 |---|---|
 | `Ctrl + Command + H/J/K/L` | フローティング表示を除き、左・下・上・右のタイルへフォーカス |
-| Ghostty の tmux 外で `Ctrl + H/J/K/L` | 左・下・上・右のタイルへフォーカス（端では反対側へ循環） |
+| Ghostty で `Ctrl + H/J/K/L` | 左・下・上・右のタイルへフォーカス（端では反対側へ循環） |
 | `Ctrl + F` | SketchyBarと外側の余白を残した全画面表示 |
 | `Ctrl + Y/O` | 前・次のワークスペースへ移動（端では反対側へ循環） |
 | Ghostty の tmux 外で `Ctrl + U/I` | `Ctrl + Y/O` と同じ前・次のワークスペース移動（端で循環） |
 
-Ghostty の `Ctrl + H/J/K/L` と `Ctrl + U/I` は Hammerspoon が選択中のウィンドウを判定して振り分ける。tmux に入っている場合は既存のペイン移動・セッション切り替えとして動作し、他のアプリには干渉しない。判定には `tmux/tmux.conf` の `set-titles-string` が付ける `[tmux] ` という接頭辞を使う。tmux の設定を再読み込みしてから利用する。
+Ghostty の `Ctrl + H/J/K/L` と `Ctrl + U/I` は Hammerspoon が選択中のウィンドウを判定して振り分ける。`Ctrl + H/J/K/L` はClaude CodeなどのTUIやtmux内でもAeroSpaceへ送る。tmux内の `Ctrl + U/I` は既存のセッション切り替えとして動作し、他のアプリには干渉しない。判定には `tmux/tmux.conf` の `set-titles-string` が付ける `[tmux] ` という接頭辞を使う。tmux の設定を再読み込みしてから利用する。
 
 Raycastから最大化する場合は、標準の `Maximize` ではなく `Maximize with AeroSpace` を使う。AeroSpaceの外側余白を維持し、再実行すると元のサイズへ戻る。
 
