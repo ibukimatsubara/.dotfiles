@@ -16,6 +16,23 @@ cd .dotfiles
 
 Node.jsは`fnm`で管理します。新規端末でNode.jsがまだ入っていない場合は、セットアップ後に`nvlts`を一度実行して最新LTSを導入します。
 
+## DSHのセットアップ
+
+tmuxの`Cmd+R`とZshの`dcode`は、DeepSeek Harnessの`dsh-tui`プロファイルを起動します。Node.js 22.19以上の22系、または24以上とnpmが必要です。
+
+`install.sh`はDSHの導入も行います。DSHだけを導入する場合や、Node.jsの導入後に再実行する場合は、次のコマンドを使います。
+
+```bash
+bash scripts/setup-dsh.sh
+source ~/.zshrc
+tmux source-file ~/.tmux.conf
+dcode
+```
+
+このスクリプトは、pnpm、`@deepseek-ai/dsh`、`@deepseek-harness-tui/dsh-tui`を確認し、未導入のツールと`dsh-tui`プロファイルをセットアップします。認証はTUI内の`/auth`から行います。DeepSeekアカウントを利用する場合は`/auth login deepseek-account`を使い、`/model`でアカウント用のモデルを選びます。APIキーは端末上で設定し、Gitへ保存しません。
+
+`dsh-tui doctor`で導入状況を確認できます。APIキーの未設定表示があっても、ブラウザログインを利用する場合はAPIキーの設定は不要です。
+
 ## `setup.sh`が管理するもの
 
 - Zsh

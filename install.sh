@@ -231,6 +231,15 @@ install_optional_tools() {
         print_success "Claude Code CLI already installed"
     fi
 
+    # DeepSeek Harness CLI and the terminal profile used by Cmd+R.
+    local dsh_setup_script
+    dsh_setup_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts/setup-dsh.sh"
+    if bash "$dsh_setup_script"; then
+        print_success "DSH CLI and dsh-tui profile configured"
+    else
+        print_warning "DSH setup failed; rerun scripts/setup-dsh.sh after fixing its prerequisites"
+    fi
+
     # Pi coding agent CLI
     if command -v pi >/dev/null 2>&1; then
         print_success "Pi coding agent CLI already installed"
