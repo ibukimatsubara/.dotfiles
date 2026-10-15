@@ -6,6 +6,11 @@ config-version = 2
 start-at-login = true
 auto-reload-config = true
 
+# Keep workspace roots tiled when starting or changing windows/workspaces.
+# The default alone does not reset a workspace's existing layout.
+after-startup-command = ['layout --root tiles']
+on-focus-changed = ['layout --root tiles']
+
 # Keep SketchyBar workspace state synchronized with AeroSpace.
 exec-on-workspace-change = ['/bin/bash', '-c',
     '$HOME/.dotfiles/scripts/aerospace-workspace-changed.sh "$AEROSPACE_FOCUSED_WORKSPACE"'
@@ -33,6 +38,11 @@ gaps.outer.left = 16
 gaps.outer.bottom = 16
 gaps.outer.top = 52
 gaps.outer.right = 16
+
+# Apply the same guard when a window is created without changing focus.
+[[on-window-detected]]
+check-further-callbacks = true
+run = 'layout --root tiles'
 
 # Keep launcher and dictation utility windows floating so they do not consume
 # a tile. Aqua Voice's recorder follows the focused workspace via the callback
