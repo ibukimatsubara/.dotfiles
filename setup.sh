@@ -261,15 +261,6 @@ link_macos_configs() {
         print_warning "kitty dark theme definition not found"
     fi
 
-    # Ghostty configuration
-    if [ -f ~/.dotfiles/ghostty/config ]; then
-        backup_file ~/.config/ghostty/config
-        ln -sf ~/.dotfiles/ghostty/config ~/.config/ghostty/config
-        print_success "Linked Ghostty configuration"
-    else
-        print_warning "Ghostty config not found in dotfiles"
-    fi
-
     # JankyBorders configuration
     if [ -f ~/.dotfiles/borders/bordersrc ]; then
         link_managed_path \
@@ -350,6 +341,21 @@ link_herdr() {
     else
         print_warning "Herdr config not found in dotfiles"
     fi
+}
+
+# Link Ghostty on both macOS and Linux.
+link_ghostty() {
+    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
+    local source_path="$HOME/.dotfiles/ghostty/config-linux"
+    if is_macos; then
+        source_path="$HOME/.dotfiles/ghostty/config"
+    fi
+    if [ ! -f "$source_path" ]; then
+        print_warning "Ghostty config not found in dotfiles"
+        return
+    fi
+    link_managed_path "$source_path" "$config_dir/config"
+    link_managed_path "$HOME/.dotfiles/ghostty/shaders" "$config_dir/shaders"
 }
 
 # Link VS Code configuration and install the curated extension set.
@@ -558,6 +564,9 @@ main() {
     echo ""
 
     apply_aqua_voice_settings
+    echo ""
+
+    link_ghostty
     echo ""
 
     link_vscode

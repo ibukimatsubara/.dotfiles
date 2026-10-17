@@ -52,12 +52,4 @@ autocmd("BufWritePre", {
   end,
 })
 
--- ペーストモードの設定（インデントの乱れを防ぐ）
-if vim.env.TERM and vim.env.TERM:match("xterm") then
-  vim.api.nvim_set_option_value("t_SI", vim.api.nvim_get_option_value("t_SI", {}) .. "\27[?2004h", {})
-  vim.api.nvim_set_option_value("t_EI", vim.api.nvim_get_option_value("t_EI", {}) .. "\27[?2004l", {})
-  vim.keymap.set("i", "<Esc>[200~", function()
-    vim.opt.paste = true
-    return ""
-  end, { expr = true, noremap = true })
-end
+-- Bracketed paste is handled natively by Neovim.

@@ -1,5 +1,19 @@
 # Ghostty Configuration
 
+## Ubuntu / Linux
+
+`./setup.sh` links `config-linux` and the shaders into the Ghostty config
+directory (`$XDG_CONFIG_HOME/ghostty`, or `~/.config/ghostty`). Ghostty must
+already be installed. The macOS config remains separate for Hammerspoon.
+
+- Copy/paste: `Ctrl+Shift+C` / `Ctrl+Shift+V`
+- New window: `Ctrl+Shift+N`
+- tmux new/close/rename window: `Ctrl+Shift+T` / `Ctrl+Shift+W` / `Ctrl+Shift+R`
+- Reload config: `Ctrl+Shift+,`
+
+Validate with `ghostty +validate-config`. Background transparency depends on
+the desktop compositor; the Linux config does not request macOS blur.
+
 ## Break Timer Wallpaper
 
 休憩タイマーが ON の間だけ、Ghostty に背景画像を表示できます。OFF にすると Hammerspoon が `background-image-opacity = 0` に戻して非表示にします。

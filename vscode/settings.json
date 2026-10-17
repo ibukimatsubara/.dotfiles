@@ -17,5 +17,13 @@
     "<C-u>": false,
     "<C-i>": false
   },
-  "hediet.vscode-drawio.resizeImages": null
+  "hediet.vscode-drawio.resizeImages": null,
+  "editor.fontFamily": "'Hack Nerd Font Mono', monospace",
+  "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.profiles.linux": {
+    "zsh": {
+      "path": "/usr/bin/zsh"
+    }
+  }
 }

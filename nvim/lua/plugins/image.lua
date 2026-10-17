@@ -5,6 +5,9 @@
 
 return {
   "3rd/image.nvim",
+  cond = function()
+    return vim.env.TERM == "xterm-kitty" or vim.env.TERM_PROGRAM == "ghostty"
+  end,
   dependencies = {
     -- luarocksとmagickの自動セットアップ
     {

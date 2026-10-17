@@ -7,7 +7,10 @@ if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
 fi
 
 # VS Code
-export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+if [[ "$OSTYPE" == darwin* ]]; then
+  export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+fi
+export PATH="$HOME/.local/bin:$HOME/.local/share/fnm:$PATH"
 
 # Source configuration files
 for config in ~/.dotfiles/zsh/configs/*.zsh; do

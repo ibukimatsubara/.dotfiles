@@ -37,7 +37,7 @@ opt.foldmethod = "indent"
 opt.foldlevel = 99
 
 -- クリップボード
-opt.clipboard = "unnamed"
+opt.clipboard = "unnamedplus"
 
 -- バックスペース
 opt.backspace = { "indent", "eol", "start" }
