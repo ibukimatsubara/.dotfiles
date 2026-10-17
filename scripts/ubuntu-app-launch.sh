@@ -14,7 +14,8 @@ if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && [[ ":${XDG_CURRENT_DESKTOP:-}:" 
     export GDK_BACKEND=wayland
     unset DISPLAY XAUTHORITY
     case "$app" in
-        ghostty) exec "$binary" --gtk-single-instance=false "${@/--gtk-single-instance=true/--gtk-single-instance=false}" ;;
+        # Reuse the GTK application while opening a new terminal window each time.
+        ghostty) exec "$binary" --gtk-single-instance=true "${@/--gtk-single-instance=false/--gtk-single-instance=true}" ;;
         *) exec "$binary" --ozone-platform=wayland "$@" ;;
     esac
 fi

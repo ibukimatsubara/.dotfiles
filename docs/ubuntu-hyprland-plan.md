@@ -178,7 +178,9 @@ GDMのPATHに `~/.local/bin` がなかったため、Hyprland設定で追加し�
 
 ### アプリを開けない場合の実ログイン確認
 
-通常の起動ではX11への接続が待ち続ける状態も確認した。Ghostty・Chrome・VS Codeのショートカットとdesktopエントリは `ubuntu-app-launch.sh` を共用する。Hyprland内ではGhosttyの単一インスタンス転送を無効にし、Chromium/Electronは `--ozone-platform=wayland` で起動する。GNOME内の実行では通常のバックエンドを使う。既存desktopエントリの名前・引数・ファイル受け渡しを保持し、最初の変更前に `.desktop.before-dotfiles-wayland` へバックアップする。
+通常の起動ではX11への接続が待ち続ける状態も確認した。Ghostty・Chrome・VS Codeのショートカットとdesktopエントリは `ubuntu-app-launch.sh` を共用する。Hyprland内ではGhosttyを `--gtk-single-instance=true` で起動し、既存プロセスから毎回新しいウィンドウを開く。Chromium/Electronは `--ozone-platform=wayland` で起動する。GNOME内の実行では通常のバックエンドを使う。既存desktopエントリの名前・引数・ファイル受け渡しを保持し、最初の変更前に `.desktop.before-dotfiles-wayland` へバックアップする。
+
+Ghosttyの起動速度改善（2026-10-17）: 別プロセス起動ではウィンドウ表示まで約0.5秒、既存プロセスを共有する起動では約0.18秒を実測した。初回や最後のウィンドウを閉じて本体が終了した後は、通常どおり本体の起動時間がかかる。変更前から開いている別プロセスのウィンドウはそのまま使え、新方式で起動した本体を以降の起動で共有する。
 
 ユーザー領域に展開したVS Code tar版は、このUbuntuではsandbox helperの所有者／権限が適合せず異常終了した。公式のDebianパッケージ版を使う。既存の `~/.local/bin/code` が古いtar版を指す場合、setupは `/usr/bin/code` へのリンクに更新する。sandboxを無効化するフラグは使わない。既存のCode設定・拡張機能は保持する。
 

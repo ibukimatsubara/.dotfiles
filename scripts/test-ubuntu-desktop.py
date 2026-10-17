@@ -99,7 +99,7 @@ else:
         for binary in ('ghostty','google-chrome','code'):
             self.stub(binary, '#!/usr/bin/env python3\nimport os,json,sys\nprint(json.dumps({"args":sys.argv[1:],"display":os.environ.get("DISPLAY")}))\n')
         self.env.update(HYPRLAND_INSTANCE_SIGNATURE='fixture',XDG_CURRENT_DESKTOP='Hyprland',DISPLAY=':42')
-        for app,flag in [('ghostty','--gtk-single-instance=false'),('chrome','--ozone-platform=wayland'),('vscode','--ozone-platform=wayland')]:
+        for app,flag in [('ghostty','--gtk-single-instance=true'),('chrome','--ozone-platform=wayland'),('vscode','--ozone-platform=wayland')]:
             result=self.run_script('scripts/ubuntu-app-launch.sh',app,'--new-window')
             data=json.loads(result.stdout)
             self.assertIn(flag,data['args'])
