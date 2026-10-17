@@ -25,6 +25,7 @@ class DesktopThemeTests(unittest.TestCase):
         self.themes = self.home / "presets"
         self.state = self.home / ".config/desktop-theme"
         self.env = dict(os.environ, HOME=str(self.home),
+                        XDG_CONFIG_HOME=str(self.home / '.config'),
                         DESKTOP_THEME_DIR=str(self.themes))
         # The test never fetches an image: both presets have a verified cache.
         for name, color in [("alpha", "0xff123456"), ("beta", "0xffabcdef")]:
@@ -56,6 +57,16 @@ class DesktopThemeTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
         return result
 
+    def test_linux_picker_uses_graphical_menu_in_hyprland(self):
+        bindir=self.home/'bin'
+        bindir.mkdir()
+        picker=bindir/'fuzzel'
+        picker.write_text('#!/bin/sh\ncat >/dev/null\nprintf "alpha\\tAlpha\\n"\n')
+        picker.chmod(0o755)
+        self.env.update(HYPRLAND_INSTANCE_SIGNATURE='fixture', PATH=str(bindir)+':'+self.env['PATH'])
+        self.run_cli('pick')
+        self.assertEqual(json.loads((self.state/'current/theme.json').read_text())['name'], 'alpha')
+
     def test_apply_generates_consumable_files_and_preserves_shared_config(self):
         shared = self.home / ".config/ghostty/config"
         shared.parent.mkdir(parents=True)
@@ -75,6 +86,12 @@ class DesktopThemeTests(unittest.TestCase):
                                 capture_output=True, text=True, check=True)
         self.assertEqual(result.stdout.strip(), "0xff123456 40")
         self.assertEqual(shared.read_text(), "keybind = super+v=paste_from_clipboard\n")
+        dms = json.loads((current / "dms-theme.json").read_text())
+        self.assertEqual(dms["dark"]["surfaceText"], "#123456")
+        self.assertIn("decoration", (current / "hyprland.conf").read_text())
+        import tomllib
+        vicinae = tomllib.loads((current / "vicinae-theme.toml").read_text())
+        self.assertEqual(vicinae["colors"]["core"]["foreground"], "#123456")
 
     def test_next_wraps_and_current_survives_separate_processes(self):
         self.run_cli("apply", "beta")

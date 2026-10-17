@@ -1,0 +1,8 @@
+{
+  "work_minutes": 30,
+  "break_minutes": 3,
+  "snooze_minutes": 3,
+  "warning_seconds": 60,
+  "auto_start_work": false,
+  "auto_start_break": false
+}

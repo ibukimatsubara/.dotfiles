@@ -1,0 +1,13 @@
+{
+  "id": "dotfilesCodexUsage",
+  "name": "Codex usage",
+  "description": "Codex usage from shared dotfiles",
+  "version": "1.0.0",
+  "author": "dotfiles",
+  "type": "widget",
+  "capabilities": [
+    "dankbar-widget"
+  ],
+  "component": "./Widget.qml",
+  "icon": "data_usage"
+}

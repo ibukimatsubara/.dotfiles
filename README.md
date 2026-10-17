@@ -27,6 +27,12 @@ Hammerspoon・AeroSpace・SketchyBarなどのmacOS専用ディレクトリは既
 
 VS Codeの `settings.json` は共通JSONとOS別JSONから生成します。編集後は `./setup.sh` を再実行してください。詳しくは [OS別設定の編集と反映](docs/platforms.md) を参照してください。
 
+## UbuntuのHyprland / Quickshell
+
+Ubuntu 26.04では、`./platforms/ubuntu/install-desktop.sh` でHyprland・DankMaterialShell（Quickshell）・Vicinaeを追加できます。GNOMEは残り、ログイン画面でセッションを選びます。通常の `./setup.sh` はデスクトップを切り替えません。
+
+導入状況、キー操作、ローカル設定は [Ubuntuデスクトップ](docs/ubuntu-hyprland-plan.md) を参照してください。
+
 ## 管理プロファイル
 
 ### Core

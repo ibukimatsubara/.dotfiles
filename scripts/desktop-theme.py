@@ -21,7 +21,7 @@ import zlib
 ROOT = Path(__file__).resolve().parent.parent
 HOME = Path.home()
 THEMES = Path(os.environ.get("DESKTOP_THEME_DIR", ROOT / "desktop-themes"))
-STATE = HOME / ".config/desktop-theme"
+STATE = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "desktop-theme"
 WALLPAPERS = HOME / "Pictures/Wallpapers/themes"
 STYLE_KEYS = {
     "BAR_HEIGHT", "MODULE_HEIGHT", "INNER_HEIGHT", "ARTWORK_SIZE",
@@ -186,6 +186,39 @@ def render_theme(data, directory):
         (directory / filename).write_text(body)
     (directory / "theme.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     render_bar_flares(data, directory)
+    render_ubuntu(data, directory)
+
+
+def render_ubuntu(data, directory):
+    def color(key, fallback):
+        return "#" + data["colors"].get(key, "0xff" + fallback.lstrip("#"))[4:]
+
+    background = color("DARK_COLOR", "182131")
+    surface = color("SURFACE_COLOR", "253449")
+    text = color("TEXT_COLOR", "e3ecf5")
+    muted = color("MUTED_COLOR", "a0b2c8")
+    accent = color("ACCENT_COLOR", "a9c8ee")
+    border = color("BORDER_COLOR", "546d8a")
+    palette = dict(primary=accent, primaryText=background, secondary=accent,
+                   surface=background, surfaceText=text, surfaceVariant=surface,
+                   surfaceVariantText=muted, surfaceTint=accent, background=background,
+                   backgroundText=text, outline=border, surfaceContainer=surface,
+                   surfaceContainerHigh=surface)
+    (directory / "dms-theme.json").write_text(json.dumps(
+        {"id": "dotfiles-" + data["name"], "name": data["label"],
+         "dark": palette, "light": palette}, indent=2) + "\n")
+    (directory / "hyprland.conf").write_text(
+        "# Generated from the shared desktop theme.\ngeneral {\n"
+        "    col.active_border = rgb(" + accent[1:] + ")\n"
+        "    col.inactive_border = rgb(" + border[1:] + ")\n}\n"
+        "decoration {\n    rounding = " + str(data["style"].get("RADIUS_LARGE", 10)) + "\n}\n")
+    core = dict(background=background, foreground=text, secondary_background=surface,
+                border=border, accent=accent)
+    lines = ['[meta]', 'version = 1', 'name = ' + json.dumps(data["label"]),
+             'description = "Shared dotfiles desktop theme"', 'variant = "dark"',
+             '', '[colors.core]']
+    lines.extend(key + " = " + json.dumps(value) for key, value in core.items())
+    (directory / "vicinae-theme.toml").write_text("\n".join(lines) + "\n")
 
 
 def activate(name, offline=False):
@@ -222,6 +255,10 @@ def hammerspoon(expression):
 
 
 def reload_apps():
+    if sys.platform == "linux":
+        subprocess.run([sys.executable, str(ROOT / "scripts/ubuntu-theme.py"), "apply"],
+                       check=True, timeout=45)
+        return
     if not hammerspoon("return desktoptheme and desktoptheme.refresh() or false"):
         bar = executable("sketchybar")
         if bar:
@@ -250,16 +287,23 @@ def main():
                 print("{name}\t{label}\t{description}".format(**entry))
         return
     if args.action == "wallpaper":
+        if sys.platform == "linux":
+            subprocess.run([sys.executable, str(ROOT / "scripts/ubuntu-theme.py"), "wallpaper"],
+                           check=True, timeout=15)
+            return
         if not hammerspoon("return wallpaper and wallpaper.next() or false"):
             raise ValueError("Hammerspoon could not change the wallpaper")
         return
     if args.action == "pick":
         fzf = executable("fzf")
+        graphical = sys.platform == "linux" and bool(os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"))
+        if graphical:
+            fzf = executable("fuzzel")
         if not fzf:
             raise ValueError("Use Ctrl+Option+Cmd+T, or install fzf for the terminal picker")
         entries = presets()
-        selection = subprocess.run([fzf, "--prompt=Theme > ", "--height=40%", "--reverse",
-                                    "--delimiter=\t", "--with-nth=2.."], text=True,
+        picker = [fzf, "--dmenu", "--prompt=Theme > "] if graphical else [fzf, "--prompt=Theme > ", "--height=40%", "--reverse", "--delimiter=\t", "--with-nth=2.."]
+        selection = subprocess.run(picker, text=True,
                                    input="".join("{}\t{} — {}\n".format(p["name"], p["label"], p["description"])
                                                  for p in entries), stdout=subprocess.PIPE)
         if selection.returncode in (1, 130):

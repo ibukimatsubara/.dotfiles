@@ -1,0 +1,16 @@
+{
+  "$schema": "https://vicinae.com/schemas/config.json",
+  "input_server": { "enabled": false },
+  "font": { "normal": { "family": "Hack Nerd Font Mono" } },
+  "theme": {
+    "dark": { "name": "tokyo-night", "icon_theme": "auto" },
+    "light": { "name": "vicinae-light", "icon_theme": "auto" }
+  },
+  "launcher_window": {
+    "layer_shell": {
+      "enabled": true,
+      "keyboard_interactivity": "on_demand",
+      "layer": "top"
+    }
+  }
+}
