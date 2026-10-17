@@ -89,6 +89,9 @@ class DesktopThemeTests(unittest.TestCase):
         dms = json.loads((current / "dms-theme.json").read_text())
         self.assertEqual(dms["dark"]["surfaceText"], "#123456")
         self.assertIn("decoration", (current / "hyprland.conf").read_text())
+        ubuntu_style = json.loads((current / "ubuntu-style.json").read_text())
+        self.assertEqual(ubuntu_style['settings']['cornerRadius'], 10)
+        self.assertIn('background-opacity = 0.78', (current / 'ubuntu-ghostty.conf').read_text())
         import tomllib
         vicinae = tomllib.loads((current / "vicinae-theme.toml").read_text())
         self.assertEqual(vicinae["colors"]["core"]["foreground"], "#123456")

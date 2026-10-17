@@ -191,3 +191,15 @@ GDMのPATHに `~/.local/bin` がなかったため、Hyprland設定で追加し�
 このマシンのHHKB Hybridには、`hypr/local.conf` のデバイス別設定で `kb_options = ctrl:swap_lwin_lctl` を適用した。HHKBは通常CapsLockがある位置のキーからLeft Ctrlを送るため、CapsLock用オプションではなくLeft CtrlとLeft Superを交換する。結果は「CapsLock相当の位置＝Super／Command」「左Windows／Command相当の位置＝Ctrl」。上記の操作表は交換後の論理キー名で読む。例: CapsLock相当の位置+1でGhostty、左Windows相当の位置+Oで次のワークスペース。
 
 対象は `pfu-limited-hhkb-hybrid` とそのkeyboard/consumer-controlインターフェースに限定し、他のキーボードやGNOME側の割り当ては変更しない。マシンローカル設定はsetup再実行でも保持する。標準的なCapsLockを送る別キーボードでは別の割り当てが必要。XKBでキー変換を検証し、Hyprlandの実デバイスにオプションが反映されたことを確認済み。
+
+## Ubuntuの見た目をmacOSへ寄せる設定
+
+macOSのテーマJSON・Ghostty設定・SketchyBar設定は維持し、追加の `ubuntu-style.json` と `ubuntu-ghostty.conf` を生成する。macOS向けの既存生成物は両プリセットで変更前とバイト単位で同じことを確認した。
+
+- バーは左に休憩タイマーとワークスペース、中央にメディア、右にCodex使用量・CPU・メモリ・トレイ・通知・操作パネル・時計。重複するアプリ名とランチャーボタンを省く。
+- 色・角丸・モジュール透明度・余白は共通プリセットから取得する。Anime Blueは全面の背景を透明にして、小さな角丸モジュールを上端へ配置する。非選択ワークスペースの背景は透明にする。
+- UbuntuのGhosttyだけ `background-opacity = 0.78` を最後に読み込み、文字の濃さを維持する。macOSで無効にしているカーソルシェーダーをUbuntuでも無効にし、Ghosttyに対するHyprlandのblurも無効にする。
+
+`desktop-theme.py apply NAME` で色と形状を反映する。既存のバー項目の並び順や追加ウィジェットは通常のテーマ変更では保持する。macOSに似せた並び順を明示的に採用する場合のみ、`python3 ~/.dotfiles/scripts/ubuntu-desktop-style.py --layout` を実行する。二つ目以降のバーは変更しない。
+
+DMSの配列設定はIPC経由の変更に対応していないため、現在のIPCスナップショットへ対象項目だけをマージし、設定ファイルの監視機能で反映する。初回の前には `DankMaterialShell/settings.json.before-macos-style` を保存する。個人設定は引き続きリポジトリに含めない。

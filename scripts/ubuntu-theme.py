@@ -85,6 +85,8 @@ def apply():
                     raise
                 time.sleep(0.2)
         ipc('wallpaper', 'set', theme['wallpapers'][0]['path'])
+        if (generation / 'ubuntu-style.json').is_file():
+            command(sys.executable, str(Path(__file__).with_name('ubuntu-desktop-style.py')), '--generation', str(generation))
         command('hyprctl', 'reload')
         return
 
@@ -97,6 +99,9 @@ def apply():
         for mode in ('dark', 'light'):
             data.setdefault('theme', {}).setdefault(mode, {})['name'] = 'dotfiles-desktop'
     update_json(CONFIG / 'vicinae/vicinae.json', vicinae_settings)
+    if (generation / 'ubuntu-style.json').is_file():
+        command(sys.executable, str(Path(__file__).with_name('ubuntu-desktop-style.py')), '--generation', str(generation))
+
 
 
 def watch(poll):

@@ -129,7 +129,7 @@ else:
         config=Path(self.env['XDG_CONFIG_HOME'])
         settings=config/'DankMaterialShell/settings.json'
         data=json.loads(settings.read_text())
-        self.assertIn('dotfilesBreakTimer',data['barConfigs'][0]['rightWidgets'])
+        self.assertIn('dotfilesBreakTimer',data['barConfigs'][0]['leftWidgets'])
         self.assertIn('dotfilesCodexUsage',data['barConfigs'][0]['rightWidgets'])
         plugins=config/'DankMaterialShell/plugin_settings.json'
         data=json.loads(plugins.read_text())

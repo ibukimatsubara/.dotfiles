@@ -190,6 +190,11 @@ def render_theme(data, directory):
 
 
 def render_ubuntu(data, directory):
+    style = data['style']
+    attached = bool(style.get('BAR_ATTACHED', 0))
+    sections = bool(style.get('BAR_SECTIONS', 0))
+    def alpha(key):
+        return int(data['colors'].get(key, '0xff000000')[2:4], 16) / 255
     def color(key, fallback):
         return "#" + data["colors"].get(key, "0xff" + fallback.lstrip("#"))[4:]
 
@@ -204,6 +209,40 @@ def render_ubuntu(data, directory):
                    surfaceVariantText=muted, surfaceTint=accent, background=background,
                    backgroundText=text, outline=border, surfaceContainer=surface,
                    surfaceContainerHigh=surface)
+    ubuntu_style = {
+        'settings': {
+            'cornerRadius': style.get('RADIUS_MEDIUM', 10),
+            'widgetBackgroundColor': 'custom',
+            'widgetBackgroundCustomColor': color('MODULE_COLOR', '182131'),
+            'widgetBackgroundCustomStrength': 1.0,
+            'barElevationEnabled': False,
+            'showWorkspaceIndex': True,
+            'showWorkspaceApps': True,
+            'showWorkspacePadding': False,
+            'workspaceColorMode': 'custom',
+            'workspaceFocusedCustomColor': accent,
+            'workspaceUnfocusedColorMode': 'custom',
+            'workspaceUnfocusedCustomColor': '#00000000',
+            'popupTransparency': max(0.8, alpha('SURFACE_COLOR')),
+        },
+        'bar': {
+            'innerPadding': 4, 'spacing': 0 if attached else style.get('BAR_Y_OFFSET', 8),
+            'barLengthPadding': style.get('BAR_MARGIN', 0),
+            'attachToScreenEdge': attached,
+            'noBackground': False,
+            'transparency': 0.0 if sections else alpha('BAR_COLOR'),
+            'widgetTransparency': alpha('MODULE_COLOR'),
+            'widgetPadding': 7,
+            'widgetOutlineEnabled': True, 'widgetOutlineColor': 'outline',
+            'widgetOutlineOpacity': alpha('BORDER_COLOR'), 'widgetOutlineThickness': 1,
+            'gothCornersEnabled': False, 'fontScale': 0.92, 'iconScale': 0.9,
+        },
+    }
+    (directory / 'ubuntu-style.json').write_text(json.dumps(ubuntu_style, indent=2) + '\n')
+    # Keep this override Ubuntu-only; never alter the shared/macOS Ghostty output.
+    (directory / 'ubuntu-ghostty.conf').write_text(
+        '# Ubuntu glass treatment based on the macOS base configuration.\n'
+        'background-opacity = 0.78\nbackground-blur = false\n')
     (directory / "dms-theme.json").write_text(json.dumps(
         {"id": "dotfiles-" + data["name"], "name": data["label"],
          "dark": palette, "light": palette}, indent=2) + "\n")
@@ -211,7 +250,8 @@ def render_ubuntu(data, directory):
         "# Generated from the shared desktop theme.\ngeneral {\n"
         "    col.active_border = rgb(" + accent[1:] + ")\n"
         "    col.inactive_border = rgb(" + border[1:] + ")\n}\n"
-        "decoration {\n    rounding = " + str(data["style"].get("RADIUS_LARGE", 10)) + "\n}\n")
+        "decoration {\n    rounding = " + str(data["style"].get("RADIUS_LARGE", 10)) + "\n}\n"
+        "windowrule = no_blur on, match:class ^(com\\.mitchellh\\.ghostty|ghostty)$\n")
     core = dict(background=background, foreground=text, secondary_background=surface,
                 border=border, accent=accent)
     lines = ['[meta]', 'version = 1', 'name = ' + json.dumps(data["label"]),

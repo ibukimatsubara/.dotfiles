@@ -31,7 +31,10 @@ for name in plugins:
     if bars:
         widgets = bars[0].setdefault("rightWidgets", [])
         ids = [item.get("id") if isinstance(item, dict) else item for item in widgets]
-        if name not in ids:
+        existing = [item.get("id") if isinstance(item, dict) else item
+                    for section in ("leftWidgets", "centerWidgets", "rightWidgets")
+                    for item in bars[0].get(section, [])]
+        if name not in existing:
             widgets.insert(ids.index("clock") if "clock" in ids else len(widgets), name)
 if changed:
     save(bar_path, bar)

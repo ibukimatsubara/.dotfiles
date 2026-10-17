@@ -12,20 +12,20 @@
       ],
       "showOnLastDisplay": true,
       "leftWidgets": [
-        "launcherButton",
-        "workspaceSwitcher",
-        "focusedWindow"
+        "dotfilesBreakTimer",
+        "workspaceSwitcher"
       ],
       "centerWidgets": [
         "music"
       ],
       "rightWidgets": [
-        "systemTray",
+        "dotfilesCodexUsage",
         "cpuUsage",
         "memUsage",
-        "clock",
+        "systemTray",
         "notificationButton",
-        "controlCenterButton"
+        "controlCenterButton",
+        "clock"
       ],
       "spacing": 4,
       "innerPadding": 2,
