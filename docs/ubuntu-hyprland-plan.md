@@ -303,15 +303,24 @@ Ghosttyの背景ぼかしはHyprland側で適用する。テーマ生成時のGh
 
 ### Pomoruの導入と操作
 
-[Pomoru公式リリース](https://github.com/RanXom/pomoru/releases/tag/v1.2.0) の
-`pomoru-1.2.0-linux-x86_64.tar.gz` と `sha256sums.txt` を取得し、SHA256を確認してから
-展開した `pomoru` を `~/.local/bin/pomoru` に配置する（実行権限755）。
-v1.2.0のチェックサム一覧ではアーカイブ名が `pomoru-linux-x86_64.tar.gz` と記載される。
+音付きカスタム版は `bash scripts/install-pomoru.sh` で導入する。
+Rust/Cargo と FFmpeg の `ffplay` が必要。上流 v1.2.0 のソースをコミットとSHA256で固定し、
+ローカルパッチ適用後にテスト・リリースビルドして `~/.local/bin/pomoru` に配置する。
+既存バイナリは `~/.local/bin/pomoru.upstream` に初回のみ退避する。
+
+作業・短い休憩・長い休憩の残り1分で Lofi Station の `warning-beep.mp3`、
+終了時に `timer-complete.mp3` を再生する。一時停止中には鳴らさない。
+通知は `Pomoru · Work` / `Pomoru · Break` と短い本文に統一する。
+通知文と音源パスは `~/.config/pomoru/alerts.toml` で変更でき、再起動で反映する。
+音源は同ディレクトリの `sounds/` に配置するため、Lofi Station の起動は不要。
+再導入手順と検証は [Pomoruカスタム版](../platforms/ubuntu/pomoru/README.md) を参照。
+
 起動は `pomoru`。Spaceで開始・一時停止、Tabで停止中のセッション変更、qで終了。
 旧Bahaaio/pomoは使用しない。
 
 `setup-desktop.sh` が `platforms/ubuntu/pomoru/` の設定を初回だけコピーする。
-作業25分、短い休憩5分、長い休憩15分、自動切り替えを有効にする。
+作業25分、短い休憩5分、長い休憩15分。自動切り替えは無効にし、手動で進める。
+タイマー画面の `a` で自動切り替えを切り替えられる。
 配色は黒・グレーと紫。タスクを含む実際の個人設定は上書きせず、リポジトリへ保存しない。
 設定は `~/.config/pomoru/config.toml`、配色は `~/.cache/pomoru/colors.json`。
 キャッシュを削除した場合は `setup-desktop.sh` で配色を再作成できる。

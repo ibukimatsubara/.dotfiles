@@ -1,0 +1,174 @@
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1236 +1236 @@
+-version = "1.1.0"
++version = "1.2.0"
+--- a/src/pomo/mod.rs
++++ b/src/pomo/mod.rs
+@@ -0,0 +1 @@
++pub mod alerts;
+@@ -133,0 +135 @@
++        let alerts = alerts::Alerts::load();
+@@ -150 +152,3 @@
+-                    self.tick();
++                    if let Some(event) = self.tick() {
++                        alerts.emit(event);
++                    }
+--- a/src/pomo/state.rs
++++ b/src/pomo/state.rs
+@@ -2 +1,0 @@
+-use notify_rust::Notification;
+@@ -120 +119 @@
+-#[derive(PartialEq, Clone, Copy)]
++#[derive(Debug, PartialEq, Clone, Copy)]
+@@ -166,0 +166,6 @@
++}
++
++#[derive(Debug, PartialEq, Clone, Copy)]
++pub enum AlertEvent {
++    Warning,
++    Complete(SessionMode),
+@@ -214,27 +219,8 @@
+-    pub fn tick(&mut self) {
+-        if self.is_running && self.time_remaining.as_secs() > 0 {
+-            self.time_remaining -= Duration::from_secs(1);
+-        } else if self.is_running && self.time_remaining.as_secs() == 0 {
+-            let focus_msg = [
+-                "I'm tired, boss...",
+-                "Congrats! You're him 🗿",
+-                "Stand up. Touch grass.",
+-                "Mission Passed! Respect+",
+-            ];
+-            let break_msg = [
+-                "Ah shit, here we go again.",
+-                "Wake up, Samurai. We have code to burn.",
+-                "Lock back in.",
+-                "Ref! Do Something! The break's over!",
+-            ];
+-
+-            // Use the remaining duration/break count as a seed for simple 'random' selection
+-            let idx = (self.break_count as usize) % 4;
+-
+-            let (title, msg) = match self.mode {
+-                SessionMode::Work => ("Focus Block Complete", focus_msg[idx]),
+-                _ => ("Break Over", break_msg[idx]),
+-            };
+-
+-            self.send_notification(title, msg);
+-
++    pub fn tick(&mut self) -> Option<AlertEvent> {
++        if !self.is_running {
++            return None;
++        }
++        let previous = self.time_remaining.as_secs();
++        self.time_remaining = self.time_remaining.saturating_sub(Duration::from_secs(1));
++        if self.time_remaining.is_zero() {
++            let completed = self.mode;
+@@ -243 +228,0 @@
+-                self.is_running = true;
+@@ -248 +233,6 @@
+-        }
++            return Some(AlertEvent::Complete(completed));
++        }
++        if previous > 60 && self.time_remaining.as_secs() == 60 {
++            return Some(AlertEvent::Warning);
++        }
++        None
+@@ -281,10 +271,87 @@
+-
+-    pub fn send_notification(&self, title: &str, message: &str) {
+-        let _ = Notification::new()
+-            .summary(title)
+-            .body(message)
+-            .appname("pomoru")
+-            .timeout(5000)
+-            .show();
+-    }
+-}
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn manual_session_stops_on_the_final_second() {
++        for mode in [
++            SessionMode::Work,
++            SessionMode::ShortBreak,
++            SessionMode::LongBreak,
++        ] {
++            let mut app = Pomo::new();
++            app.mode = mode;
++            app.auto_switch_sessions = false;
++            app.is_running = true;
++            app.time_remaining = Duration::from_secs(1);
++            app.tick();
++            assert!(!app.is_running, "manual session must stop at zero");
++            assert!(app.mode == mode, "manual mode must not switch sessions");
++        }
++    }
++
++    #[test]
++    fn paused_timer_never_advances() {
++        let mut app = Pomo::new();
++        app.time_remaining = Duration::from_secs(61);
++        for _ in 0..3 {
++            app.tick();
++        }
++        assert_eq!(app.time_remaining, Duration::from_secs(61));
++    }
++
++    #[test]
++    fn all_session_types_warn_once_and_complete_once_across_pause_resume() {
++        for mode in [
++            SessionMode::Work,
++            SessionMode::ShortBreak,
++            SessionMode::LongBreak,
++        ] {
++            let mut app = Pomo::new();
++            app.mode = mode;
++            app.auto_switch_sessions = false;
++            app.time_remaining = Duration::from_secs(62);
++            app.is_running = true;
++            assert_eq!(app.tick(), None); // 61 seconds
++            app.is_running = false;
++            assert_eq!(app.tick(), None);
++            app.is_running = true;
++            assert_eq!(app.tick(), Some(AlertEvent::Warning)); // 60 seconds
++            app.is_running = false;
++            assert_eq!(app.tick(), None);
++            app.is_running = true;
++            for _ in 0..59 {
++                assert_eq!(app.tick(), None);
++            }
++            assert_eq!(app.tick(), Some(AlertEvent::Complete(mode)));
++            assert!(!app.is_running);
++            assert_eq!(app.mode, mode);
++            assert_eq!(app.tick(), None);
++        }
++    }
++
++    #[test]
++    fn short_sessions_do_not_emit_a_late_one_minute_warning() {
++        let mut app = Pomo::new();
++        app.auto_switch_sessions = false;
++        app.is_running = true;
++        app.time_remaining = Duration::from_secs(30);
++        for _ in 0..29 {
++            assert_eq!(app.tick(), None);
++        }
++        assert_eq!(app.tick(), Some(AlertEvent::Complete(SessionMode::Work)));
++        assert_eq!(app.tick(), None);
++    }
++
++    #[test]
++    fn automatic_mode_reports_the_completed_session_before_switching() {
++        let mut app = Pomo::new();
++        app.is_running = true;
++        app.time_remaining = Duration::from_secs(1);
++        assert_eq!(app.tick(), Some(AlertEvent::Complete(SessionMode::Work)));
++        assert_eq!(app.mode, SessionMode::ShortBreak);
++        assert!(app.is_running);
++    }
++}

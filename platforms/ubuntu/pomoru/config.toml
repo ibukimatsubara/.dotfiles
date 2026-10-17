@@ -1,5 +1,5 @@
 work_time_mins = 25
 short_break_mins = 5
 long_break_mins = 15
-auto_switch_sessions = true
+auto_switch_sessions = false
 tasks = []

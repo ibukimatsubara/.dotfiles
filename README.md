@@ -33,6 +33,9 @@ Ubuntu 26.04では、`./platforms/ubuntu/install-desktop.sh` でHyprland・DankM
 
 導入状況、キー操作、ローカル設定は [Ubuntuデスクトップ](docs/ubuntu-hyprland-plan.md) を参照してください。
 
+音付きPomoru（作業・休憩の終了音、1分前の予告音、手動進行、バー表示）の再導入は
+[Pomoruのセットアップ](platforms/ubuntu/pomoru/README.md) を参照してください。音源・パッチ・ビルド用スクリプトも同梱しています。
+
 ## 管理プロファイル
 
 ### Core

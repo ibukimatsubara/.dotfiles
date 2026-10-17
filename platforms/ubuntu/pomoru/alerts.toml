@@ -1,0 +1,9 @@
+# Relative sound paths resolve under the Pomoru config directory.
+sound_enabled = true
+notifications_enabled = true
+warning_sound = "sounds/warning-beep.mp3"
+complete_sound = "sounds/timer-complete.mp3"
+work_title = "Pomoru · Work"
+break_title = "Pomoru · Break"
+work_message = "作業が終了しました"
+break_message = "休憩が終了しました"
