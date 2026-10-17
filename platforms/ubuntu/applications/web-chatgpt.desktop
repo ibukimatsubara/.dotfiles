@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ChatGPT
+Exec=google-chrome https://chatgpt.com/
+Icon=google-chrome
+Terminal=false
+Categories=Network;
+Keywords=OpenAI;Chat;AI;
+StartupNotify=true

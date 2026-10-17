@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Tailscale Admin
+Exec=google-chrome https://console.tailscale.com/admin/
+Icon=google-chrome
+Terminal=false
+Categories=Network;
+Keywords=Tailscale;VPN;Dashboard;
+StartupNotify=true

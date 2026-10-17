@@ -86,6 +86,7 @@ if [ -x /usr/bin/code ] && [ -L "$HOME/.local/bin/code" ]; then
     esac
 fi
 python3 "$DOTFILES_ROOT/scripts/ubuntu-app-desktop.py"
+bash "$DOTFILES_ROOT/scripts/setup-web-launchers.sh"
 # The DMS package enables a global graphical-session unit. Start it only from
 # our Hyprland session supervisor, never automatically on a GNOME login.
 link_managed_path /dev/null "$config_dir/systemd/user/dms.service"

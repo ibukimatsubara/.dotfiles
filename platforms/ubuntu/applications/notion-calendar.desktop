@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Notion Calendar
+Comment=Open Notion Calendar in a dedicated Chrome window
+Exec=google-chrome --app=https://calendar.notion.com
+Icon=google-chrome
+Terminal=false
+Categories=Office;Calendar;
+Keywords=Notion;Calendar;Schedule;カレンダー;予定;
+StartupNotify=true

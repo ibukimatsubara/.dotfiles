@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Claude
+Exec=google-chrome https://claude.ai/
+Icon=google-chrome
+Terminal=false
+Categories=Network;
+Keywords=Anthropic;Chat;AI;
+StartupNotify=true

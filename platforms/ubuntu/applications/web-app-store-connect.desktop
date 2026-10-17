@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=App Store Connect
+Exec=google-chrome https://appstoreconnect.apple.com/
+Icon=google-chrome
+Terminal=false
+Categories=Network;
+Keywords=Apple;iOS;AppStore;
+StartupNotify=true
