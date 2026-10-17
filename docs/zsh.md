@@ -49,12 +49,12 @@ eval "$(pyenv init --path --no-rehash)"
 
 通常の `setup.sh` では有効化しません。会社のPCで同じdotfilesを使っても、ローカル設定と有効化ファイルがなければ取得・表示とも実行しません。
 
-必要なものはmacOS、Python 3.9以上、Google Cloud CLI（`gcloud`）、対象のFirebase AnalyticsのBigQuery日次出力です。Googleアカウントには日次テーブルの参照とBigQueryジョブの実行権限が必要です。
+必要なものはmacOSまたはsystemdを使うUbuntu、Python 3.9以上、Google Cloud CLI（`gcloud`）、対象のFirebase AnalyticsのBigQuery日次出力です。Googleアカウントには日次テーブルの参照とBigQueryジョブの実行権限が必要です。
 
 1. `scripts/mibuki-metrics.config.example.json` を `~/.config/mibuki-metrics/config.json` にコピーし、接続先を設定します。
 2. DAUはFirebase Analyticsの既存BigQuery日次出力を使います。設定の `reporting_timezone` はAnalyticsのレポート日付に合わせます。`is_active_user` が真の一意な `user_pseudo_id` を集計するため、GA4のレポートのユーザー同定・モデリングによって画面上のDAUと差が出ることがあります。
 3. 加入数はRevenueCat API v2の `active_subscriptions` を使います。必要権限は `charts_metrics:overview:read` のみです。V2 Secret API Keyを環境変数 `REVENUECAT_API_KEY` へ設定します。ローカルの `~/.config/mibuki-metrics/secrets.env` にexport定義を置き、`~/.zshrc.local` と更新スクリプトから読み込みます。ファイルの権限は600にし、キーと実際のproject IDはリポジトリへ保存しません。環境変数がない場合は、設定の `api_key_file` も利用できます。
-4. `bash scripts/setup-mibuki-metrics.sh --enable` で、このPCにLaunchAgentを登録します。
+4. `bash scripts/setup-mibuki-metrics.sh --enable` で、このPCに自動更新を登録します（macOSはLaunchAgent、Ubuntuはsystemdユーザータイマー）。
 
 初回のローカル設定ファイルを用意します。既存のファイルがある場合はコピーで上書きせず、そのファイルを編集してください。
 
@@ -94,8 +94,8 @@ bash ~/.dotfiles/scripts/mibuki-metrics.sh --render
 bash ~/.dotfiles/scripts/setup-mibuki-metrics.sh --disable
 ```
 
-- 更新: ログイン時と、起きている間の15分ごとの確認。スリープ中は起こさず、復帰後にlaunchdが確認を再開します。成功した項目はレポート日付のタイムゾーンで1日1回だけ取得します。
-- 遅延・失敗: 日次出力がまだない、オフライン、認証失敗などの場合は以前の成功値を保持し、15分ごとに未取得項目だけ再試行します。古い日の値は日付・`cached` で区別し、未取得値は `--` と表示します。
+- 更新（macOS）: ログイン時と、起きている間の15分ごとの確認。スリープ中は起こさず、復帰後にlaunchdが確認を再開します。成功した項目はレポート日付のタイムゾーンで1日1回だけ取得します。
+- 遅延・失敗（macOS）: 日次出力がまだない、オフライン、認証失敗などの場合は以前の成功値を保持し、15分ごとに未取得項目だけ再試行します。古い日の値は日付・`cached` で区別し、未取得値は `--` と表示します。
 - キャッシュ: `~/.local/share/mibuki-metrics/snapshot.json`、表示用 `panel.txt`。保存内容は集計値と日時のみです。
 - ログ: `~/.local/state/mibuki-metrics/refresh.log`。サービス名と固定エラーコードのみを記録し、APIレスポンスやトークンは記録しません。
 - 認証: GoogleはこのPCの既存 `gcloud` ログインを再利用します。個人認証情報・キー・設定・集計値はdotfilesの外に置き、ディレクトリは700、ファイルは600で保護します。
@@ -103,6 +103,29 @@ bash ~/.dotfiles/scripts/setup-mibuki-metrics.sh --disable
 - 拡張: ローカル設定の `services` 配列へ同じ形式でサービスを追加します。
 - XDG: `XDG_CONFIG_HOME`、`XDG_DATA_HOME`、`XDG_STATE_HOME` を指定した場合は、それぞれの `mibuki-metrics/` 配下を利用します。
 - 一時的な表示停止: `~/.zshrc.local` に `MIBUKI_METRICS=0` を設定します。日次更新は継続します。
+
+#### Ubuntuで使う
+
+接続先と認証情報は上記と共通です。`--enable` は
+`~/.config/systemd/user/mibuki-metrics.service` と `mibuki-metrics.timer`
+（XDG_CONFIG_HOME指定時はその配下）を生成します。毎日ローカル時刻の0時に1回更新します。
+停止中に予定時刻を過ぎた場合は、次のログイン・復帰後に補完します。
+15分ごとの確認・再試行は行わず、取得失敗時はキャッシュを保持して翌日の更新を待ちます。
+スリープ中は起こしません。
+Google Cloud CLIは `~/.local/bin` と `~/google-cloud-sdk/bin` も検索します。
+
+```bash
+bash ~/.dotfiles/scripts/setup-mibuki-metrics.sh --enable
+systemctl --user status mibuki-metrics.timer
+# 初回取得をすぐ実行
+systemctl --user start mibuki-metrics.service
+# 起動エラーの確認（取得処理のログはrefresh.log）
+journalctl --user -u mibuki-metrics.service -n 20
+```
+
+`--disable` はタイマーとサービスを停止して登録を削除します。
+接続設定・認証情報・キャッシュは保持します。
+検証: `python3 scripts/test-mibuki-metrics-setup.py`。
 
 #### プロジェクトを追加する
 

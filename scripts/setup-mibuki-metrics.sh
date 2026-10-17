@@ -6,6 +6,7 @@ repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/mibuki-metrics"
 label="com.local.mibuki-metrics"
 launch_agent="$HOME/Library/LaunchAgents/$label.plist"
+unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 
 case "${1:-}" in
     --disable)
@@ -13,6 +14,11 @@ case "${1:-}" in
         if [[ "$OSTYPE" == darwin* ]]; then
             launchctl bootout "gui/$UID/$label" >/dev/null 2>&1 || true
             rm -f "$launch_agent"
+        elif [[ "$OSTYPE" == linux* ]]; then
+            systemctl --user disable --now mibuki-metrics.timer >/dev/null 2>&1 || true
+            systemctl --user stop mibuki-metrics.service >/dev/null 2>&1 || true
+            rm -f "$unit_dir/mibuki-metrics.timer" "$unit_dir/mibuki-metrics.service"
+            systemctl --user daemon-reload
         fi
         echo "Metrics disabled on this computer. Cached data and credentials were kept."
         exit 0
@@ -24,7 +30,11 @@ case "${1:-}" in
         ;;
 esac
 
-[[ "$OSTYPE" == darwin* ]] || { echo "The metrics LaunchAgent supports macOS only." >&2; exit 1; }
+case "$OSTYPE" in
+    darwin*) ;;
+    linux*) command -v systemctl >/dev/null || { echo "systemd user services are required." >&2; exit 1; } ;;
+    *) echo "Supported platforms: macOS and Linux with systemd." >&2; exit 1 ;;
+esac
 mkdir -p "$config_dir"
 chmod 700 "$config_dir"
 if [[ ! -f "$config_dir/config.json" ]]; then
@@ -34,6 +44,41 @@ if [[ ! -f "$config_dir/config.json" ]]; then
 fi
 bash "$repo_dir/scripts/mibuki-metrics.sh" --validate-config
 chmod 600 "$config_dir/config.json"
+if [[ "$OSTYPE" == linux* ]]; then
+    mkdir -p "$unit_dir"
+    python3 - "$repo_dir" "$unit_dir" <<'PYTHON'
+import os
+from pathlib import Path
+import sys
+
+repo, units = map(Path, sys.argv[1:])
+# Quote systemd syntax, including specifier and ExecStart expansion.
+def quote(value):
+    return '"' + str(value).replace('\\', '\\\\').replace('"', '\\"').replace('%', '%%').replace('\n', '\\n').replace('\r', '\\r') + '"'
+
+environment = {key: os.environ[key] for key in
+               ('XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME') if os.environ.get(key)}
+service = ['[Unit]', 'Description=Refresh Mibuki service metrics', '', '[Service]',
+           'Type=oneshot', 'UMask=0077',
+           'ExecStart=/bin/bash ' + quote(str(repo / 'scripts/mibuki-metrics.sh').replace('$', '$$'))]
+service += ['Environment=' + quote(key + '=' + value) for key, value in environment.items()]
+(units / 'mibuki-metrics.service').write_text('\n'.join(service) + '\n')
+(units / 'mibuki-metrics.timer').write_text(
+    '[Unit]\nDescription=Refresh Mibuki metrics daily\n\n'
+    '[Timer]\nOnCalendar=daily\nPersistent=true\n\n'
+    '[Install]\nWantedBy=timers.target\n')
+PYTHON
+    systemctl --user daemon-reload
+    touch "$config_dir/enabled"
+    if ! systemctl --user enable --now mibuki-metrics.timer; then
+        rm -f "$config_dir/enabled"
+        systemctl --user disable --now mibuki-metrics.timer >/dev/null 2>&1 || true
+        echo "Could not start the metrics timer; metrics remain disabled." >&2
+        exit 1
+    fi
+    echo "Metrics enabled. The systemd user timer updates once daily (missed runs resume at login)."
+    exit 0
+fi
 mkdir -p "$HOME/Library/LaunchAgents"
 
 # Render the portable template into this machine's LaunchAgent; do not use a login shell.
