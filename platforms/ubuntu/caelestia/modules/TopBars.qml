@@ -207,7 +207,7 @@ Variants {
                         detail: Weather.city + " · " + Weather.description + "\nFeels like " + Weather.feelsLike + " · Humidity " + Weather.humidity + "%"
                         onClicked: bar.toggleDrawer("dashboard")
                     }
-    
+
                     RowLayout {
                         Layout.maximumWidth: implicitWidth
                         spacing: 10
@@ -240,7 +240,7 @@ Variants {
                             }
                         }
                     }
-    
+
                     BarButton {
                         icon: Icons.getVolumeIcon(Audio.volume, Audio.muted)
                         onClicked: bar.toggleDrawer("osd")
