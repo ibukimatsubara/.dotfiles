@@ -1,0 +1,13 @@
+# Copy to ${XDG_CONFIG_HOME:-$HOME/.config}/music-sync/config.
+# Use an SSH alias or user@Tailscale-MagicDNS-name. No passwords belong here.
+MUSIC_SYNC_HOST=""
+
+# Relative paths are relative to the Ubuntu SSH user's home directory.
+# Keep the shared collection separate from application data in ~/Music.
+MUSIC_SYNC_REMOTE_DIR="Music/Shared"
+MUSIC_SYNC_LOCAL_DIR="$HOME/Music/Shared"
+
+# Enable after Ubuntu has cliamp playlists/ and podcast_subscriptions.json.
+# History, playback progress, credentials, volume, and UI settings stay local.
+MUSIC_SYNC_CLIAMP=0
+MUSIC_SYNC_REMOTE_CLIAMP_DIR=".config/cliamp"

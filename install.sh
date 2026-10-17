@@ -10,7 +10,7 @@ main() {
     print_info "Using common + $DOTFILES_PLATFORM profile"
     check_package_manager || return 1
     install_common
-    install_platform_tools
+    install_platform_tools || return 1
     print_success "Software installation complete. Run ./setup.sh next."
 }
 

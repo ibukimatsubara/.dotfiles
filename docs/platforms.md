@@ -15,6 +15,8 @@
 |---|---|---|---|
 | インストール | `platforms/common/install.sh` | `platforms/macos/install.sh` | `platforms/ubuntu/install.sh` |
 | セットアップ | `platforms/common/setup.sh` | `platforms/macos/setup.sh` | `platforms/ubuntu/setup.sh` |
+| 音楽 | `mpd/mpd.conf`、`rmpc/config.ron` | `platforms/macos/mpd-output.conf` | `platforms/ubuntu/mpd-output.conf`、`dotfiles-mpd.service` |
+| 音楽・購読同期 | `scripts/music-sync.sh`、`scripts/music-player-sync.py`、`scripts/music-player.sh`、`music-sync/config.example` | `launchd/com.local.music-sync.plist`、`scripts/setup-music-sync.sh` | 正本の音源・cliamp プレイリスト・Podcast 購読と SSH・rsync |
 | Ghostty | `platforms/common/ghostty.conf` | `platforms/macos/ghostty.conf` | `platforms/ubuntu/ghostty.conf` |
 | tmux | `tmux/tmux.conf` | `platforms/macos/tmux.conf` | `platforms/ubuntu/tmux.conf` |
 | Zsh | `zsh/`、`platforms/common/zsh.zsh` | `platforms/macos/zsh.zsh` | `platforms/ubuntu/zsh.zsh` |
@@ -31,7 +33,7 @@ Neovim・Vimium C・VS Codeのキーバインドと拡張機能一覧も共有�
 
 Ghosttyの設定先とUbuntuのVS Code設定先は `XDG_CONFIG_HOME` に対応します。それ以外の既存ツールの配置は従来どおりです。個人の秘密情報やマシン固有値は `~/.zshrc.local` へ置きます。
 
-UbuntuではCLIツールとWayland/X11のクリップボードツールをaptで導入します。Ghostty・VS Code・Chrome・Nerd Fontの導入は引き続き手動です。ログインシェルの変更は `chsh -s "$(command -v zsh)"` を実行し、ログインし直してください。
+Ubuntuでは基本のCLIツールとWayland/X11のクリップボードツールをaptで導入します。cliamp・rmpcは公式のLinuxバイナリをSHA-256確認後に `~/.local/bin` へ導入します。`music` コマンドと `mmusic`・`mlofi`・`mchill`・`mpodcast` は両 OS 共通です。音楽プレイヤーのキー操作・OS別音声出力・ユーザーサービスについては [music.md](music.md) を参照してください。Ghostty・VS Code・Chrome・Nerd Fontの導入は引き続き手動です。ログインシェルの変更は `chsh -s "$(command -v zsh)"` を実行し、ログインし直してください。
 
 ## 検証
 

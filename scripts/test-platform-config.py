@@ -159,6 +159,8 @@ class PlatformTests(unittest.TestCase):
         tpm.chmod(0o755)
         for platform in ('macos', 'ubuntu'):
             with self.subTest(platform=platform):
+                if platform == 'ubuntu' and not os.access('/usr/bin/zsh', os.X_OK):
+                    self.skipTest('Ubuntu tmux profile requires the Linux /usr/bin/zsh path')
                 socket = str(self.home / (platform + '.sock'))
                 command = ['tmux', '-S', socket]
                 def tmux(*args):

@@ -95,6 +95,46 @@ setup_zsh() {
     fi
 }
 
+link_music_configs() {
+    local config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+    local generated_dir="$config_home/dotfiles/mpd/$DOTFILES_PLATFORM"
+    local output_config="$DOTFILES_ROOT/platforms/$DOTFILES_PLATFORM/mpd-output.conf"
+    [ -r "$output_config" ] || return 1
+    mkdir -p "$HOME/Music" "$HOME/.local/share/mpd/playlists" \
+        "$HOME/.local/state/mpd" "$generated_dir"
+    local temporary
+    temporary="$(mktemp "$generated_dir/mpd.conf.XXXXXX")" || return 1
+    if ! cat "$DOTFILES_ROOT/mpd/mpd.conf" "$output_config" > "$temporary"; then
+        rm -f "$temporary"
+        return 1
+    fi
+    if [ -f "$generated_dir/mpd.conf" ] && cmp -s "$temporary" "$generated_dir/mpd.conf"; then
+        rm -f "$temporary"
+    else
+        mv "$temporary" "$generated_dir/mpd.conf"
+    fi
+    link_managed_path "$generated_dir/mpd.conf" "$config_home/mpd/mpd.conf"
+    link_managed_path "$generated_dir/mpd.conf" "$HOME/.mpdconf"
+    link_managed_path "$DOTFILES_ROOT/rmpc/config.ron" "$config_home/rmpc/config.ron"
+    link_managed_path "$DOTFILES_ROOT/scripts/music-player.sh" "$HOME/.local/bin/music"
+    link_managed_path "$DOTFILES_ROOT/scripts/music-sync.sh" "$HOME/.local/bin/music-sync"
+    local player_config="${CLIAMP_CONFIG_DIR:-$config_home/cliamp}"
+    local initial_library='~/Music'
+    [ "$DOTFILES_PLATFORM" != macos ] || initial_library='~/Music/Shared'
+    mkdir -p "$player_config/playlists"
+    if [ ! -e "$player_config/playlists/Music.toml" ]; then
+        printf '[[dir]]\npath = "%s"\n' "$initial_library" > "$player_config/playlists/Music.toml"
+    fi
+    if [ ! -e "$player_config/podcast_subscriptions.json" ]; then
+        printf '[]\n' > "$player_config/podcast_subscriptions.json"
+        chmod 600 "$player_config/podcast_subscriptions.json"
+    fi
+    if [ "$DOTFILES_PLATFORM" = ubuntu ]; then
+        link_managed_path "$DOTFILES_ROOT/platforms/ubuntu/dotfiles-mpd.service" \
+            "$config_home/systemd/user/dotfiles-mpd.service"
+    fi
+}
+
 link_neovim() {
     if [ -L "$HOME/.config/nvim" ] && \
        [ "$(readlink "$HOME/.config/nvim")" = "$HOME/.dotfiles/nvim" ]; then
@@ -306,6 +346,7 @@ setup_common() {
     link_tmux
     link_herdr
     link_ghostty
+    link_music_configs || return 1
     link_vscode || return 1
     link_ai_clis
     install_neovim_plugins

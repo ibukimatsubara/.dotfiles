@@ -147,6 +147,7 @@ plugin cache、OAuth、認証情報、session履歴、Codexのmachine-managed
 ## ドキュメント
 
 - [セットアップ](docs/setup.md)
+- [音楽・Podcast（cliamp、rmpc・MPD、Ubuntu からの同期）](docs/music.md)
 - [VS Code](vscode/README.md)
 - [Chrome / Vimium C](chrome/README.md)
 - [tmux](docs/tmux.md)

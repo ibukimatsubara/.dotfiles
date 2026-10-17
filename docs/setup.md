@@ -81,6 +81,14 @@ hs -A -t 3 -c 'return hs.inspect({autoLaunch=hs.autoLaunch(),accessibility=hs.ac
 
 シェル、tmux、VS Code設定は共通です。skhd、Hammerspoon、LaunchDaemonによるblocklistはmacOS専用なのでスキップされます。VS CodeやChrome本体が未導入の場合は、各公式配布元から先にインストールしてください。
 
+## ローカル音楽
+
+macOS・Ubuntuともに `./install.sh` → `./setup.sh` で cliamp・rmpc・MPD を導入する。音楽と Podcast は `mmusic`・`mlofi`・`mchill`・`mpodcast`、音楽専用の別画面は `rmpc` で開く。音源は `~/Music` に置き、MPD へ追加後は画面内の `u` または `rmpc update` で読み込む。
+
+OS別の導入元、自動起動、Search・キューの操作、設定の編集場所は [ローカル音楽プレイヤー](music.md) を参照。
+
+Ubuntu を正本にする音楽同期も用意している。Mac で端末ごとの接続先を設定し、`scripts/setup-music-sync.sh --enable` を実行すると、毎日09:00に取得する。`MUSIC_SYNC_CLIAMP=1` で cliamp のプレイリストと Podcast 購読も同期でき、`music` 起動時に保留分を適用する。未設定の端末では有効化しない。設定手順は [Ubuntu から Mac へ毎日同期する](music.md#ubuntu-から-mac-へ毎日同期する) を参照。
+
 ## ロールバック
 
 既存設定は`*.bak-YYYYMMDD-HHMMSS`として同じディレクトリへ移動されます。問題があればシンボリックリンクを外し、バックアップを元の名前へ戻します。

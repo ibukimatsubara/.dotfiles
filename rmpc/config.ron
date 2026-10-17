@@ -1,0 +1,25 @@
+#![enable(implicit_some)]
+#![enable(unwrap_newtypes)]
+#![enable(unwrap_variant_newtypes)]
+(
+    address: "~/.local/state/mpd/socket",
+    enable_mouse: false,
+    wrap_navigation: true,
+    album_art: (
+        method: None,
+    ),
+    keybinds: (
+        global: {
+            "u": Update,
+        },
+    ),
+    tabs: [
+        (name: "Queue", pane: Pane(Queue)),
+        (name: "Directories", pane: Pane(Directories)),
+        (name: "Artists", pane: Pane(Artists)),
+        (name: "Album Artists", pane: Pane(AlbumArtists)),
+        (name: "Albums", pane: Pane(Albums)),
+        (name: "Playlists", pane: Pane(Playlists)),
+        (name: "Search", pane: Pane(Search)),
+    ],
+)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sourced by the root entry point.
-platform_essentials=("tmux:tmux" "mosh:mosh" "media-control:media-control" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "fnm:fnm")
+platform_essentials=("tmux:tmux" "mosh:mosh" "media-control:media-control" "mpd:mpd" "rmpc:rmpc" "rsync:rsync" "git:git" "jq:jq" "fzf:fzf" "zoxide:zoxide" "direnv:direnv" "ripgrep:rg" "gh:gh" "fnm:fnm")
 
 check_package_manager() {
     if ! command -v brew >/dev/null 2>&1; then
@@ -108,6 +108,11 @@ install_macos_tools() {
 }
 
 install_platform_tools() {
+    if ! command -v cliamp >/dev/null 2>&1; then
+        brew tap bjarneo/cliamp || return 1
+        brew trust --formula bjarneo/cliamp/cliamp || return 1
+        brew install bjarneo/cliamp/cliamp || return 1
+    fi
     install_desktop_apps
     install_fonts
     install_macos_tools

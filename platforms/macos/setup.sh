@@ -133,6 +133,14 @@ start_platform_services() {
     print_info "🍎 Starting macOS services..."
     start_hammerspoon
 
+    if command -v mpd >/dev/null 2>&1; then
+        if brew services start mpd >/dev/null 2>&1; then
+            print_success "MPD service started (auto-starts on login)"
+        else
+            print_warning "Failed to start MPD; run brew services start mpd"
+        fi
+    fi
+
     # skhd
     if command -v skhd >/dev/null 2>&1; then
         skhd --start-service 2>/dev/null
@@ -178,6 +186,9 @@ setup_platform() {
     apply_aqua_voice_settings
     setup_tmux_pane_summaries
     start_platform_services
+    if ! bash "$DOTFILES_ROOT/scripts/setup-music-sync.sh" --setup; then
+        print_warning "Music sync setup failed; see docs/music.md before enabling it."
+    fi
 }
 
 ghostty_config_source() { printf '%s/ghostty/config\n' "$DOTFILES_ROOT"; }

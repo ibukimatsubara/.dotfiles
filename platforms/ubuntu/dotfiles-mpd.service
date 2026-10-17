@@ -1,0 +1,10 @@
+[Unit]
+Description=Local music playback for rmpc
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/mpd --no-daemon "%h/.mpdconf"
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
