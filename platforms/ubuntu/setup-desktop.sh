@@ -90,5 +90,6 @@ bash "$DOTFILES_ROOT/scripts/setup-web-launchers.sh"
 # The DMS package enables a global graphical-session unit. Start it only from
 # our Hyprland session supervisor, never automatically on a GNOME login.
 link_managed_path /dev/null "$config_dir/systemd/user/dms.service"
+link_managed_path "$DOTFILES_ROOT/platforms/ubuntu/systemd/dotfiles-desktop-shell@.service" "$config_dir/systemd/user/dotfiles-desktop-shell@.service"
 print_success 'Hyprland + DMS profile linked. Existing DMS preferences and local.conf are preserved.'
 print_info 'Select Hyprland from the login screen when ready. GNOME remains available.'

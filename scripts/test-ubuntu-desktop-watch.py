@@ -75,6 +75,22 @@ exec sleep 120
             os.kill(child, 0)
         self.assertEqual(len(self.starts()), 2)
 
+    def test_ipc_failure_does_not_stop_a_live_compositor(self):
+        compositor = subprocess.Popen(['sleep', '120'])
+        self.addCleanup(self.stop, compositor)
+        directory = self.home / 'hypr' / 'watch-test'
+        directory.mkdir(parents=True)
+        (directory / 'hyprland.lock').write_text(str(compositor.pid) + '\nwayland-test\n')
+        self.stub('hyprctl', '#!/bin/sh\nexit 1\n')
+        (self.home / 'crashed').touch()
+        process = self.launch()
+        self.wait_for(lambda: len(self.starts()) == 1, timeout=3)
+        time.sleep(1)
+        self.assertIsNone(process.poll())
+        compositor.terminate()
+        compositor.wait(timeout=3)
+        self.assertEqual(process.wait(timeout=8), 0)
+
     def test_compositor_exit_stops_shell_without_restart(self):
         (self.home / 'crashed').touch()
         process = self.launch()

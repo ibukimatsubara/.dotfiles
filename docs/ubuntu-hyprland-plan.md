@@ -359,23 +359,39 @@ python3 ~/.dotfiles/scripts/hyprland-workspace-one.py
 
 ### デスクトップシェルの自動復旧
 
-`hyprland-session.sh` は `ubuntu-desktop-watch.py` 経由で選択中の
-Caelestia / DMS を起動する。シェルの終了を検出すると2秒待って再起動し、
-短時間で終了が続く場合は待ち時間を4、8、16、最大30秒まで延ばす。
-60秒以上動作した後の終了では2秒へ戻す。
-Hyprland の終了や監視への終了シグナルでは、シェルとその子プロセスを停止し、再起動しない。
-同じ Hyprland セッションで監視を重複起動しても追加のシェルは起動しない。
+Caelestia / DMS は独立した systemd ユーザーサービス
+`dotfiles-desktop-shell@<HyprlandのセッションID>.service` で管理する。
+`hyprland-session.sh` はサービスを開始するだけで、監視の親にはならない。
+セッション補助プロセスが終了してもデスクトップの監視は継続する。
+
+サービス内の `ubuntu-desktop-watch.py` がシェルの終了後2秒で再起動し、
+短時間の終了が続けば待ち時間を最大30秒まで延ばす。
+監視自体が終了した場合も systemd の `Restart=always` で3秒後に復旧する。
+Hyprland の生存はセッションのロックファイルから得た PID の pidfd で確認し、
+一時的な IPC の失敗や応答遅延ではセッション終了と判定しない。
+Hyprland の終了後はシェルを停止し、サービスの ExecCondition が再起動を止める。
+セッションごとのロックで監視の重複起動を防ぐ。
 
 再起動履歴は `~/.local/state/dotfiles/desktop-shell-watch.log`
-（`XDG_STATE_HOME` 指定時はその配下）に保存する。履歴はローテーションされる。
-Quickshell 自体の詳細ログは `$XDG_RUNTIME_DIR/quickshell/by-id/` 配下に残る。
-監視自体が強制終了された場合の復旧や、負荷・クラッシュ原因の解消は別途必要。
+（`XDG_STATE_HOME` 指定時はその配下）に保存する。終了シグナルも記録する。
+詳細ログは `journalctl --user -u 'dotfiles-desktop-shell@*'`、
+Quickshell 自体のログは `$XDG_RUNTIME_DIR/quickshell/by-id/` 配下で確認できる。
+監視自体の強制終了からの復旧は実機で確認済み。クラッシュ原因の解消とは別。
 
-現在の Hyprland セッションで監視を手動起動する場合:
+導入・現在のセッションでの開始:
 
 ```bash
-python3 ~/.dotfiles/scripts/ubuntu-desktop-watch.py
+./platforms/ubuntu/setup-desktop.sh
+systemctl --user daemon-reload
+systemctl --user start "dotfiles-desktop-shell@${HYPRLAND_INSTANCE_SIGNATURE}.service"
 ```
+
+### Ghostty のプロセス分離
+
+Ubuntu の `ubuntu-app-launch.sh` は新しい Ghostty を
+`--gtk-single-instance=false` で起動する。既存プロセスの新規ウィンドウで
+発生した描画崩れを切り分けるため、単一プロセスの共有を一旦やめる。
+既存ウィンドウのプロセスは変更しない。
 
 ### バー中央の再生中の曲
 

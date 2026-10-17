@@ -1,0 +1,15 @@
+[Unit]
+Description=Dotfiles desktop shell for Hyprland %i
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Environment=HYPRLAND_INSTANCE_SIGNATURE=%i
+Environment=XDG_CURRENT_DESKTOP=Hyprland
+Environment=XDG_SESSION_TYPE=wayland
+ExecCondition=/usr/bin/python3 %h/.dotfiles/scripts/ubuntu-desktop-watch.py --check-session
+ExecStart=/usr/bin/python3 %h/.dotfiles/scripts/ubuntu-desktop-watch.py
+Restart=always
+RestartSec=3
+TimeoutStopSec=8
+KillMode=control-group

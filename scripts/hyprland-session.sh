@@ -14,6 +14,7 @@ export XMODIFIERS=@im=fcitx
 exec 9>"${XDG_RUNTIME_DIR:?}/dotfiles-hyprland-${HYPRLAND_INSTANCE_SIGNATURE}.lock"
 flock -n 9 || exit 0
 children=()
+desktop_shell_unit="dotfiles-desktop-shell@${HYPRLAND_INSTANCE_SIGNATURE}.service"
 cleanup() {
     trap - EXIT
     for child in "${children[@]}"; do
@@ -45,7 +46,7 @@ dbus-update-activation-environment --systemd WAYLAND_DISPLAY HYPRLAND_INSTANCE_S
 spawn() { setsid "$@" 9>&- & children+=("$!"); }
 scripts_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 desktop_shell="$("$scripts_dir/ubuntu-desktop-shell.sh" current)" || exit 1
-spawn python3 "$scripts_dir/ubuntu-desktop-watch.py"
+systemctl --user start "$desktop_shell_unit" 9>&-
 spawn hypridle
 spawn fcitx5
 spawn python3 "$scripts_dir/ubuntu-break-timer.py" watch
