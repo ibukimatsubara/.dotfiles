@@ -11,8 +11,11 @@ breaktimer = require("break_timer")
 -- Ghostty の Ctrl+h/j/k/l は TUI・tmux 内でも AeroSpace のフォーカス移動に使う。
 ghosttynavigation = require("ghostty_navigation")
 
--- Rotate matching MacBook/QHD wallpapers every hour.
+-- Rotate the active theme's wallpapers, with legacy screen variants as fallback.
 wallpaper = require("wallpaper").start()
+
+-- Ctrl+Option+Cmd+T: pick a desktop theme; N: next theme; W: next wallpaper.
+desktoptheme = require("desktop_theme").start()
 
 -- Mic priority (higher = preferred)
 local micPriority = {

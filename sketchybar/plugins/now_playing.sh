@@ -3,7 +3,14 @@
 cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/sketchybar"
 placeholder="$CONFIG_DIR/assets/media-placeholder.png"
 
+set_section_flares() {
+    if [ -r "$HOME/.config/desktop-theme/current/bar-flare-left.png" ]; then
+        sketchybar --set '/section\.flare\.center_.*/' drawing="$1"
+    fi
+}
+
 hide_now_playing() {
+    set_section_flares off
     sketchybar \
         --set now_playing.artwork drawing=off \
         --set now_playing.title drawing=off \
@@ -111,3 +118,4 @@ sketchybar \
     --set now_playing.artwork drawing=on background.image="$artwork_path" \
     --set now_playing.title drawing=on label="$title" \
     --set now_playing drawing=on
+set_section_flares on

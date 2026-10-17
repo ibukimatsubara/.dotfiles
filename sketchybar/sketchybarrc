@@ -17,16 +17,37 @@ RADIUS_LARGE=14
 RADIUS_MEDIUM=12
 RADIUS_SMALL=8
 BLUR_RADIUS=50
+BAR_MARGIN=14
+BAR_Y_OFFSET=8
+BAR_ATTACHED=0
+BAR_INVERSE_RADIUS=0
+BAR_SECTIONS=0
+BAR_SHOW_BRAND=1
 
-# Keep the canvas transparent and render each section as its own glass capsule.
+desktop_theme_style="$HOME/.config/desktop-theme/current/sketchybar-style.sh"
+if [ -r "$desktop_theme_style" ]; then
+    # shellcheck source=/dev/null
+    source "$desktop_theme_style"
+fi
+
+# Attached presets support continuous or split backgrounds; floating presets retain capsules.
+bar_corner_radius="$RADIUS_LARGE"
+bar_background="$BAR_COLOR"
+if [ "$BAR_ATTACHED" -eq 1 ]; then
+    bar_corner_radius=0
+    if [ "$BAR_SECTIONS" -eq 1 ]; then
+        bar_background="$TRANSPARENT"
+    fi
+fi
+
 bar=(
     position=top
     height="$BAR_HEIGHT"
-    margin=14
-    y_offset=8
-    corner_radius="$RADIUS_LARGE"
+    margin="$BAR_MARGIN"
+    y_offset="$BAR_Y_OFFSET"
+    corner_radius="$bar_corner_radius"
     border_width=0
-    color="$BAR_COLOR"
+    color="$bar_background"
     blur_radius="$BLUR_RADIUS"
     padding_left=0
     padding_right=0
@@ -74,6 +95,10 @@ sketchybar --add item brand left \
         background.shadow.color="$SHADOW_COLOR" \
         background.shadow.angle=90 \
         background.shadow.distance=3
+
+if [ "$BAR_SHOW_BRAND" -eq 0 ]; then
+    sketchybar --set brand drawing=off
+fi
 
 sketchybar --add item now_playing.artwork center \
     --set now_playing.artwork \
@@ -425,5 +450,65 @@ sketchybar --add bracket status weather cpu memory volume battery date clock \
         background.shadow.color="$SHADOW_COLOR" \
         background.shadow.angle=90 \
         background.shadow.distance=3
+
+if [ "$BAR_ATTACHED" -eq 1 ]; then
+    # Merge group surfaces into the full-width bar while retaining focus highlights.
+    for group in now_playing pomodoro workspace_group codex_usage status; do
+        sketchybar --set "$group" \
+            background.color="$BAR_COLOR" \
+            background.border_width=0 \
+            background.shadow.drawing=off
+    done
+    sketchybar --set brand background.border_width=0 background.shadow.drawing=off
+
+    if [ "$BAR_SECTIONS" -eq 1 ]; then
+        # Native brackets track changing item widths without polling their geometry.
+        for group in pomodoro workspace_group codex_usage status; do
+            sketchybar --set "$group" background.drawing=off
+        done
+        sketchybar --add bracket section.left brand pomodoro "${workspace_items[@]}" \
+            --add bracket section.right codex_usage weather cpu memory volume battery date clock
+        # Overlapping brackets can reorder their members; preserve the left controls.
+        sketchybar --reorder brand pomodoro "${workspace_items[@]}"
+        for section in section.left now_playing section.right; do
+            sketchybar --set "$section" \
+                background.color="$BAR_COLOR" \
+                background.height="$BAR_HEIGHT" \
+                background.corner_radius="$RADIUS_LARGE" \
+                background.border_width=0 \
+                background.shadow.drawing=off
+        done
+
+        # Zero-width items follow section endpoints as titles and workspace labels change.
+        flare_dir="$HOME/.config/desktop-theme/current"
+        if [ "$BAR_INVERSE_RADIUS" -gt 0 ] && [ -r "$flare_dir/bar-flare-left.png" ]; then
+            flare_names=(section.flare.left section.flare.center_left section.flare.center_right section.flare.right)
+            flare_positions=(left center center right)
+            flare_images=(right left right left)
+            flare_insets=(-1 -1 -1 1)
+            for index in 0 1 2 3; do
+                flare_name="${flare_names[$index]}"
+                sketchybar --add item "$flare_name" "${flare_positions[$index]}" \
+                    --set "$flare_name" \
+                        width=0 \
+                        padding_left="$((flare_insets[index] * BAR_INVERSE_RADIUS))" \
+                        padding_right="$((-flare_insets[index] * BAR_INVERSE_RADIUS))" \
+                        icon.drawing=off label.drawing=off \
+                        background.drawing=on background.color="$TRANSPARENT" \
+                        background.height="$BAR_INVERSE_RADIUS" \
+                        background.image="$flare_dir/bar-flare-${flare_images[$index]}.png" \
+                        background.image.scale=0.25 \
+                        background.image.y_offset="$(((BAR_HEIGHT - BAR_INVERSE_RADIUS) / 2))" \
+                        background.shadow.drawing=off
+            done
+            sketchybar \
+                --move section.flare.left after workspace.9 \
+                --move section.flare.center_left before now_playing.artwork \
+                --move section.flare.center_right after now_playing.title \
+                --move section.flare.right after codex_usage \
+                --set '/section\.flare\.center_.*/' drawing=off
+        fi
+    fi
+fi
 
 sketchybar --update

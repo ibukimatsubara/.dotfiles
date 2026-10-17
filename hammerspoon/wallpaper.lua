@@ -9,9 +9,29 @@ local INTERVAL_SECONDS = 60 * 60
 local currentName = nil
 local rotationTimer = nil
 local screenWatcher = nil
+local activeTheme = nil
+
+local function readTheme()
+  local ok, data = pcall(hs.json.read, HOME .. "/.config/desktop-theme/current/theme.json")
+  if ok and type(data) == "table" and type(data.wallpapers) == "table" then
+    return data
+  end
+end
+
+local function fileURL(path)
+  return "file://" .. path:gsub("([^%w%-%._~/])", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end)
+end
 
 local function wallpaperNames()
   local names = {}
+  if activeTheme then
+    for _, image in ipairs(activeTheme.wallpapers) do
+      if hs.fs.attributes(image.path) then table.insert(names, image.id) end
+    end
+    return names
+  end
   local attributes = hs.fs.attributes(WALLPAPER_DIR)
   if not attributes or attributes.mode ~= "directory" then
     return names
@@ -41,21 +61,35 @@ local function applyWallpaper(name)
     return false
   end
 
+  local themePath = nil
+  if activeTheme then
+    for _, image in ipairs(activeTheme.wallpapers) do
+      if image.id == name then themePath = image.path; break end
+    end
+    if not themePath then return false end
+  end
+  local applied = false
   for _, screen in ipairs(hs.screen.allScreens()) do
-    local variant = variantForScreen(screen)
-    local path = string.format("%s/%s-%s.png", WALLPAPER_DIR, name, variant)
+    local path = themePath or string.format("%s/%s-%s.png", WALLPAPER_DIR, name, variantForScreen(screen))
     if hs.fs.attributes(path) then
-      screen:desktopImageURL("file://" .. path)
+      if screen:desktopImageURL(fileURL(path)) then applied = true end
     end
   end
 
-  currentName = name
-  return true
+  if applied then currentName = name end
+  return applied
 end
 
 local function currentWallpaperName()
   local url = hs.screen.mainScreen():desktopImageURL()
   if type(url) ~= "string" then
+    return nil
+  end
+
+  if activeTheme then
+    for _, image in ipairs(activeTheme.wallpapers) do
+      if url == fileURL(image.path) then return image.id end
+    end
     return nil
   end
 
@@ -81,18 +115,26 @@ function M.next()
   return applyWallpaper(nextName)
 end
 
-function M.start()
-  math.randomseed(os.time())
-  currentName = currentWallpaperName()
-
+function M.stop()
   if rotationTimer then
     rotationTimer:stop()
   end
-  rotationTimer = hs.timer.doEvery(INTERVAL_SECONDS, M.next)
-
   if screenWatcher then
     screenWatcher:stop()
   end
+end
+
+function M.start()
+  M.stop()
+  activeTheme = readTheme()
+  currentName = currentWallpaperName()
+  if activeTheme then
+    currentName = currentName or wallpaperNames()[1]
+    applyWallpaper(currentName)
+  end
+  local interval = activeTheme and activeTheme.rotation_seconds or INTERVAL_SECONDS
+  rotationTimer = hs.timer.doEvery(math.max(60, tonumber(interval) or INTERVAL_SECONDS), M.next)
+
   screenWatcher = hs.screen.watcher.new(function()
     hs.timer.doAfter(2, function()
       local names = wallpaperNames()

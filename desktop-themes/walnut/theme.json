@@ -1,0 +1,56 @@
+{
+  "label": "Walnut",
+  "description": "Warm glass, GitHub Dark, landscape photography",
+  "ghostty": {
+    "theme": "GitHub Dark",
+    "foreground": "#e6e6e6",
+    "background-opacity": 0.78,
+    "background-blur": false
+  },
+  "colors": {
+    "TRANSPARENT": "0x00000000",
+    "DARK_COLOR": "0xff1b1410",
+    "BAR_COLOR": "0x002b211b",
+    "MODULE_COLOR": "0x802b211b",
+    "SURFACE_COLOR": "0x943b2d24",
+    "BORDER_COLOR": "0x706f5747",
+    "ACCENT_BORDER_COLOR": "0xe0d9b38c",
+    "SHADOW_COLOR": "0x700c0806",
+    "TEXT_COLOR": "0xfff2e7dc",
+    "MUTED_COLOR": "0xffb9a696",
+    "ACCENT_COLOR": "0xffd4aa7d",
+    "BLUE_COLOR": "0xff9bb9c9",
+    "FOCUS_COLOR": "0xff89b4fa",
+    "FOCUS_BORDER_COLOR": "0xe0b4d0ff",
+    "STATUS_ICON_COLOR": "0xff89b4fa",
+    "MAUVE_COLOR": "0xffc99db2",
+    "GREEN_COLOR": "0xffa9c79c",
+    "YELLOW_COLOR": "0xffddc68b",
+    "PEACH_COLOR": "0xffdfa474",
+    "RED_COLOR": "0xffd98c84"
+  },
+  "style": {
+    "BAR_HEIGHT": 40, "MODULE_HEIGHT": 32, "INNER_HEIGHT": 26, "ARTWORK_SIZE": 28,
+    "RADIUS_LARGE": 14, "RADIUS_MEDIUM": 12, "RADIUS_SMALL": 8,
+    "BLUR_RADIUS": 50, "BAR_MARGIN": 14, "BAR_Y_OFFSET": 8
+  },
+  "rotation_seconds": 3600,
+  "wallpapers": [
+    {
+      "id": "alpine-lake-panorama",
+      "filename": "alpine-lake-panorama.jpg",
+      "url": "https://images.pexels.com/photos/14786072/pexels-photo-14786072.jpeg",
+      "source": "https://www.pexels.com/photo/lake-beside-mountain-14786072/",
+      "sha256": "d14231d3bb097aa7f55266a3a97984a02529baa66570954a832772a3c112bb90",
+      "local_candidates": ["Pictures/Wallpapers/codex/sources/pexels-14786072-elias-tigiser.jpg"]
+    },
+    {
+      "id": "rio-grande-sunset",
+      "filename": "rio-grande-sunset.jpg",
+      "url": "https://images.unsplash.com/photo-1502298771545-937cd94b0f48?fm=jpg&q=95",
+      "source": "https://unsplash.com/photos/landscape-photography-of-river-leading-to-mountain-0JJzYdoq62c",
+      "sha256": "9cd928e3b3a289836358f54926fa86b8d271a48d8f1042bdf5e2fe4d2992fca5",
+      "local_candidates": ["Pictures/Wallpapers/codex/sources/unsplash-0JJzYdoq62c-kyle-glenn.jpg"]
+    }
+  ]
+}

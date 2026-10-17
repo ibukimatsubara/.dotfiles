@@ -1,0 +1,54 @@
+{
+  "label": "Anime Blue",
+  "description": "Quiet seaside, attached bar sections and display frame, soft blue accents",
+  "ghostty": {
+    "theme": "TokyoNight Storm",
+    "background": "#182131",
+    "foreground": "#e3ecf5",
+    "cursor-color": "#a9c8ee",
+    "selection-background": "#354a65",
+    "selection-foreground": "#f0f5fc",
+    "background-opacity": 0.94,
+    "background-blur": false
+  },
+  "colors": {
+    "TRANSPARENT": "0x00000000",
+    "DARK_COLOR": "0xff182131",
+    "BAR_COLOR": "0xff182131",
+    "MODULE_COLOR": "0xff182131",
+    "SURFACE_COLOR": "0xee253449",
+    "BORDER_COLOR": "0x80546d8a",
+    "ACCENT_BORDER_COLOR": "0xe0a9c8ee",
+    "SHADOW_COLOR": "0x500b1019",
+    "TEXT_COLOR": "0xffe3ecf5",
+    "MUTED_COLOR": "0xffa0b2c8",
+    "ACCENT_COLOR": "0xffa9c8ee",
+    "BLUE_COLOR": "0xff91c8e4",
+    "FOCUS_COLOR": "0xffa9c8ee",
+    "FOCUS_BORDER_COLOR": "0xe0c5ddf7",
+    "STATUS_ICON_COLOR": "0xffa9c8ee",
+    "MAUVE_COLOR": "0xffb7b0df",
+    "GREEN_COLOR": "0xffa4cbb2",
+    "YELLOW_COLOR": "0xffdfd0a2",
+    "PEACH_COLOR": "0xffdeb39a",
+    "RED_COLOR": "0xffdf9caa"
+  },
+  "style": {
+    "BAR_HEIGHT": 40, "MODULE_HEIGHT": 32, "INNER_HEIGHT": 26, "ARTWORK_SIZE": 28,
+    "RADIUS_LARGE": 10, "RADIUS_MEDIUM": 10, "RADIUS_SMALL": 6,
+    "BLUR_RADIUS": 0, "BAR_MARGIN": 0, "BAR_Y_OFFSET": 0,
+    "BAR_ATTACHED": 1, "BAR_INVERSE_RADIUS": 18, "BAR_SECTIONS": 1,
+    "BAR_SHOW_BRAND": 0, "SCREEN_BOTTOM_RADIUS": 18, "SCREEN_BORDER_WIDTH": 4
+  },
+  "rotation_seconds": 3600,
+  "wallpapers": [
+    {
+      "id": "anime-seaside-railway",
+      "filename": "anime-seaside-railway.png",
+      "url": "https://raw.githubusercontent.com/dharmx/walls/main/anime/a_train_crossing_with_a_train_track_and_a_body_of_water.png",
+      "source": "https://github.com/dharmx/walls/blob/main/anime/a_train_crossing_with_a_train_track_and_a_body_of_water.png",
+      "sha256": "4549f97d23c72a94395c842cf3bfa10e7d86c01e76dee7962842bb78d70c0913",
+      "local_candidates": ["Pictures/Wallpapers/codex/sources/anime/anime-seaside-railway.png"]
+    }
+  ]
+}

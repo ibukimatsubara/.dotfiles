@@ -21,3 +21,10 @@ export GREEN_COLOR=0xffa9c79c
 export YELLOW_COLOR=0xffddc68b
 export PEACH_COLOR=0xffdfa474
 export RED_COLOR=0xffd98c84
+
+# Keep the original palette when no desktop theme has been selected.
+desktop_theme_colors="$HOME/.config/desktop-theme/current/sketchybar-colors.sh"
+if [ -r "$desktop_theme_colors" ]; then
+    # shellcheck source=/dev/null
+    . "$desktop_theme_colors"
+fi
