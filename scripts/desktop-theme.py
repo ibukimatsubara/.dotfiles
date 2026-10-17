@@ -251,7 +251,7 @@ def render_ubuntu(data, directory):
         "    col.active_border = rgb(" + accent[1:] + ")\n"
         "    col.inactive_border = rgb(" + border[1:] + ")\n}\n"
         "decoration {\n    rounding = " + str(data["style"].get("RADIUS_LARGE", 10)) + "\n}\n"
-        "windowrule = no_blur on, match:class ^(com\\.mitchellh\\.ghostty|ghostty)$\n")
+        "windowrule = no_blur off, match:class ^(com\\.mitchellh\\.ghostty|ghostty)$\n")
     core = dict(background=background, foreground=text, secondary_background=surface,
                 border=border, accent=accent)
     lines = ['[meta]', 'version = 1', 'name = ' + json.dumps(data["label"]),

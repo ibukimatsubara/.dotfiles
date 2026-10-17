@@ -289,3 +289,42 @@ Bluetoothボタンは表示せず、Vicinaeのトレイアイコンは `bar.tray
 Ctrl+QまたはSuper+Qでフォーカス中のウィンドウを閉じる。
 ウィンドウ操作・ワークスペース切り替えは `bindp` でアプリのショートカット抑制を回避する。
 scrcpyのウィンドウを閉じてもAndroidエミュレーター本体は停止しない。
+
+GhosttyのUbuntu用背景は `ghostty-monochrome.conf` をテーマより後に読み、黒の半透明にする。
+Caelestiaの白黒配色は `caelestia scheme set -n dynamic -v monochrome -m dark`。
+配色の選択はCaelestiaの個人用stateに保存される。
+
+Ghosttyの背景ぼかしはHyprland側で適用する。テーマ生成時のGhosttyルールは `no_blur off`。
+
+左端はCaelestiaロゴ、その右にPomoruの残り時間を表示する。作業中は単色トマト、休憩中はコーヒーカップ。作業は紫、休憩はグレー。
+`modules/PomoruStatus.qml` が `$XDG_CACHE_HOME/pomoru/status.json` を読み込む。
+一時停止は残り時間の停止として反映する（Pomoru v1.2.0は一時停止フラグを出力しない）。
+終了時は表示を隠し、異常終了でファイルが残った場合もプロセス確認で5秒以内に隠す。
+
+### Pomoruの導入と操作
+
+[Pomoru公式リリース](https://github.com/RanXom/pomoru/releases/tag/v1.2.0) の
+`pomoru-1.2.0-linux-x86_64.tar.gz` と `sha256sums.txt` を取得し、SHA256を確認してから
+展開した `pomoru` を `~/.local/bin/pomoru` に配置する（実行権限755）。
+v1.2.0のチェックサム一覧ではアーカイブ名が `pomoru-linux-x86_64.tar.gz` と記載される。
+起動は `pomoru`。Spaceで開始・一時停止、Tabで停止中のセッション変更、qで終了。
+旧Bahaaio/pomoは使用しない。
+
+`setup-desktop.sh` が `platforms/ubuntu/pomoru/` の設定を初回だけコピーする。
+作業25分、短い休憩5分、長い休憩15分、自動切り替えを有効にする。
+配色は黒・グレーと紫。タスクを含む実際の個人設定は上書きせず、リポジトリへ保存しない。
+設定は `~/.config/pomoru/config.toml`、配色は `~/.cache/pomoru/colors.json`。
+キャッシュを削除した場合は `setup-desktop.sh` で配色を再作成できる。
+
+上バーは `bash scripts/setup-caelestia-overrides.sh` を実行後、Caelestiaを再起動して反映する。
+状態JSONは更新中に一瞬空になるため、読み取り失敗時は直前の正常値を保持する。
+数字には等幅フォントと固定幅を使い、秒数の更新で位置が動かないようにする。
+トマトは `TomatoIcon.qml` で描画し、絵文字やSVGプラグインを必要としない。
+
+フォーカス枠の紫は個人用 `~/.config/hypr/local.conf` で以下を指定する。
+
+```ini
+general {
+    col.active_border = rgb(b49cde)
+}
+```

@@ -33,6 +33,7 @@ Variants {
         ServiceRef { service: Memory }
         ServiceRef { service: Storage }
         property var codexSnapshot: ({})
+        PomoruStatus { id: pomoru }
         Timer {
             interval: 2000
             running: true
@@ -109,6 +110,16 @@ Variants {
                 BarComponents.OsIcon {
                     Layout.preferredWidth: 30
                     Layout.preferredHeight: 30
+                }
+
+                Metric {
+                    visible: pomoru.available
+                    icon: pomoru.working ? "" : "coffee"
+                    tomatoIcon: pomoru.working
+                    fixedDigits: true
+                    label: pomoru.remaining
+                    detail: "Pomoru · " + pomoru.description
+                    foreground: pomoru.working ? "#b49cde" : Colours.palette.m3onSurfaceVariant
                 }
 
                 StyledRect {
@@ -284,6 +295,9 @@ Variants {
         required property string icon
         required property string label
         required property string detail
+        property color foreground: Colours.palette.m3onSurfaceVariant
+        property bool tomatoIcon: false
+        property bool fixedDigits: false
         signal clicked
         implicitWidth: contents.implicitWidth + 12
         implicitHeight: 30
@@ -292,16 +306,27 @@ Variants {
         RowLayout {
             id: contents
             anchors.centerIn: parent
-            spacing: 5
+            spacing: metric.icon.length > 0 || metric.tomatoIcon ? 5 : 0
+            TomatoIcon {
+                visible: metric.tomatoIcon
+                Layout.preferredWidth: 16
+                Layout.preferredHeight: 16
+                Layout.alignment: Qt.AlignVCenter
+            }
             MaterialIcon {
+                visible: metric.icon.length > 0
                 Layout.alignment: Qt.AlignVCenter
                 text: metric.icon
-                color: Colours.palette.m3onSurfaceVariant
+                color: metric.foreground
             }
             StyledText {
                 Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: metric.fixedDigits ? 52 : implicitWidth
+                Layout.preferredHeight: 24
+                verticalAlignment: Text.AlignVCenter
+                font: metric.fixedDigits ? Qt.font({ family: "Hack Nerd Font Mono", pointSize: Tokens.font.body.small.pointSize }) : Tokens.font.body.small
                 text: metric.label
-                color: Colours.palette.m3onSurfaceVariant
+                color: metric.foreground
             }
         }
         MouseArea {

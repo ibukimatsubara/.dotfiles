@@ -56,6 +56,14 @@ done
 if [ -f "$config_dir/quickshell/caelestia/shell.qml" ]; then
     bash "$DOTFILES_ROOT/scripts/setup-caelestia-overrides.sh"
 fi
+# Pomoru writes its settings; seed defaults without overwriting tasks/preferences.
+mkdir -p "$config_dir/pomoru" "${XDG_CACHE_HOME:-$HOME/.cache}/pomoru"
+if [ ! -e "$config_dir/pomoru/config.toml" ]; then
+    cp "$DOTFILES_ROOT/platforms/ubuntu/pomoru/config.toml" "$config_dir/pomoru/config.toml"
+fi
+if [ ! -e "${XDG_CACHE_HOME:-$HOME/.cache}/pomoru/colors.json" ]; then
+    cp "$DOTFILES_ROOT/platforms/ubuntu/pomoru/colors.json" "${XDG_CACHE_HOME:-$HOME/.cache}/pomoru/colors.json"
+fi
 if [ ! -e "$config_dir/fcitx5/profile" ]; then
     cp "$DOTFILES_ROOT/platforms/ubuntu/fcitx5/profile" "$config_dir/fcitx5/profile"
 fi
