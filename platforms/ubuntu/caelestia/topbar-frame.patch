@@ -1,0 +1,19 @@
+--- a/modules/drawers/ContentWindow.qml
++++ b/modules/drawers/ContentWindow.qml
+@@ -12,6 +12,7 @@
+ import qs.components.containers
+ import qs.services
+ import qs.modules.bar
++import "../dotfiles/Layout.js" as BarLayout
+ 
+ StyledWindow {
+     id: root
+@@ -70,6 +71,8 @@
+ 
+     mask: hasFullscreen ? emptyRegion : regions
+ 
++    margins.top: hasFullscreen ? 0 : BarLayout.height
++
+     anchors.top: true
+     anchors.bottom: true
+     anchors.left: true

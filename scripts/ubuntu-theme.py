@@ -45,6 +45,13 @@ def in_session():
     return bool(os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'))
 
 
+def desktop_shell():
+    try:
+        return (CONFIG / 'dotfiles/desktop-shell').read_text().strip()
+    except FileNotFoundError:
+        return 'dms'
+
+
 def command(*args):
     result = subprocess.run(args, check=True, capture_output=True, text=True, timeout=10)
     if 'ERROR:' in result.stdout or 'SETTINGS_SET_FAILURE' in result.stdout or 'SETTINGS_INVALID_KEY' in result.stdout:
@@ -59,7 +66,10 @@ def ipc(*args):
 def wallpaper():
     if not in_session():
         raise ValueError('Wallpaper control requires a Hyprland session')
-    ipc('wallpaper', 'next')
+    if desktop_shell() == 'caelestia':
+        command('caelestia', 'wallpaper', '-r')
+    else:
+        ipc('wallpaper', 'next')
 
 
 def apply():
@@ -73,6 +83,10 @@ def apply():
     atomic_write(vicinae_theme, (generation / 'vicinae-theme.toml').read_text())
     atomic_write(CONFIG / 'dotfiles/hypr/theme.conf', (generation / 'hyprland.conf').read_text())
     if in_session():
+        if desktop_shell() == 'caelestia':
+            command('caelestia', 'wallpaper', '-f', theme['wallpapers'][0]['path'])
+            command('hyprctl', 'reload')
+            return
         ipc('settings', 'set', 'customThemeFile', dms_file)
         ipc('settings', 'set', 'currentThemeName', 'custom')
         # Vicinae rescans directory changes after a 50ms debounce.

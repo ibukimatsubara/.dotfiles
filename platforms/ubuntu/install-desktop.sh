@@ -20,7 +20,7 @@ sudo apt-get install -y --no-install-recommends \
     xdg-desktop-portal-gtk fcitx5 fcitx5-mozc fcitx5-config-qt \
     fcitx5-frontend-gtk3 fcitx5-frontend-gtk4 fcitx5-frontend-qt6 \
     grim slurp swappy fuzzel playerctl pavucontrol xwayland jq wl-clipboard \
-    python3 pipewire-bin libnotify-bin curl ca-certificates
+    python3 pipewire-bin libnotify-bin curl ca-certificates bibata-cursor-theme
 if ! command -v vicinae >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/vicinae" ]; then
     installer="$(mktemp)"
     trap 'rm -f "$installer"' EXIT

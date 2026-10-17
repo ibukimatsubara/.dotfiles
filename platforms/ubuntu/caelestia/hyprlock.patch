@@ -1,0 +1,45 @@
+--- a/modules/IdleMonitors.qml
++++ b/modules/IdleMonitors.qml
+@@ -19,7 +19,7 @@
+             return;
+ 
+         if (action === "lock")
+-            lock.lock.locked = true;
++            Quickshell.execDetached([`${Quickshell.env("HOME")}/.dotfiles/scripts/ubuntu-lock.sh`]);
+         else if (action === "unlock")
+             lock.lock.locked = false;
+         else if (typeof action === "string")
+@@ -31,11 +31,11 @@
+     Connections {
+         function onAboutToSleep(): void {
+             if (GlobalConfig.general.idle.lockBeforeSleep)
+-                root.lock.lock.locked = true;
++                Quickshell.execDetached([`${Quickshell.env("HOME")}/.dotfiles/scripts/ubuntu-lock.sh`]);
+         }
+ 
+         function onLockRequested(): void {
+-            root.lock.lock.locked = true;
++            Quickshell.execDetached([`${Quickshell.env("HOME")}/.dotfiles/scripts/ubuntu-lock.sh`]);
+         }
+ 
+         function onUnlockRequested(): void {
+--- a/modules/lock/Lock.qml
++++ b/modules/lock/Lock.qml
+@@ -45,7 +45,7 @@
+         // qmllint enable unresolved-type
+         name: "lock"
+         description: "Lock the current session"
+-        onPressed: lock.locked = true
++        onPressed: Quickshell.execDetached([`${Quickshell.env("HOME")}/.dotfiles/scripts/ubuntu-lock.sh`])
+     }
+ 
+     // qmllint disable unresolved-type
+@@ -58,7 +58,7 @@
+ 
+     IpcHandler {
+         function lock(): void {
+-            lock.locked = true;
++            Quickshell.execDetached([`${Quickshell.env("HOME")}/.dotfiles/scripts/ubuntu-lock.sh`]);
+         }
+ 
+         function unlock(): void {

@@ -1,0 +1,79 @@
+{
+  "general": {
+    "apps": {
+      "terminal": [
+        "ghostty"
+      ],
+      "audio": [
+        "pavucontrol"
+      ],
+      "explorer": [
+        "nautilus"
+      ]
+    },
+    "idle": {
+      "lockBeforeSleep": false,
+      "timeouts": []
+    }
+  },
+  "appearance": {
+    "font": {
+      "clock": "Rubik",
+      "workspaces": "Rubik"
+    }
+  },
+  "bar": {
+    "persistent": false,
+    "showOnHover": false,
+    "workspaces": {
+      "shown": 9,
+      "label": "",
+      "occupiedLabel": "",
+      "activeLabel": "",
+      "showWindows": true
+    },
+    "entries": [
+      {
+        "id": "logo",
+        "enabled": true
+      },
+      {
+        "id": "workspaces",
+        "enabled": true
+      },
+      {
+        "id": "spacer",
+        "enabled": true
+      },
+      {
+        "id": "activeWindow",
+        "enabled": false
+      },
+      {
+        "id": "spacer",
+        "enabled": true
+      },
+      {
+        "id": "tray",
+        "enabled": true
+      },
+      {
+        "id": "clock",
+        "enabled": true
+      },
+      {
+        "id": "statusIcons",
+        "enabled": true
+      },
+      {
+        "id": "power",
+        "enabled": true
+      }
+    ],
+    "tray": {
+      "hiddenIcons": [
+        "vicinae"
+      ]
+    }
+  }
+}

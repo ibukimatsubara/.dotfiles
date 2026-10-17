@@ -1,0 +1,35 @@
+--- a/modules/drawers/ContentWindow.qml
++++ b/modules/drawers/ContentWindow.qml
+@@ -161,7 +161,7 @@
+             radius: root.borderRounding
+             borderLeft: bar.implicitWidth - anchors.margins - root.sdfBorderOffset
+             borderRight: root.borderThickness - anchors.margins - root.sdfBorderOffset
+-            borderTop: root.borderThickness - anchors.margins - root.sdfBorderOffset
++            borderTop: -anchors.margins - root.sdfBorderOffset
+             borderBottom: root.borderThickness - anchors.margins - root.sdfBorderOffset
+         }
+ 
+--- a/modules/drawers/Exclusions.qml
++++ b/modules/drawers/Exclusions.qml
+@@ -19,6 +19,7 @@
+ 
+     ExclusionZone {
+         anchors.top: true
++        exclusiveZone: 0
+     }
+ 
+     ExclusionZone {
+--- a/modules/drawers/Regions.qml
++++ b/modules/drawers/Regions.qml
+@@ -16,9 +16,9 @@
+     readonly property real clampedThickness: win.contentItem.Config.border.clampedThickness
+ 
+     x: bar.clampedWidth + win.dragMaskPadding
+-    y: clampedThickness + win.dragMaskPadding
++    y: win.dragMaskPadding
+     width: win.width - bar.clampedWidth - clampedThickness - win.dragMaskPadding * 2
+-    height: win.height - clampedThickness * 2 - win.dragMaskPadding * 2
++    height: win.height - clampedThickness - win.dragMaskPadding * 2
+     intersection: Intersection.Xor
+ 
+     R {

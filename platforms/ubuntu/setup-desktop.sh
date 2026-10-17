@@ -12,8 +12,14 @@ if ! Hyprland --version | grep -Eq 'Hyprland 0\.53\.'; then
     exit 1
 fi
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}"
+# XCursor loaders may only search ~/.icons and the system icon directories.
+cursor_theme="${XDG_DATA_HOME:-$HOME/.local/share}/icons/Bibata-Modern-Ice"
+if [ -d "$cursor_theme/cursors" ]; then
+    mkdir -p "$HOME/.icons"
+    link_managed_path "$cursor_theme" "$HOME/.icons/Bibata-Modern-Ice"
+fi
 mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/vicinae/themes"
-mkdir -p "$config_dir/hypr" "$config_dir/DankMaterialShell" "$config_dir/fcitx5" "$config_dir/systemd/user" "$config_dir/vicinae"
+mkdir -p "$config_dir/hypr" "$config_dir/DankMaterialShell" "$config_dir/fcitx5" "$config_dir/systemd/user" "$config_dir/vicinae" "$config_dir/caelestia"
 generated_dir="$config_dir/dotfiles/hypr"
 mkdir -p "$generated_dir"
 if [ ! -e "$generated_dir/theme.conf" ]; then
@@ -38,7 +44,7 @@ fi
 if [ ! -e "$config_dir/DankMaterialShell/settings.json" ]; then
     cp "$DOTFILES_ROOT/platforms/ubuntu/dms/settings.json" "$config_dir/DankMaterialShell/settings.json"
 fi
-for seed in dms/clsettings.json vicinae/vicinae.json; do
+for seed in dms/clsettings.json vicinae/vicinae.json caelestia/shell.json caelestia/cli.json; do
     case "$seed" in
         dms/*) target="$config_dir/DankMaterialShell/${seed#*/}" ;;
         *) target="$config_dir/$seed" ;;
@@ -47,6 +53,9 @@ for seed in dms/clsettings.json vicinae/vicinae.json; do
         cp "$DOTFILES_ROOT/platforms/ubuntu/$seed" "$target"
     fi
 done
+if [ -f "$config_dir/quickshell/caelestia/shell.qml" ]; then
+    bash "$DOTFILES_ROOT/scripts/setup-caelestia-overrides.sh"
+fi
 if [ ! -e "$config_dir/fcitx5/profile" ]; then
     cp "$DOTFILES_ROOT/platforms/ubuntu/fcitx5/profile" "$config_dir/fcitx5/profile"
 fi

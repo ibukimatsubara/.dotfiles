@@ -205,3 +205,87 @@ macOSのテーマJSON・Ghostty設定・SketchyBar設定は維持し、追加の
 `desktop-theme.py apply NAME` で色と形状を反映する。既存のバー項目の並び順や追加ウィジェットは通常のテーマ変更では保持する。macOSに似せた並び順を明示的に採用する場合のみ、`python3 ~/.dotfiles/scripts/ubuntu-desktop-style.py --layout` を実行する。二つ目以降のバーは変更しない。
 
 DMSの配列設定はIPC経由の変更に対応していないため、現在のIPCスナップショットへ対象項目だけをマージし、設定ファイルの監視機能で反映する。初回の前には `DankMaterialShell/settings.json.before-macos-style` を保存する。個人設定は引き続きリポジトリに含めない。
+
+## Caelestia Shellへの切り替え
+
+`~/.config/dotfiles/desktop-shell` に `caelestia` または `dms` を保存し、
+`hyprland-session.sh` が選択したシェルを起動する。選択ファイルがない場合はDMS。
+変更は `scripts/ubuntu-desktop-shell.sh select caelestia` で保存し、次回ログイン時に適用する。
+戻す場合は `scripts/ubuntu-desktop-shell.sh select dms` を実行してログインし直す。
+DMSの設定・プラグイン・パッケージは残す。
+
+ランチャー・設定・通知・電源メニューの既存キーは選択中のシェルへ送る。
+CaelestiaではSuper+SpaceとSuper+Shift+Spaceがランチャー、Super+commaがNexus設定、
+Super+Nがサイドバー、Super+Yが壁紙設定も含むNexus、Super+Shift+Escapeが電源メニュー。
+Super+Shift+Vのクリップボード履歴は引き続きVicinaeを使う。
+アプリ起動・ウィンドウ移動・日本語入力・hypridle/hyprlockは既存の構成を使う。
+Caelestia側の自動ロックは無効にし、二重のロック画面を避ける。
+DMS専用の休憩タイマー表示はCaelestiaのバーには移植していない。
+休憩タイマーの通知・キー操作と使用量収集は継続する。
+
+Ubuntu 26.04 / Qt 6.10.2での実機導入はCaelestia Shell **v2.1.0**、CLI **v1.1.3**。
+専用Quickshellは `2b4501a282689792b62e94f3fb30d8f512324fe6` をビルドし、
+システムの `/usr/bin/qs` と分けて `~/.local/opt/caelestia` に配置した。
+M3Shapesは `8a6fe8961749887d677700b6508e0c9249968b7e`、
+libcavaは `LukashonakV/cava` の `f03278ef9e5e7948fb206453d2f02758f8db216c`。
+ソースとビルドログは `~/.cache/dotfiles/caelestia-build`、QML本体は
+`~/.config/quickshell/caelestia`。起動ヘルパーが専用のPATH・QML_IMPORT_PATH・
+LD_LIBRARY_PATH・CAELESTIA_LIB_DIRを設定する。アイコンテーマはQS_ICON_THEMEで指定し、既定はYaru。
+
+v2.5.0の設定画面はQt 6.10にないDoubleSpinBoxを使うため採用していない。
+v2.1.0ではQt 6.10の予約語 `char` と衝突するQMLのIDだけを
+`platforms/ubuntu/caelestia/qt-6.10.patch` で変更する。
+`platforms/ubuntu/caelestia/hyprlock.patch` も適用し、Caelestia内のロック要求を既存の
+`ubuntu-lock.sh` へ送る。ネイティブの `lock isLocked` IPCはhyprlockの状態を表さない。
+再インストール時は展開したソースへ `patch -p1 < /path/to/qt-6.10.patch` を適用する。
+libcavaのpkg-configにはヘッダーの親ディレクトリが含まれないため、ShellのCMake設定に
+`-DCMAKE_CXX_FLAGS=-I$HOME/.local/opt/caelestia/include` も渡す。
+Shellのインストール先は `INSTALL_LIBDIR=lib/caelestia`、
+`INSTALL_QMLDIR=lib/qt6/qml`、`INSTALL_QSCONFDIR=$HOME/.config/quickshell/caelestia`。
+既存のM3Shapesを使うため `ENABLE_MODULES=extras;plugin;shell` を指定する。
+
+CaelestiaのJSON設定は初回だけコピーし、編集可能なファイルとして保持する。
+CLIによる端末・GTK・Qt・ブラウザ等へのテーマ一括反映は無効にしている。
+壁紙とShellの配色はCaelestiaが管理し、DMSのテーマ監視はCaelestia中には起動しない。
+`ubuntu-theme.py` の手動テーマ変更・壁紙変更も選択中のシェルに合わせる。
+設定のバックアップは `~/.local/state/dotfiles/backups/before-caelestia-*.tar.gz`、
+セッションのログは `~/.local/state/dotfiles/hyprland-session.log`。
+
+### Caelestiaの上バーとランチャー操作
+
+`platforms/ubuntu/caelestia/modules/TopBars.qml` で横向きの上バーを構成する。
+Caelestiaの配色・フォント・サービスを使い、左にワークスペース番号1〜9、右に
+トレイ・音量・ネットワーク・通知・時計・電源を表示する。ウィンドウ名は表示しない。
+標準の左バーは `bar.persistent=false` と `bar.showOnHover=false` で隠す。
+番号の表示数は `bar.workspaces.shown` で設定する。
+ランチャーのSuper+Jは次の候補、Super+Kは前の候補へ移動する。
+この操作はランチャー内のQMLで処理し、他のアプリのキー割り当てには追加しない。
+
+`bash scripts/setup-caelestia-overrides.sh` は互換性・hyprlock連携・上バー・
+ランチャーキーのパッチを確認してから適用する。適用済みなら再適用しない。
+上バーのソースは `~/.config/quickshell/caelestia/modules/dotfiles` から参照する。
+`setup-desktop.sh` もCaelestiaがインストール済みならこの処理を実行する。
+JSONの個人設定は引き続き `~/.config/caelestia/shell.json` に保持し、
+上バー変更前の設定は `shell.json.before-topbar` に保存してある。
+
+丸い外枠とドロワーは `topbar-frame.patch` で上バーの下へ移す。
+上バーと外枠のオフセットは `modules/Layout.js` の `height`（既定44px）を共有する。
+全画面表示ではオフセットを0に戻す。
+
+ワークスペース番号の横には、そのワークスペースにあるウィンドウのアプリアイコンを
+表示する。`bar.workspaces.showWindows` で表示を切り替え、`maxWindowIcons` で
+各ワークスペースの上限を指定する（既定5、0なら制限なし）。
+
+上バーにはCodexの残り利用枠、CPU・メモリ・システムSSDの使用率、天気を表示する。
+Codexは既存の `scripts/codex-usage.py` からローカルの利用枠スナップショットを1分ごとに読み、
+取得時刻・リセット時刻などはホバーで確認できる。CPU・メモリ・ストレージはCaelestiaのサービスを使う。
+天気の場所は個人用JSONの `services.weatherLocation`（都市名または緯度,経度）、
+摂氏表示は `services.useFahrenheit=false` で設定する。
+Bluetoothボタンは表示せず、Vicinaeのトレイアイコンは `bar.tray.hiddenIcons` で隠す。
+
+`topbar-no-top-edge.patch` で外枠の上辺の描画と予約スペースを0にする。
+左右と下辺の厚さは維持し、右側のステータス表示はグレーに統一する。
+
+Ctrl+QまたはSuper+Qでフォーカス中のウィンドウを閉じる。
+ウィンドウ操作・ワークスペース切り替えは `bindp` でアプリのショートカット抑制を回避する。
+scrcpyのウィンドウを閉じてもAndroidエミュレーター本体は停止しない。

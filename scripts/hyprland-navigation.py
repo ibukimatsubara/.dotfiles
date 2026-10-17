@@ -2,6 +2,8 @@
 """Match macOS Ghostty navigation while retaining tmux/editor Ctrl keys."""
 import argparse
 import json
+import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -44,7 +46,21 @@ def main():
         ipc('dispatch', 'sendshortcut', f'CTRL,{key.upper()},')
         return
     # Layer-shell launchers retain the underlying window in activewindow IPC.
-    # Preserve search/editing keys while Vicinae owns keyboard focus.
+    # Preserve search/editing keys while a launcher owns keyboard focus.
+    selection = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config'))) / 'dotfiles/desktop-shell'
+    try:
+        backend = selection.read_text().strip()
+    except OSError:
+        backend = 'dms'
+    if backend == 'caelestia':
+        try:
+            helper = Path(__file__).with_name('ubuntu-desktop-shell.sh')
+            opened = subprocess.run([str(helper), 'launcher-open'], capture_output=True, timeout=0.5)
+            if opened.returncode == 0:
+                ipc('dispatch', 'sendshortcut', f'CTRL,{key.upper()},')
+                return
+        except (OSError, subprocess.TimeoutExpired):
+            pass
     if shutil.which('vicinae'):
         try:
             opened = subprocess.run(['vicinae', 'state', 'open'], capture_output=True, timeout=0.25)

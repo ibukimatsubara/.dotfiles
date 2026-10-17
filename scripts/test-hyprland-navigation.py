@@ -20,7 +20,7 @@ else:
  with open(os.environ['NAV_LOG'],'a') as f:f.write(json.dumps(args)+'\\n')
 ''');(self.base/'hyprctl').chmod(0o755)
         (self.base/'vicinae').write_text('#!/bin/sh\nexit 1\n');(self.base/'vicinae').chmod(0o755)
-        self.env=dict(os.environ,PATH=str(self.base)+':'+os.environ['PATH'],NAV_LOG=str(self.base/'log'),NAV_CLIENTS='[]')
+        self.env=dict(os.environ,PATH=str(self.base)+':'+os.environ['PATH'],NAV_LOG=str(self.base/'log'),NAV_CLIENTS='[]',HOME=str(self.base),XDG_CONFIG_HOME=str(self.base/'config'))
         self.window={'class':'com.mitchellh.ghostty','title':'zsh','address':'0x1','workspace':{'id':1},'at':[0,0],'size':[100,100],'mapped':True,'floating':False}
     def run_key(self,key,window=None,clients=None):
         self.env['NAV_WINDOW']=json.dumps(self.window if window is None else window)
@@ -31,6 +31,14 @@ else:
     def test_open_launcher_keeps_keys_despite_stale_ghostty_focus(self):
         (self.base/'vicinae').write_text('#!/bin/sh\nexit 0\n')
         self.assertEqual(self.run_key('u'),[['dispatch','sendshortcut','CTRL,U,']])
+
+    def test_caelestia_launcher_keeps_search_keys(self):
+        selection=self.base/'config/dotfiles/desktop-shell'
+        selection.parent.mkdir(parents=True)
+        selection.write_text('caelestia\n')
+        cli=self.base/'caelestia'
+        cli.write_text('#!/bin/sh\nprintf "1\\n"\n');cli.chmod(0o755)
+        self.assertEqual(self.run_key('h'),[['dispatch','sendshortcut','CTRL,H,']])
 
     def test_ghostty_outside_tmux_moves_workspace(self):
         self.assertEqual(self.run_key('u'),[['dispatch','workspace','e-1']])

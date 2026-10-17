@@ -153,6 +153,17 @@ else:
         self.stub('hyprctl', '#!/bin/sh\nexit 1\n')
         self.stub('fcitx5', '#!/bin/sh\nexit 0\n')
         self.stub('hypridle', '#!/bin/sh\nexit 0\n')
+        self.stub('dms', '''#!/usr/bin/env python3
+import os
+from pathlib import Path
+try:
+ os.fstat(9)
+ inherited=True
+except OSError:
+ inherited=False
+Path(os.environ['HOME'], 'shell-lock-inherited').write_text(str(inherited))
+''')
+        self.stub('hyprctl', '#!/bin/sh\nsleep 0.3\nexit 1\n')
         self.stub('dbus-update-activation-environment', """#!/usr/bin/env python3
 import os,json,sys
 with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
@@ -167,6 +178,7 @@ with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
         self.assertEqual(data['gtk'],'')
         self.assertEqual(data['qt'],'fcitx')
         self.assertEqual(data['qt_modules'],'wayland;fcitx;ibus')
+        self.assertEqual((self.home/'shell-lock-inherited').read_text(), 'False')
         for key in ('DISPLAY','XAUTHORITY','XMODIFIERS','GTK_IM_MODULE'):
             self.assertIn(key,data['args'])
 

@@ -9,7 +9,7 @@
   "launcher_window": {
     "layer_shell": {
       "enabled": true,
-      "keyboard_interactivity": "on_demand",
+      "keyboard_interactivity": "exclusive",
       "layer": "top"
     }
   }

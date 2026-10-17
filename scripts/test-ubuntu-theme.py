@@ -39,9 +39,35 @@ class UbuntuThemeTests(unittest.TestCase):
             run.assert_not_called()
 
     def test_wallpaper_uses_installed_dms_ipc(self):
-        with patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc:
+        with tempfile.TemporaryDirectory() as tmp, patch.object(m, 'CONFIG', Path(tmp)), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc:
             m.wallpaper()
             ipc.assert_called_once_with('wallpaper', 'next')
+
+    def test_caelestia_wallpaper_does_not_call_dms(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp)
+            (config / 'dotfiles').mkdir()
+            (config / 'dotfiles/desktop-shell').write_text('caelestia\n')
+            with patch.object(m, 'CONFIG', config), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc, patch.object(m, 'command') as command:
+                m.wallpaper()
+                ipc.assert_not_called()
+                command.assert_called_once_with('caelestia', 'wallpaper', '-r')
+
+    def test_live_caelestia_theme_apply_uses_its_wallpaper_backend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp)
+            current = config / 'desktop-theme/current'
+            current.mkdir(parents=True)
+            for name, content in [('dms-theme.json', '{}'), ('hyprland.conf', '# colors\n'),
+                                  ('vicinae-theme.toml', '[meta]\nversion = 1\n'),
+                                  ('theme.json', '{"wallpapers":[{"path":"/test.png"}]}')]:
+                (current / name).write_text(content)
+            (config / 'dotfiles').mkdir()
+            (config / 'dotfiles/desktop-shell').write_text('caelestia\n')
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'DATA', config / 'data'), patch.object(m, 'CURRENT', current), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc, patch.object(m, 'command') as command:
+                m.apply()
+                ipc.assert_not_called()
+                self.assertIn(unittest.mock.call('caelestia', 'wallpaper', '-f', '/test.png'), command.call_args_list)
 
     def test_mutable_settings_symlinks_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
