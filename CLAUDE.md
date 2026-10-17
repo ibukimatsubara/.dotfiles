@@ -27,7 +27,8 @@ Both scripts should stay idempotent. Existing files are moved to `*.bak-YYYYMMDD
 
 ```
 .dotfiles/
-├── install.sh / setup.sh   # Entry points
+├── install.sh / setup.sh   # OS-detecting entry points
+├── platforms/              # common / macos / ubuntu install, setup, and overrides
 ├── AGENTS.md               # Repo guidelines for Codex (and other agents)
 ├── claude/                 # Claude Code: CLAUDE.md (global), agents/, statusline-command.sh
 ├── codex/                  # Codex: AGENTS.md (global), agents/*.toml, statusline.toml
@@ -53,8 +54,9 @@ Both scripts should stay idempotent. Existing files are moved to `*.bak-YYYYMMDD
 |---|---|
 | `zsh/main.zsh` | sourced from `~/.zshrc` |
 | `tmux/tmux.conf` | `~/.tmux.conf` |
-| `vscode/{settings,keybindings}.json` | `~/Library/Application Support/Code/User/` (Linux: `~/.config/Code/User/`) |
-| `ghostty/config` | `~/.config/ghostty/config` |
+| `vscode/settings.json` + `platforms/<OS>/vscode-settings.json` | merged settings linked into VS Code User (rerun setup after editing) |
+| `vscode/keybindings.json` | VS Code User keybindings (shared) |
+| `ghostty/config` or `ghostty/config-linux` (common + OS includes) | `${XDG_CONFIG_HOME:-$HOME/.config}/ghostty/config` |
 | `hammerspoon/init.lua` | `~/.hammerspoon/init.lua` |
 | `break-timer/config.lua` | `~/.config/break-timer/config.lua` |
 | `skhdrc` | `~/.skhdrc` |
@@ -68,7 +70,7 @@ Both scripts should stay idempotent. Existing files are moved to `*.bak-YYYYMMDD
 
 Notes:
 - `claude/agents/`, `codex/agents/`, and the Claude copies of shared skills are **copied, not symlinked**. Re-run `./setup.sh` after editing them.
-- The list of shared skills copied into `~/.claude/skills/` is hardcoded in `link_ai_clis` in `setup.sh`. Update it when adding a skill.
+- The list of shared skills copied into `~/.claude/skills/` is hardcoded in `link_ai_clis` in `platforms/common/setup.sh`. Update it when adding a skill.
 - `~/.claude/settings.json` and `~/.codex/config.toml` are not tracked. Merge `codex/statusline.toml` into the Codex config by hand.
 
 ## Verification

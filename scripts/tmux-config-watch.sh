@@ -9,17 +9,36 @@ set -u
 config_path="${TMUX_CONFIG_PATH:-$HOME/.tmux.conf}"
 watch_interval="${TMUX_CONFIG_WATCH_INTERVAL:-1}"
 pid_option='@config-watcher-pid'
+platform_config_path="${TMUX_CONFIG_PLATFORM_PATH:-}"
+if [ -z "$platform_config_path" ] && [ -z "${TMUX_CONFIG_PATH:-}" ]; then
+    case "$(uname -s)" in
+        Darwin) platform_config_path="$HOME/.dotfiles/platforms/macos/tmux.conf" ;;
+        Linux) platform_config_path="$HOME/.dotfiles/platforms/ubuntu/tmux.conf" ;;
+    esac
+fi
+
+file_fingerprint() {
+    local path="$1"
+    if [ ! -f "$path" ]; then
+        printf 'missing\n'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$path" | awk '{ print $1 }'
+    elif command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$path" | awk '{ print $1 }'
+    else
+        stat -f '%m:%z:%i' "$path" 2>/dev/null \
+            || stat -c '%Y:%s:%i' "$path" 2>/dev/null
+    fi
+}
 
 config_fingerprint() {
     if [ ! -f "$config_path" ]; then
         printf 'missing\n'
-    elif command -v shasum >/dev/null 2>&1; then
-        shasum -a 256 "$config_path" | awk '{ print $1 }'
-    elif command -v sha256sum >/dev/null 2>&1; then
-        sha256sum "$config_path" | awk '{ print $1 }'
-    else
-        stat -f '%m:%z:%i' "$config_path" 2>/dev/null \
-            || stat -c '%Y:%s:%i' "$config_path" 2>/dev/null
+        return
+    fi
+    file_fingerprint "$config_path"
+    if [ -n "$platform_config_path" ]; then
+        file_fingerprint "$platform_config_path"
     fi
 }
 

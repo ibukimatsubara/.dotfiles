@@ -84,3 +84,9 @@ hs -A -t 3 -c 'return hs.inspect({autoLaunch=hs.autoLaunch(),accessibility=hs.ac
 ## ロールバック
 
 既存設定は`*.bak-YYYYMMDD-HHMMSS`として同じディレクトリへ移動されます。問題があればシンボリックリンクを外し、バックアップを元の名前へ戻します。
+
+## 共通・macOS・Ubuntuの分離
+
+入口の `./install.sh` と `./setup.sh` は共通です。OSを判定し、`platforms/common/` と `platforms/macos/` または `platforms/ubuntu/` を読み込みます。Ubuntu/Debian以外のLinuxはセットアップ前に停止します。
+
+設定の編集場所と反映方法は [platforms.md](platforms.md) を参照してください。VS Codeの設定は合成するため、変更後は `./setup.sh` の再実行が必要です。UbuntuではHomebrewやmacOSのサービスは実行しません。

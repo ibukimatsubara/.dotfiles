@@ -1,6 +1,6 @@
 # Dotfiles
 
-Macが使えなくなっても、リポジトリをcloneして最低限の開発環境を復元できることを目標にした個人用dotfilesです。現在の中心はVS Code、Codex、Ghostty、tmuxです。
+macOSとUbuntuのどちらでも、リポジトリをcloneして開発環境を復元できることを目標にした個人用dotfilesです。現在の中心はVS Code、Codex、Ghostty、tmuxです。
 
 ## Quick Start
 
@@ -13,6 +13,19 @@ cd .dotfiles
 ```
 
 `install.sh`はmacOS / Ubuntuを判定してCLIツールを導入し、`setup.sh`は既存設定をバックアップしてから設定ファイルをリンクします。
+
+## 共通・OS別の設定
+
+`./install.sh` と `./setup.sh` がOSを自動判定し、共通処理と、そのOSのプロファイルだけを読み込みます。UbuntuとDebianは `ubuntu` プロファイルを使います。
+
+- `platforms/common/`: 共通のインストール・リンク処理、Ghosttyの基本設定、ZshのPATH
+- `platforms/macos/`: Homebrew、macOSデスクトップ連携、Ghostty・tmux・Zsh・VS Codeの差分
+- `platforms/ubuntu/`: apt、Wayland/X11対応、Ghostty・tmux・Zsh・VS Codeの差分
+- `zsh/`・`tmux/`・`vscode/`・`nvim/`: 両OSで共有する操作・設定
+
+Hammerspoon・AeroSpace・SketchyBarなどのmacOS専用ディレクトリは既存パスを維持し、macOSプロファイルからだけセットアップします。OSごとにブランチを分ける必要はありません。
+
+VS Codeの `settings.json` は共通JSONとOS別JSONから生成します。編集後は `./setup.sh` を再実行してください。詳しくは [OS別設定の編集と反映](docs/platforms.md) を参照してください。
 
 ## 管理プロファイル
 
@@ -78,6 +91,7 @@ legacyは既存環境の互換性のため残していますが、新しいセ�
 .dotfiles/
 ├── install.sh
 ├── setup.sh
+├── platforms/          # common / macos / ubuntu
 ├── vscode/             # settings、keybindings、extensions
 ├── chrome/             # Vimium C exportと復元メモ
 ├── agents/skills/      # Codex / Claude共通のpersonal skills

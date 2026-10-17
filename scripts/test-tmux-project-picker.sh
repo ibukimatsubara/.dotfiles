@@ -22,6 +22,13 @@ fail() {
     exit 1
 }
 
+file_mode() {
+    case "$(uname -s)" in
+        Darwin) stat -f '%Lp' "$1" ;;
+        *) stat -c '%a' "$1" ;;
+    esac
+}
+
 mkdir -p "$current" "$saved" "$recent"
 current=$(cd "$current" && pwd -P)
 saved=$(cd "$saved" && pwd -P)
@@ -50,8 +57,8 @@ printf '%s\n' "$rendered" | awk -F '\t' -v path="$saved" '$1 == "★ saved " && 
 printf '%s\n' "$rendered" | awk -F '\t' -v path="$recent" '$1 == "↺ recent" && $3 == path { found = 1 } END { exit !found }' \
     || fail 'recent path is missing from the list'
 
-[ "$(stat -f '%Lp' "$history_file")" = '600' ] || fail 'history permissions are not 0600'
-[ "$(stat -f '%Lp' "$paths_file")" = '600' ] || fail 'saved path permissions are not 0600'
+[ "$(file_mode "$history_file")" = '600' ] || fail 'history permissions are not 0600'
+[ "$(file_mode "$paths_file")" = '600' ] || fail 'saved path permissions are not 0600'
 
 if env "${picker_env[@]}" "$picker" --add "$test_home/missing"; then
     fail 'missing directory was accepted'

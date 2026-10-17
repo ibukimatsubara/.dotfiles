@@ -1,8 +1,19 @@
 # Ghostty Configuration
 
+## Shared and OS-specific settings
+
+- `platforms/common/ghostty.conf`: shared appearance, font, padding, terminal type
+- `platforms/macos/ghostty.conf`: macOS windows, Cmd shortcuts, desktop themes, Hammerspoon integration
+- `platforms/ubuntu/ghostty.conf`: Linux windows, Ctrl+Shift shortcuts, cursor shader
+
+`ghostty/config` and `ghostty/config-linux` are entry files that include the
+common settings followed by the selected OS profile. Existing integration paths
+remain available.
+Reload Ghostty after editing the shared settings or selected OS profile.
+
 ## Ubuntu / Linux
 
-`./setup.sh` links `config-linux` and the shaders into the Ghostty config
+`./setup.sh` links `ghostty/config-linux` and the shaders into the Ghostty config
 directory (`$XDG_CONFIG_HOME/ghostty`, or `~/.config/ghostty`). Ghostty must
 already be installed. The macOS config remains separate for Hammerspoon.
 

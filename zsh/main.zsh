@@ -1,16 +1,8 @@
 #!/usr/bin/env zsh
 # Main zsh configuration file that sources all modules
 
-# Ghostty起動時にランダム壁紙を設定
-if [[ "$TERM_PROGRAM" == "ghostty" ]]; then
-  ~/.dotfiles/ghostty/random-wallpaper.sh >/dev/null 2>&1
-fi
-
-# VS Code
-if [[ "$OSTYPE" == darwin* ]]; then
-  export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
-fi
-export PATH="$HOME/.local/bin:$HOME/.local/share/fnm:$PATH"
+# PATH needed before shared plugins initialize.
+source ~/.dotfiles/platforms/common/zsh.zsh
 
 # Source configuration files
 for config in ~/.dotfiles/zsh/configs/*.zsh; do
@@ -28,6 +20,12 @@ if [ -d ~/.dotfiles/zsh/functions ]; then
     source $func
   done
 fi
+
+# Load only this OS's overrides before machine-local configuration.
+case "$OSTYPE" in
+  darwin*) source ~/.dotfiles/platforms/macos/zsh.zsh ;;
+  linux*) source ~/.dotfiles/platforms/ubuntu/zsh.zsh ;;
+esac
 
 # Load local configuration if exists
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
