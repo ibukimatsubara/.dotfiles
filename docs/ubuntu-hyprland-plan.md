@@ -337,3 +337,22 @@ general {
     col.active_border = rgb(b49cde)
 }
 ```
+
+### Space 1 のログイン時配置
+
+Hyprland にログインすると `scripts/hyprland-workspace-one.py` が pomoru、
+cliamp（`music-player.sh` の Music プレイリスト）、Chrome アプリ表示の
+Notion Calendar（`https://calendar.notion.com`、既定プロファイル）を開く。
+右半分をカレンダー、左上を pomoru、左下を cliamp にして通常のタイルとして配置する。
+タイマー開始や音楽再生の操作は各アプリ側で行う。
+
+既存の対象ウィンドウを再利用し、3つとも Space 1 にあれば現在の配置を維持する。
+起動待ちは最大60秒。失敗した場合は起動済みのウィンドウを残し、セッションのログへエラーを出す。
+手動で不足分を開き直す場合は次を実行する。
+
+```bash
+python3 ~/.dotfiles/scripts/hyprland-workspace-one.py
+```
+
+自動起動を止める場合は `scripts/hyprland-session.sh` の
+`spawn python3 "$scripts_dir/hyprland-workspace-one.py"` を外す。
