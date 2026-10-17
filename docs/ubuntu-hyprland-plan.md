@@ -356,3 +356,23 @@ python3 ~/.dotfiles/scripts/hyprland-workspace-one.py
 
 自動起動を止める場合は `scripts/hyprland-session.sh` の
 `spawn python3 "$scripts_dir/hyprland-workspace-one.py"` を外す。
+
+### デスクトップシェルの自動復旧
+
+`hyprland-session.sh` は `ubuntu-desktop-watch.py` 経由で選択中の
+Caelestia / DMS を起動する。シェルの終了を検出すると2秒待って再起動し、
+短時間で終了が続く場合は待ち時間を4、8、16、最大30秒まで延ばす。
+60秒以上動作した後の終了では2秒へ戻す。
+Hyprland の終了や監視への終了シグナルでは、シェルとその子プロセスを停止し、再起動しない。
+同じ Hyprland セッションで監視を重複起動しても追加のシェルは起動しない。
+
+再起動履歴は `~/.local/state/dotfiles/desktop-shell-watch.log`
+（`XDG_STATE_HOME` 指定時はその配下）に保存する。履歴はローテーションされる。
+Quickshell 自体の詳細ログは `$XDG_RUNTIME_DIR/quickshell/by-id/` 配下に残る。
+監視自体が強制終了された場合の復旧や、負荷・クラッシュ原因の解消は別途必要。
+
+現在の Hyprland セッションで監視を手動起動する場合:
+
+```bash
+python3 ~/.dotfiles/scripts/ubuntu-desktop-watch.py
+```

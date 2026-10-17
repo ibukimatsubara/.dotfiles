@@ -163,7 +163,8 @@ except OSError:
  inherited=False
 Path(os.environ['HOME'], 'shell-lock-inherited').write_text(str(inherited))
 ''')
-        self.stub('hyprctl', '#!/bin/sh\nsleep 0.3\nexit 1\n')
+        # Keep the fake compositor alive until the supervised shell starts.
+        self.stub('hyprctl', '#!/bin/sh\nif [ -f "$HOME/shell-lock-inherited" ]; then exit 1; fi\nsleep 0.1\nexit 0\n')
         self.stub('dbus-update-activation-environment', """#!/usr/bin/env python3
 import os,json,sys
 with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
