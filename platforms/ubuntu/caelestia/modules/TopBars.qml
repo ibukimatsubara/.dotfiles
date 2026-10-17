@@ -107,91 +107,95 @@ Variants {
                 anchors.rightMargin: 14
                 spacing: 10
 
-                BarComponents.OsIcon {
-                    Layout.preferredWidth: 30
-                    Layout.preferredHeight: 30
-                }
+                RowLayout {
+                    id: leftSection
+                    spacing: 10
+                    BarComponents.OsIcon {
+                        Layout.preferredWidth: 30
+                        Layout.preferredHeight: 30
+                    }
 
-                Metric {
-                    visible: pomoru.available
-                    icon: pomoru.working ? "" : "coffee"
-                    tomatoIcon: pomoru.working
-                    fixedDigits: true
-                    label: pomoru.remaining
-                    detail: "Pomoru · " + pomoru.description
-                    foreground: pomoru.working ? "#b49cde" : Colours.palette.m3onSurfaceVariant
-                }
+                    Metric {
+                        visible: pomoru.available
+                        icon: pomoru.working ? "" : "coffee"
+                        tomatoIcon: pomoru.working
+                        fixedDigits: true
+                        label: pomoru.remaining
+                        detail: "Pomoru · " + pomoru.description
+                        foreground: pomoru.working ? "#b49cde" : Colours.palette.m3onSurfaceVariant
+                    }
 
-                StyledRect {
-                    Layout.preferredWidth: workspaceRow.implicitWidth + 8
-                    Layout.preferredHeight: 32
-                    radius: 16
-                    color: Colours.palette.m3surfaceContainer
+                    StyledRect {
+                        Layout.preferredWidth: workspaceRow.implicitWidth + 8
+                        Layout.preferredHeight: 32
+                        radius: 16
+                        color: Colours.palette.m3surfaceContainer
 
-                    Row {
-                        id: workspaceRow
-                        anchors.centerIn: parent
-                        spacing: 2
+                        Row {
+                            id: workspaceRow
+                            anchors.centerIn: parent
+                            spacing: 2
 
-                        Repeater {
-                            model: bar.workspaceCount
+                            Repeater {
+                                model: bar.workspaceCount
 
-                            StyledRect {
-                                id: workspace
-                                required property int index
-                                readonly property int number: bar.workspaceOffset + index + 1
-                                readonly property bool selected: bar.activeWorkspace === number
-                                readonly property bool occupied: Hypr.workspaces.values.some(w => w.id === number && w.lastIpcObject.windows > 0)
-                                readonly property var windows: {
-                                    const config = GlobalConfig.forScreen(bar.modelData.name).bar.workspaces;
-                                    if (!config.showWindows)
-                                        return [];
-                                    const all = Hypr.toplevels.values.filter(w => w.workspace?.id === number);
-                                    return config.maxWindowIcons > 0 ? all.slice(0, config.maxWindowIcons) : all;
-                                }
-
-                                width: Math.max(30, workspaceContents.implicitWidth + 16)
-                                height: 26
-                                radius: 13
-                                color: selected ? Colours.palette.m3primary : hit.containsMouse ? Colours.palette.m3surfaceContainerHigh : "transparent"
-
-                                Row {
-                                    id: workspaceContents
-                                    anchors.centerIn: parent
-                                    spacing: 4
-
-                                    StyledText {
-                                        width: 14
-                                        height: 20
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                        text: workspace.number
-                                        font.family: Tokens.font.workspaces
-                                        font.bold: workspace.selected || workspace.occupied
-                                        color: workspace.selected ? Colours.palette.m3onPrimary : workspace.occupied ? Colours.palette.m3onSurface : Colours.palette.m3outline
+                                StyledRect {
+                                    id: workspace
+                                    required property int index
+                                    readonly property int number: bar.workspaceOffset + index + 1
+                                    readonly property bool selected: bar.activeWorkspace === number
+                                    readonly property bool occupied: Hypr.workspaces.values.some(w => w.id === number && w.lastIpcObject.windows > 0)
+                                    readonly property var windows: {
+                                        const config = GlobalConfig.forScreen(bar.modelData.name).bar.workspaces;
+                                        if (!config.showWindows)
+                                            return [];
+                                        const all = Hypr.toplevels.values.filter(w => w.workspace?.id === number);
+                                        return config.maxWindowIcons > 0 ? all.slice(0, config.maxWindowIcons) : all;
                                     }
 
-                                    Repeater {
-                                        model: ScriptModel { values: workspace.windows }
-                                        MaterialIcon {
-                                            required property var modelData
-                                            width: 18
+                                    width: Math.max(30, workspaceContents.implicitWidth + 16)
+                                    height: 26
+                                    radius: 13
+                                    color: selected ? Colours.palette.m3primary : hit.containsMouse ? Colours.palette.m3surfaceContainerHigh : "transparent"
+
+                                    Row {
+                                        id: workspaceContents
+                                        anchors.centerIn: parent
+                                        spacing: 4
+
+                                        StyledText {
+                                            width: 14
                                             height: 20
                                             horizontalAlignment: Text.AlignHCenter
                                             verticalAlignment: Text.AlignVCenter
-                                            text: Icons.getAppCategoryIcon(modelData.lastIpcObject.class, "apps")
-                                            color: workspace.selected ? Colours.palette.m3onPrimary : Colours.palette.m3onSurfaceVariant
+                                            text: workspace.number
+                                            font.family: Tokens.font.workspaces
+                                            font.bold: workspace.selected || workspace.occupied
+                                            color: workspace.selected ? Colours.palette.m3onPrimary : workspace.occupied ? Colours.palette.m3onSurface : Colours.palette.m3outline
+                                        }
+
+                                        Repeater {
+                                            model: ScriptModel { values: workspace.windows }
+                                            MaterialIcon {
+                                                required property var modelData
+                                                width: 18
+                                                height: 20
+                                                horizontalAlignment: Text.AlignHCenter
+                                                verticalAlignment: Text.AlignVCenter
+                                                text: Icons.getAppCategoryIcon(modelData.lastIpcObject.class, "apps")
+                                                color: workspace.selected ? Colours.palette.m3onPrimary : Colours.palette.m3onSurfaceVariant
+                                            }
                                         }
                                     }
-                                }
 
-                                MouseArea {
-                                    id: hit
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: Hypr.dispatch(`workspace ${workspace.number}`)
-                                    onWheel: event => Hypr.dispatch(`workspace e${event.angleDelta.y > 0 ? "-1" : "+1"}`)
+                                    MouseArea {
+                                        id: hit
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: Hypr.dispatch(`workspace ${workspace.number}`)
+                                        onWheel: event => Hypr.dispatch(`workspace e${event.angleDelta.y > 0 ? "-1" : "+1"}`)
+                                    }
                                 }
                             }
                         }
@@ -201,6 +205,7 @@ Variants {
                 Item { Layout.fillWidth: true }
 
                 RowLayout {
+                    id: rightSection
                     Layout.alignment: Qt.AlignRight
                     Layout.maximumWidth: implicitWidth
                     spacing: 10
@@ -286,6 +291,14 @@ Variants {
                         onClicked: bar.toggleDrawer("session")
                     }
                 }
+            }
+
+            NowPlaying {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                // Keep the media truly centered without overlapping either side.
+                width: Math.max(0, Math.min(360, parent.width - 2 * (Math.max(leftSection.implicitWidth, rightSection.implicitWidth) + 26)))
+                visible: available && width >= 120
             }
         }
     }

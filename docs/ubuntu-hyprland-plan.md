@@ -376,3 +376,13 @@ Quickshell 自体の詳細ログは `$XDG_RUNTIME_DIR/quickshell/by-id/` 配下�
 ```bash
 python3 ~/.dotfiles/scripts/ubuntu-desktop-watch.py
 ```
+
+### バー中央の再生中の曲
+
+Caelestia の独自トップバーは `modules/NowPlaying.qml` で、ジャケット・曲名・
+アーティストを中央に表示する。Caelestia の MPRIS サービスを使い、
+再生中のプレイヤーを優先する。cliamp や Chrome など MPRIS 対応アプリが対象。
+クリックで再生・一時停止、ホバーで曲名全文を表示する。
+画像が取得できなければ macOS の SketchyBar と共通のプレースホルダー画像を使う。
+再生ボタンは表示しない。曲情報がなければ非表示。
+左右の項目と重ならないよう幅を制限し、空きが少ない画面では非表示にする。
