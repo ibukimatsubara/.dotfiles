@@ -79,7 +79,15 @@ def main():
             return [json.loads(line) for line in audio_log.read_text().splitlines()] if audio_log.exists() else []
 
         try:
-            for count, mode in enumerate(('work', 'short-break', 'long-break'), 1):
+            sessions = (
+                ('work', 'short-break'),
+                ('short-break', 'work'),
+                ('work', 'short-break'),
+                ('short-break', 'work'),
+                ('work', 'long-break'),
+                ('long-break', 'work'),
+            )
+            for count, (mode, next_mode) in enumerate(sessions, 1):
                 wait_for(lambda: json.loads(status_path.read_text())['class'] == mode,
                          'Status bar did not report ' + mode)
                 os.write(master, b' ')
@@ -87,29 +95,29 @@ def main():
                          'Missing completion sound for ' + mode)
                 expected = str(config / 'sounds/timer-complete.mp3')
                 assert audio_events()[-1] == ['-nodisp', '-autoexit', '-loglevel', 'error', '-i', expected]
+                wait_for(lambda: json.loads(status_path.read_text())['class'] == next_mode,
+                         'Completed ' + mode + ' did not advance to waiting ' + next_mode)
                 # More than one second proves manual mode did not start another
                 # zero-duration session and replay its completion sound.
                 deadline = time.monotonic() + 1.2
                 while time.monotonic() < deadline:
                     drain()
                 assert len(audio_events()) == count, 'Sound repeated in manual mode'
-                assert json.loads(status_path.read_text())['class'] == mode
-                if count < 3:
-                    os.write(master, b'\t')
+                assert json.loads(status_path.read_text())['class'] == next_mode
             if '--warning' in sys.argv[2:]:
                 # A real two-minute countdown reaches its warning after one minute.
                 os.write(master, b'e2\r')
                 wait_for(lambda: '02:00' in json.loads(status_path.read_text())['text'],
                          'Timer edit did not apply')
                 os.write(master, b' ')
-                wait_for(lambda: len(audio_events()) == 4,
+                wait_for(lambda: len(audio_events()) == len(sessions) + 1,
                          'Missing one-minute warning playback', timeout=65)
                 assert audio_events()[-1][-1] == str(config / 'sounds/warning-beep.mp3')
                 os.write(master, b' ')
                 deadline = time.monotonic() + 1.2
                 while time.monotonic() < deadline:
                     drain()
-                assert len(audio_events()) == 4, 'Warning repeated while paused'
+                assert len(audio_events()) == len(sessions) + 1, 'Warning repeated while paused'
             os.write(master, b'q')
             wait_for(lambda: not status_path.exists(), 'Status was not cleared on quit')
             _, exit_status = os.waitpid(pid, 0)

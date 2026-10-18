@@ -2,8 +2,13 @@
 
 Custom patch for upstream Pomoru v1.2.0 ([MIT license](UPSTREAM-LICENSE)). Work, short breaks, and long breaks
 play a warning once when the countdown crosses 60 seconds, then a completion
-sound at zero. Pausing does not trigger sounds. Manual session progression
-and the existing status JSON for Caelestia are preserved.
+sound at zero. Pausing does not trigger sounds. Completed sessions advance
+to the next session and wait for Space to start it in manual mode. The
+existing status JSON for Caelestia is preserved.
+
+Defaults are work 50 minutes, short break 10 minutes, and long break 30
+minutes, with a long break after every third work session. Auto-start is
+disabled by default; `a` toggles it.
 
 Run `bash scripts/install-pomoru.sh` from the dotfiles checkout. Requirements:
 Rust/Cargo (tested with Rust 1.93.1), `curl`,
@@ -28,8 +33,10 @@ RUSTUP_TOOLCHAIN=1.93.1 bash scripts/install-pomoru.sh
 `install-pomoru.sh` explicitly after pulling changes to this profile. Sound
 assets and the patch are included here; no Lofi Station checkout is required.
 The installer preserves existing `config.toml` (including tasks) and
-`alerts.toml`. On an existing installation, press `a` to select manual mode
-if it is still set to auto; newly seeded settings default to manual mode.
+`alerts.toml`. Existing durations remain in `~/.config/pomoru/config.toml`;
+edit them there after exiting an old running version to adopt the defaults.
+On an existing installation, press `a` to select manual mode if it is still
+set to auto; newly seeded settings default to manual mode.
 Use `q` to exit a running old version before launching the new one.
 
 For the Caelestia bar integration, follow the

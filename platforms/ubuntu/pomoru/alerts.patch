@@ -21,6 +21,9 @@
 @@ -120 +119 @@
 -#[derive(PartialEq, Clone, Copy)]
 +#[derive(Debug, PartialEq, Clone, Copy)]
+@@ -153 +152 @@
+-    true
++    false
 @@ -166,0 +166,6 @@
 +}
 +
@@ -28,7 +31,18 @@
 +pub enum AlertEvent {
 +    Warning,
 +    Complete(SessionMode),
-@@ -214,27 +219,8 @@
+@@ -191 +196 @@
+-        let work = Duration::from_secs(25 * 60);
++        let work = Duration::from_secs(50 * 60);
+@@ -198,2 +203,2 @@
+-            short_break_time: Duration::from_secs(5 * 60),
+-            long_break_time: Duration::from_secs(15 * 60),
++            short_break_time: Duration::from_secs(10 * 60),
++            long_break_time: Duration::from_secs(30 * 60),
+@@ -203 +208 @@
+-            auto_switch_sessions: true,
++            auto_switch_sessions: false,
+@@ -214,35 +219,16 @@
 -    pub fn tick(&mut self) {
 -        if self.is_running && self.time_remaining.as_secs() > 0 {
 -            self.time_remaining -= Duration::from_secs(1);
@@ -56,6 +70,14 @@
 -
 -            self.send_notification(title, msg);
 -
+-            if self.auto_switch_sessions {
+-                self.transition_next_session();
+-                self.is_running = true;
+-            } else {
+-                self.is_running = false;
+-                self.reset_timer_to_mode();
+-            }
+-        }
 +    pub fn tick(&mut self) -> Option<AlertEvent> {
 +        if !self.is_running {
 +            return None;
@@ -64,17 +86,15 @@
 +        self.time_remaining = self.time_remaining.saturating_sub(Duration::from_secs(1));
 +        if self.time_remaining.is_zero() {
 +            let completed = self.mode;
-@@ -243 +228,0 @@
--                self.is_running = true;
-@@ -248 +233,6 @@
--        }
++            self.transition_next_session();
++            self.is_running = self.auto_switch_sessions;
 +            return Some(AlertEvent::Complete(completed));
 +        }
 +        if previous > 60 && self.time_remaining.as_secs() == 60 {
 +            return Some(AlertEvent::Warning);
 +        }
 +        None
-@@ -281,10 +271,87 @@
+@@ -281,10 +267,99 @@
 -
 -    pub fn send_notification(&self, title: &str, message: &str) {
 -        let _ = Notification::new()
@@ -92,20 +112,31 @@
 +    use super::*;
 +
 +    #[test]
-+    fn manual_session_stops_on_the_final_second() {
-+        for mode in [
-+            SessionMode::Work,
-+            SessionMode::ShortBreak,
-+            SessionMode::LongBreak,
++    fn manual_sessions_advance_and_wait_on_the_final_second() {
++        for (mode, break_count, next_mode, next_count, next_seconds) in [
++            (SessionMode::Work, 0, SessionMode::ShortBreak, 1, 600),
++            (SessionMode::Work, 1, SessionMode::ShortBreak, 2, 600),
++            (SessionMode::Work, 2, SessionMode::LongBreak, 3, 1800),
++            (SessionMode::ShortBreak, 1, SessionMode::Work, 1, 3000),
++            (SessionMode::LongBreak, 3, SessionMode::Work, 3, 3000),
 +        ] {
 +            let mut app = Pomo::new();
++            app.work_time = Duration::from_secs(3000);
++            app.short_break_time = Duration::from_secs(600);
++            app.long_break_time = Duration::from_secs(1800);
 +            app.mode = mode;
++            app.break_count = break_count;
 +            app.auto_switch_sessions = false;
 +            app.is_running = true;
 +            app.time_remaining = Duration::from_secs(1);
-+            app.tick();
-+            assert!(!app.is_running, "manual session must stop at zero");
-+            assert!(app.mode == mode, "manual mode must not switch sessions");
++            assert_eq!(app.tick(), Some(AlertEvent::Complete(mode)));
++            assert!(!app.is_running, "the next session must wait for Space");
++            assert_eq!(app.mode, next_mode);
++            assert_eq!(app.break_count, next_count);
++            assert_eq!(app.time_remaining, Duration::from_secs(next_seconds));
++            assert_eq!(app.total_duration, Duration::from_secs(next_seconds));
++            assert_eq!(app.tick(), None);
++            assert_eq!(app.time_remaining, Duration::from_secs(next_seconds));
 +        }
 +    }
 +
@@ -121,10 +152,10 @@
 +
 +    #[test]
 +    fn all_session_types_warn_once_and_complete_once_across_pause_resume() {
-+        for mode in [
-+            SessionMode::Work,
-+            SessionMode::ShortBreak,
-+            SessionMode::LongBreak,
++        for (mode, next_mode) in [
++            (SessionMode::Work, SessionMode::ShortBreak),
++            (SessionMode::ShortBreak, SessionMode::Work),
++            (SessionMode::LongBreak, SessionMode::Work),
 +        ] {
 +            let mut app = Pomo::new();
 +            app.mode = mode;
@@ -144,7 +175,7 @@
 +            }
 +            assert_eq!(app.tick(), Some(AlertEvent::Complete(mode)));
 +            assert!(!app.is_running);
-+            assert_eq!(app.mode, mode);
++            assert_eq!(app.mode, next_mode);
 +            assert_eq!(app.tick(), None);
 +        }
 +    }
@@ -165,6 +196,7 @@
 +    #[test]
 +    fn automatic_mode_reports_the_completed_session_before_switching() {
 +        let mut app = Pomo::new();
++        app.auto_switch_sessions = true;
 +        app.is_running = true;
 +        app.time_remaining = Duration::from_secs(1);
 +        assert_eq!(app.tick(), Some(AlertEvent::Complete(SessionMode::Work)));
