@@ -75,5 +75,10 @@
         "vicinae"
       ]
     }
+  },
+  "utilities": {
+    "toasts": {
+      "kbLayoutChanged": false
+    }
   }
 }

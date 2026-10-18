@@ -34,6 +34,7 @@ Variants {
         ServiceRef { service: Storage }
         property var codexSnapshot: ({})
         PomoruStatus { id: pomoru }
+        VoxtypeStatus { id: voxtype }
         Timer {
             interval: 2000
             running: true
@@ -200,6 +201,16 @@ Variants {
                             }
                         }
                     }
+
+                    Metric {
+                        visible: voxtype.available
+                        icon: voxtype.icon
+                        label: voxtype.label
+                        detail: voxtype.description
+                        fixedDigits: true
+                        labelWidth: 110
+                        foreground: voxtype.recording ? Colours.palette.m3onSurface : Colours.palette.m3onSurfaceVariant
+                    }
                 }
 
                 Item { Layout.fillWidth: true }
@@ -312,6 +323,7 @@ Variants {
         property color foreground: Colours.palette.m3onSurfaceVariant
         property bool tomatoIcon: false
         property bool fixedDigits: false
+        property real labelWidth: fixedDigits ? 52 : -1
         signal clicked
         implicitWidth: contents.implicitWidth + 12
         implicitHeight: 30
@@ -335,7 +347,7 @@ Variants {
             }
             StyledText {
                 Layout.alignment: Qt.AlignVCenter
-                Layout.preferredWidth: metric.fixedDigits ? 52 : implicitWidth
+                Layout.preferredWidth: metric.labelWidth >= 0 ? metric.labelWidth : implicitWidth
                 Layout.preferredHeight: 24
                 verticalAlignment: Text.AlignVCenter
                 font: metric.fixedDigits ? Qt.font({ family: "Hack Nerd Font Mono", pointSize: Tokens.font.body.small.pointSize }) : Tokens.font.body.small

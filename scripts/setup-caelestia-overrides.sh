@@ -11,7 +11,7 @@ if [ ! -f "$shell_dir/shell.qml" ]; then
     exit 1
 fi
 pending=()
-for name in qt-6.10 hyprlock topbar topbar-frame topbar-no-top-edge launcher-super-jk; do
+for name in qt-6.10 hyprlock topbar topbar-frame topbar-no-top-edge launcher-super-jk voxtype-notifications; do
     change="$overrides/$name.patch"
     if patch --force --silent --dry-run -R -p1 -d "$shell_dir" < "$change" >/dev/null 2>&1; then
         continue

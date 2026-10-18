@@ -303,6 +303,18 @@ Ghosttyの背景ぼかしはHyprland側で適用する。テーマ生成時のGh
 一時停止は残り時間の停止として反映する（Pomoru v1.2.0は一時停止フラグを出力しない）。
 終了時は表示を隠し、異常終了でファイルが残った場合もプロセス確認で5秒以内に隠す。
 
+ワークスペース番号の右にはVoxtypeの録音状態を表示する。
+録音中はマイクと `REC mm:ss`、認識中は砂時計と `Processing…`、待機・終了時は非表示。
+既存の白黒配色とバー部品を使い、文字幅を固定して秒数による位置ずれを防ぐ。
+`modules/VoxtypeStatus.qml` が `voxtype status --follow --format json` を読み、
+デーモン終了も反映する。録音用のマイク入力や認識処理は追加しない。
+Shift+Spaceで録音開始・停止を切り替える。表示をホバーすると停止キーを確認できる。
+貼り付け用のwtype仮想キーボードでも配列変更イベントが発生するため、
+`utilities.toasts.kbLayoutChanged=false` でキーボード配列変更のトーストを無効にする。
+Voxtypeの録音通知や通常のアプリ通知は引き続き表示する。
+`voxtype-notifications.patch` はVoxtypeが既存通知を書き換えた際にポップアップと
+表示タイマーを再開し、次回の録音開始や認識完了も画面上で確認できるようにする。
+
 ### Pomoruの導入と操作
 
 音付きカスタム版は `bash scripts/install-pomoru.sh` で導入する。

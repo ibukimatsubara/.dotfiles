@@ -1,0 +1,10 @@
+--- a/services/NotifData.qml
++++ b/services/NotifData.qml
+@@ -118,2 +118,7 @@
+             notif.summary = notif.notification.summary;
++            // Voxtype replaces its previous alert for each recording state.
++            if (notif.appName === "Voxtype" && !notif.closed) {
++                notif.popup = Notifs.shouldShowPopup();
++                notif.timer.restart();
++            }
+         }
