@@ -1,0 +1,56 @@
+engine = "whisper"
+state_file = "auto"
+
+[hotkey]
+enabled = false
+mode = "toggle"
+
+[audio]
+device = "voxtype_dji"
+sample_rate = 16000
+max_duration_secs = 60
+
+[audio.feedback]
+enabled = true
+theme = "subtle"
+volume = 0.4
+
+[whisper]
+model = "large-v3-turbo"
+language = "ja"
+translate = false
+on_demand_loading = false
+streaming = false
+initial_prompt = "GitHubのIssueを作成しておいてください。用語：GitHub、Issue、PR、commit、.dotfiles、Codex、Ubuntu、Hyprland、Caelestia、Ghostty、Voxtype、OpenWhispr、Whisper、NVIDIA、GPU、CPU、DJI MIC MINI、Shift+Space、large-v3-turbo。"
+
+[output]
+mode = "paste"
+auto_submit = false
+shift_enter_newlines = true
+fallback_to_clipboard = true
+pre_type_delay_ms = 150
+paste_keys = "ctrl+shift+v"
+restore_clipboard = true
+restore_clipboard_delay_ms = 1000
+
+[output.notification]
+on_recording_start = true
+on_recording_stop = true
+on_transcription = true
+on_no_speech = true
+
+[osd]
+enabled = false
+
+# Vocabulary and phrase corrections for local dictation.
+[text.replacements]
+"一周を作成しておいてください" = "Issueを作成しておいてください"
+"一周を作成してください" = "Issueを作成してください"
+"一周を作っておいてください" = "Issueを作っておいてください"
+"open whisper" = "OpenWhispr"
+"openwhisper" = "OpenWhispr"
+"vox type" = "Voxtype"
+"hyperland" = "Hyprland"
+"git hub" = "GitHub"
+"pull request" = "PR"
+"shift space" = "Shift+Space"

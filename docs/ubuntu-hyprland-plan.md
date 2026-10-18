@@ -314,6 +314,8 @@ Shift+Spaceで録音開始・停止を切り替える。表示をホバーする
 Voxtypeの録音通知や通常のアプリ通知は引き続き表示する。
 `voxtype-notifications.patch` はVoxtypeが既存通知を書き換えた際にポップアップと
 表示タイマーを再開し、次回の録音開始や認識完了も画面上で確認できるようにする。
+Voxtype本体・DJIマイク・日本語turboモデル・streaming・辞書・ログイン時の自動起動は
+[Voxtypeの導入と復元](voxtype.md) にまとめ、`platforms/ubuntu/voxtype/` に設定を保存している。
 
 ### Pomoruの導入と操作
 

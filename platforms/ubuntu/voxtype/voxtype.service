@@ -1,0 +1,16 @@
+[Unit]
+Description=Voxtype local speech-to-text daemon
+After=pipewire.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Environment=XDG_RUNTIME_DIR=%t
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStartPre=/usr/bin/test -S %t/${WAYLAND_DISPLAY}
+ExecStart=%h/.local/bin/voxtype daemon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

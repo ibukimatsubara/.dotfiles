@@ -10,6 +10,7 @@
 - [setup.md](./setup.md) - セットアップとインストール手順
 - [music.md](./music.md) - cliamp・rmpc、音楽とPodcast購読のUbuntu → Mac同期
 - [wallpapers.md](./wallpapers.md) - フリーレン壁紙の配布元・別マシンでの取得手順、写真壁紙
+- [voxtype.md](./voxtype.md) - Ubuntuの日本語音声入力、GPU・streaming・辞書・ログイン時の自動起動と復元
 - [skhd.md](./skhd.md) - macOSのワークスペース単位のアプリショートカット
 - [aqua-voice-aerospace-troubleshooting.md](./aqua-voice-aerospace-troubleshooting.md) - Aqua Voiceの表示・ショートカット問題の切り分け
 - [remote-codex-preview.md](./remote-codex-preview.md) - リモートCodexの成果物を手元Macで開く
