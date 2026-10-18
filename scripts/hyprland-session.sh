@@ -57,7 +57,10 @@ fi
 if command -v vicinae >/dev/null 2>&1; then
     spawn "$scripts_dir/hyprland-native.sh" vicinae server --config "${XDG_CONFIG_HOME:-$HOME/.config}/vicinae/vicinae.json"
 fi
-spawn python3 "$scripts_dir/hyprland-workspace-one.py"
+# Keep startup diagnostics even when the display manager discards stdout.
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+mkdir -p "$state_dir"
+spawn python3 -u "$scripts_dir/hyprland-workspace-one.py" >"$state_dir/workspace-one.log" 2>&1
 while hyprctl -j monitors >/dev/null 2>&1; do
     sleep 3 & wait "$!" || true
 done

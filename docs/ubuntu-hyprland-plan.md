@@ -341,14 +341,32 @@ general {
 
 ### Space 1 のログイン時配置
 
-Hyprland にログインすると `scripts/hyprland-workspace-one.py` が pomoru、
-cliamp（`music-player.sh` の Music プレイリスト）、Chrome アプリ表示の
-Notion Calendar（`https://calendar.notion.com`、既定プロファイル）を開く。
-右半分をカレンダー、左上を pomoru、左下を cliamp にして通常のタイルとして配置する。
-タイマー開始や音楽再生の操作は各アプリ側で行う。
+Hyprland にログインすると `scripts/hyprland-workspace-one.py` が、対象モニターと
+選択中のデスクトップシェルの表示を確認してから、pomoru、cliamp
+（`music-player.sh` の Music プレイリスト）、Chrome アプリ表示の Notion Calendar
+（`https://calendar.notion.com`、既定プロファイル）を Space 1 に開く。
+Caelestia は背景とトップバー、DMS はバーの layer surface を確認する。
+モニターの解像度・スケール・バーの予約領域が連続する2回の確認で一致してから起動する。
+固定秒数の sleep だけで準備完了とは判断しない。準備待ちは最大60秒。
 
-既存の対象ウィンドウを再利用し、3つとも Space 1 にあれば現在の配置を維持する。
-起動待ちは最大60秒。失敗した場合は起動済みのウィンドウを残し、セッションのログへエラーを出す。
+アプリは最初から通常のタイルとして開き、配置は dwindle に任せる。
+既存の対象ウィンドウは再利用し、Space 1 にあるタイル配置を維持する。
+タイマー開始や音楽再生の操作は各アプリ側で行う。
+起動・修復のために workspace を切り替えたり、対象ウィンドウへフォーカスを移したりしない。
+以前の起動で floating のまま残ったウィンドウは、タイルへ戻して Space 1 に配置する。
+
+ウィンドウの検出と配置は最大120秒間確認し、一時的な IPC・配置エラーは再試行する。
+毎回最新のウィンドウ一覧を読み、起動要求への応答が失われても重複起動を避ける。
+接続前の失敗は再送し、応答だけが失われた場合はウィンドウの出現を待つ。
+Ghostty は有効なアプリID `com.dotfiles.pomoru` / `com.dotfiles.music` で識別する。
+タイトルだけが後から変わるのを待つ必要はなく、旧形式の既存ウィンドウも識別する。
+`conf/rules.conf` のクラス指定ルールでも Space 1・タイル・初回フォーカス抑制を指定し、
+既存 Chrome プロセスに起動要求が転送される場合も同じ配置を適用する。
+ログイン時の処理経過とエラーは
+`${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/workspace-one.log` に保存する。
+新しく起動するウィンドウは最初からタイル表示なので、起動待ちがタイムアウトしても
+floating のまま残すことはない。不足分や配置失敗をログへ記録する。
+
 手動で不足分を開き直す場合は次を実行する。
 
 ```bash
