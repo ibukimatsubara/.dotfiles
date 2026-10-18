@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Restart the desktop shell while its Hyprland session exists."""
+"""Recover the desktop shell from crashes and monitor layout changes."""
 import fcntl
+import json
 import logging
 from logging.handlers import RotatingFileHandler
+import math
 import os
 import select
 from pathlib import Path
@@ -13,6 +15,49 @@ import threading
 import time
 
 SESSION_PIDFD = None
+
+
+def monitor_layout():
+    try:
+        monitors = json.loads(subprocess.check_output(
+            ['hyprctl', '-j', 'monitors'], text=True, stderr=subprocess.DEVNULL, timeout=2))
+        if not isinstance(monitors, list) or any(not isinstance(m, dict) for m in monitors):
+            return None
+        layout = []
+        for monitor in monitors:
+            if type(monitor.get('disabled', False)) is not bool:
+                return None
+            if monitor.get('disabled'):
+                continue
+            name = monitor['name']
+            geometry = (monitor['x'], monitor['y'], monitor['width'], monitor['height'],
+                        monitor.get('scale', 1))
+            transform = monitor.get('transform', 0)
+            if not isinstance(name, str) or not name:
+                return None
+            if any(type(value) not in (int, float) or not math.isfinite(value) for value in geometry):
+                return None
+            if any(value <= 0 for value in geometry[2:]) or type(transform) is not int or not 0 <= transform <= 7:
+                return None
+            layout.append((name, *geometry, transform))
+        return tuple(sorted(layout))
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, OverflowError):
+        # Invalid IPC must not be mistaken for a disconnected monitor.
+        return None
+
+
+def refresh_monitor_layout():
+    try:
+        # Reapply live monitor rules; a full config reload would discard runtime
+        # scale/resolution changes made with `hyprctl keyword monitor`.
+        result = subprocess.check_output(['hyprctl', 'dispatch', 'forcerendererreload'], text=True,
+                                         stderr=subprocess.DEVNULL, timeout=5)
+        if result.strip() == 'ok':
+            return True
+    except (OSError, subprocess.SubprocessError):
+        pass
+    logging.warning('Monitor refresh failed; keeping the shell and retrying')
+    return False
 
 
 def session_alive():
@@ -47,8 +92,15 @@ def stop_child(child):
 
 def supervise(command, stopped):
     delay = 2
+    # Keep monitor recovery state when a hotplug also crashes the shell.
+    layout = monitor_layout()
+    # An unknown initial layout needs settled recovery before it becomes the baseline.
+    pending_layout = None
+    pending_since = time.monotonic()
+    next_layout_check = pending_since + 1
     while not stopped.is_set() and session_alive():
         started = time.monotonic()
+        layout_changed = False
         logging.info('Starting desktop shell')
         try:
             child = subprocess.Popen(command, start_new_session=True)
@@ -60,10 +112,37 @@ def supervise(command, stopped):
                     if not session_alive():
                         logging.info('Hyprland process ended; stopping desktop shell')
                         stopped.set()
+                        break
+                    now = time.monotonic()
+                    if now < next_layout_check:
+                        continue
+                    next_layout_check = now + 1
+                    observed = monitor_layout()
+                    if observed is None:
+                        pending_layout = None
+                    elif not observed:
+                        # A temporary zero-output state needs recovery even
+                        # when the same display reconnects at the same position.
+                        layout = ()
+                        pending_layout = None
+                    elif observed == layout:
+                        pending_layout = None
+                    elif observed != pending_layout:
+                        pending_layout = observed
+                        pending_since = now
+                    elif now - pending_since >= 1 and refresh_monitor_layout():
+                        logging.info('Monitor layout settled; recreating desktop surfaces')
+                        layout = observed
+                        pending_layout = None
+                        layout_changed = True
+                        break
             finally:
                 stop_child(child)
             if stopped.is_set():
                 break
+            if layout_changed:
+                delay = 2
+                continue
             logging.warning('Desktop shell exited (status %s)', child.returncode)
         if time.monotonic() - started >= 60:
             delay = 2

@@ -225,6 +225,7 @@ Variants {
                     }
 
                     RowLayout {
+                        visible: GlobalConfig.forScreen(bar.modelData.name).bar.entries.some(entry => entry.id === "tray" && entry.enabled)
                         Layout.maximumWidth: implicitWidth
                         spacing: 10
                         Repeater {

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Exercise crash recovery, duplicate prevention and compositor shutdown."""
+"""Exercise crash recovery, monitor changes and compositor shutdown."""
+import json
 import os
 from pathlib import Path
 import signal
@@ -60,6 +61,144 @@ exec sleep 120
     def starts(self):
         path = self.home / 'starts'
         return path.read_text().splitlines() if path.exists() else []
+
+    def write_monitors(self, monitors):
+        temporary = self.home / 'monitors.tmp'
+        temporary.write_text(json.dumps(monitors))
+        temporary.replace(self.home / 'monitors.json')
+
+    def monitor_queries(self):
+        path = self.home / 'monitor-queries'
+        return path.read_text().splitlines() if path.exists() else []
+
+    def watch_monitors(self, initial_ipc_failure=False):
+        monitors = [{'name': 'DP-1', 'x': 0, 'y': 0, 'width': 1920, 'height': 1080,
+                     'scale': 1, 'transform': 0, 'disabled': False, 'focused': True,
+                     'refreshRate': 60, 'activeWorkspace': {'id': 5, 'name': '5'}}]
+        self.write_monitors(monitors)
+        self.stub('hyprctl', '''#!/bin/sh
+test ! -f "$XDG_RUNTIME_DIR/stopped" || exit 1
+if [ -f "$XDG_RUNTIME_DIR/initial-ipc-failure" ]; then
+ rm "$XDG_RUNTIME_DIR/initial-ipc-failure"
+ exit 1
+fi
+if [ "$#" = 2 ] && [ "$1" = dispatch ] && [ "$2" = forcerendererreload ]; then
+ test ! -f "$XDG_RUNTIME_DIR/reload-fails" || exit 1
+ printf 'reload\\n' >> "$XDG_RUNTIME_DIR/reloads"
+ printf 'ok\\n'
+ exit 0
+fi
+test "$#" = 2 && test "$1" = -j && test "$2" = monitors || exit 2
+monitor_snapshot="$(cat "$XDG_RUNTIME_DIR/monitors.json")"
+printf '%s\\n' "$monitor_snapshot"
+printf '%s\\n' "$monitor_snapshot" >> "$XDG_RUNTIME_DIR/monitor-queries"
+''')
+        (self.home / 'crashed').touch()
+        if initial_ipc_failure:
+            (self.home / 'initial-ipc-failure').touch()
+        process = self.launch()
+        self.wait_for(lambda: len(self.starts()) == 1)
+        return process, monitors
+
+    def wait_for_monitor_queries(self, count=3):
+        previous = len(self.monitor_queries())
+        self.wait_for(lambda: len(self.monitor_queries()) >= previous + count)
+
+    def test_monitor_replacement_restarts_shell_once_after_layout_settles(self):
+        process, monitors = self.watch_monitors()
+        old_child = int(self.starts()[0])
+        monitors[0].update(name='HDMI-A-1', x=1920, width=3440, height=1440)
+        self.write_monitors(monitors)
+        self.wait_for(lambda: json.dumps(monitors) in self.monitor_queries())
+        self.assertEqual(len(self.starts()), 1)
+        monitors[0]['x'] = 0
+        self.write_monitors(monitors)
+        self.wait_for(lambda: len(self.starts()) == 2)
+        self.assertEqual((self.home / 'reloads').read_text().splitlines(), ['reload'])
+        with self.assertRaises(ProcessLookupError):
+            os.kill(old_child, 0)
+        # Workspace, focus and usage changes must not restart the shell.
+        monitors[0].update(activeWorkspace={'id': 3, 'name': '3'}, focused=False)
+        self.write_monitors(monitors)
+        self.wait_for_monitor_queries()
+        self.assertEqual(len(self.starts()), 2)
+        self.assertEqual((self.home / 'reloads').read_text().splitlines(), ['reload'])
+        self.assertIsNone(process.poll())
+
+    def test_resolution_scale_position_and_rotation_changes_restart_shell(self):
+        process, monitors = self.watch_monitors()
+        for starts, change in enumerate(({'width': 3440, 'height': 1440},
+                                        {'scale': 1.25}, {'x': 100, 'y': 50},
+                                        {'transform': 1}), start=2):
+            with self.subTest(change=change):
+                monitors[0].update(change)
+                self.write_monitors(monitors)
+                self.wait_for(lambda: len(self.starts()) == starts)
+        self.assertIsNone(process.poll())
+
+    def test_disconnect_waits_for_valid_output_before_restarting_shell(self):
+        process, monitors = self.watch_monitors()
+        self.write_monitors([])
+        self.wait_for_monitor_queries()
+        self.assertEqual(len(self.starts()), 1)
+        (self.home / 'monitors.json').write_text('invalid JSON')
+        self.wait_for_monitor_queries()
+        self.assertEqual(len(self.starts()), 1)
+        self.assertIsNone(process.poll())
+        # Reconnecting the same display must also recreate its surfaces.
+        self.write_monitors(monitors)
+        self.wait_for(lambda: len(self.starts()) == 2)
+        self.wait_for_monitor_queries()
+        self.assertEqual(len(self.starts()), 2)
+
+    def test_invalid_monitor_data_does_not_stop_or_restart_shell(self):
+        process, monitors = self.watch_monitors()
+        for response in ({'monitors': []}, [None], [{}],
+                         [dict(monitors[0], width=None)], [dict(monitors[0], scale=0)]):
+            with self.subTest(response=response):
+                self.write_monitors(response)
+                self.wait_for_monitor_queries()
+                self.assertIsNone(process.poll())
+                self.assertEqual(len(self.starts()), 1)
+        self.write_monitors(monitors)
+        self.wait_for_monitor_queries()
+        self.assertEqual(len(self.starts()), 1)
+
+    def test_failed_reload_keeps_shell_running_until_retry_succeeds(self):
+        process, monitors = self.watch_monitors()
+        failure = self.home / 'reload-fails'
+        failure.touch()
+        monitors[0]['width'] = 2560
+        self.write_monitors(monitors)
+        self.wait_for_monitor_queries(count=8)
+        self.assertIsNone(process.poll())
+        self.assertEqual(len(self.starts()), 1)
+        failure.unlink()
+        self.wait_for(lambda: len(self.starts()) == 2)
+        self.assertEqual((self.home / 'reloads').read_text().splitlines(), ['reload'])
+
+    def test_monitor_change_is_recovered_even_if_shell_crashes(self):
+        process, monitors = self.watch_monitors()
+        monitors[0].update(name='HDMI-A-1', width=3440, height=1440)
+        self.write_monitors(monitors)
+        os.kill(int(self.starts()[0]), signal.SIGKILL)
+        self.wait_for(lambda: (self.home / 'reloads').exists())
+        self.wait_for(lambda: len(self.starts()) >= 2)
+        self.assertIsNone(process.poll())
+        self.assertEqual((self.home / 'reloads').read_text().splitlines(), ['reload'])
+
+    def test_initial_ipc_failure_does_not_hide_early_monitor_change(self):
+        process, monitors = self.watch_monitors(initial_ipc_failure=True)
+        old_child = int(self.starts()[0])
+        monitors[0].update(name='HDMI-A-1', width=3440, height=1440)
+        self.write_monitors(monitors)
+        self.wait_for(lambda: len(self.starts()) == 2)
+        self.assertEqual((self.home / 'reloads').read_text().splitlines(), ['reload'])
+        with self.assertRaises(ProcessLookupError):
+            os.kill(old_child, 0)
+        self.wait_for_monitor_queries()
+        self.assertEqual(len(self.starts()), 2)
+        self.assertIsNone(process.poll())
 
     def test_recovers_crash_and_rejects_duplicate_watcher(self):
         process = self.launch()
