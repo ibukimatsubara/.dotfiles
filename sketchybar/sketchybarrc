@@ -23,6 +23,7 @@ BAR_ATTACHED=0
 BAR_INVERSE_RADIUS=0
 BAR_SECTIONS=0
 BAR_SHOW_BRAND=1
+SCREEN_BORDER_WIDTH=0
 
 desktop_theme_style="$HOME/.config/desktop-theme/current/sketchybar-style.sh"
 if [ -r "$desktop_theme_style" ]; then
@@ -33,8 +34,11 @@ fi
 # Attached presets support continuous or split backgrounds; floating presets retain capsules.
 bar_corner_radius="$RADIUS_LARGE"
 bar_background="$BAR_COLOR"
+clock_edge_padding=0
 if [ "$BAR_ATTACHED" -eq 1 ]; then
     bar_corner_radius=0
+    # Keep the clock inside the display frame's corner overlay.
+    clock_edge_padding=$((SCREEN_BORDER_WIDTH + BAR_INVERSE_RADIUS))
     if [ "$BAR_SECTIONS" -eq 1 ]; then
         bar_background="$TRANSPARENT"
     fi
@@ -211,10 +215,12 @@ sketchybar --add bracket workspace_group "${workspace_items[@]}" \
         background.shadow.distance=3
 
 # Right-positioned items are added from the display edge towards the center.
+# Inset the clock while keeping its section background flush with the edge.
 sketchybar --add item clock right \
     --set clock \
         icon="󰥔" \
         icon.color="$STATUS_ICON_COLOR" \
+        padding_right="$((3 + clock_edge_padding))" \
         update_freq=5 \
         script="$PLUGIN_DIR/clock.sh"
 
@@ -312,13 +318,6 @@ sketchybar --add item battery right \
         click_script="open 'x-apple.systempreferences:com.apple.Battery-Settings.extension'" \
     --subscribe battery system_woke power_source_change
 
-sketchybar --add item volume right \
-    --set volume \
-        icon.color="$STATUS_ICON_COLOR" \
-        script="$PLUGIN_DIR/volume.sh" \
-        click_script="$PLUGIN_DIR/volume_click.sh" \
-    --subscribe volume volume_change system_woke
-
 sketchybar --add item memory right \
     --set memory \
         icon="󰍛" \
@@ -339,7 +338,7 @@ sketchybar --add item weather right \
     --set weather \
         icon="󰖐" \
         icon.color="$STATUS_ICON_COLOR" \
-        label="--° 󰖌--%" \
+        label="--°" \
         label.color="$TEXT_COLOR" \
         update_freq=900 \
         script="$PLUGIN_DIR/weather.sh" \
@@ -438,7 +437,7 @@ sketchybar --add item codex.usage.source popup.codex_usage \
         label.padding_left=0 \
         label.padding_right=10
 
-sketchybar --add bracket status weather cpu memory volume battery date clock \
+sketchybar --add bracket status weather cpu memory battery date clock \
     --set status \
         background.drawing=on \
         background.color="$MODULE_COLOR" \
@@ -467,7 +466,7 @@ if [ "$BAR_ATTACHED" -eq 1 ]; then
             sketchybar --set "$group" background.drawing=off
         done
         sketchybar --add bracket section.left brand pomodoro "${workspace_items[@]}" \
-            --add bracket section.right codex_usage weather cpu memory volume battery date clock
+            --add bracket section.right codex_usage weather cpu memory battery date clock
         # Overlapping brackets can reorder their members; preserve the left controls.
         sketchybar --reorder brand pomodoro "${workspace_items[@]}"
         for section in section.left now_playing section.right; do

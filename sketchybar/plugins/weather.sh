@@ -23,13 +23,12 @@ if [ ! -s "$CACHE_FILE" ]; then
     sketchybar --set "$NAME" \
         icon="󰖐" \
         icon.color="$STATUS_ICON_COLOR" \
-        label="--° 󰖌--%" \
+        label="--°" \
         label.color="$MUTED_COLOR"
     exit 0
 fi
 
 temperature="$(jq -r '.current_condition[0].temp_C // "--"' "$CACHE_FILE")"
-humidity="$(jq -r '.current_condition[0].humidity // "--"' "$CACHE_FILE")"
 weather_code="$(jq -r '.current_condition[0].weatherCode // ""' "$CACHE_FILE")"
 
 case "$weather_code" in
@@ -62,5 +61,5 @@ esac
 sketchybar --set "$NAME" \
     icon="$weather_icon" \
     icon.color="$STATUS_ICON_COLOR" \
-    label="${temperature}° 󰖌${humidity}%" \
+    label="${temperature}°" \
     label.color="$TEXT_COLOR"
