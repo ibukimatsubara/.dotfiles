@@ -18,7 +18,9 @@ local function drawShape(frame, hex, transform, path)
     frame.w, frame.h, hex:sub(5), tonumber(hex:sub(3, 4), 16) / 255, transform, path)
   canvas:appendElements({ type = "image", frame = { x = 0, y = 0, w = frame.w, h = frame.h },
     image = hs.image.imageFromURL("data:image/svg+xml;base64," .. hs.base64.encode(svg)) })
-  canvas:level(hs.canvas.windowLevels.floating - 1)
+  -- Lower window levels are constrained below the menu bar on notched displays.
+  -- Keep display-edge decorations at their requested fullFrame coordinates.
+  canvas:level(hs.canvas.windowLevels.mainMenu)
   canvas:behavior({ "canJoinAllSpaces", "stationary", "ignoresCycle" })
   canvas:clickActivating(false)
   canvas:canvasMouseEvents(false, false, false, false)
