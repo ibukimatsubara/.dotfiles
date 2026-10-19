@@ -89,9 +89,31 @@ python3 "$HOME/.dotfiles/scripts/test-aerospace-autotile.py"
 
 AeroSpaceのフローティング表示は、全ワークスペースへの固定表示を意味しない。Aqua Voiceのバーはワークスペース変更時に追従スクリプトで移動する。バーの点滅・消失やSecure Inputの警告が発生した場合は、[Aqua Voice・AeroSpace トラブルシューティング](./aqua-voice-aerospace-troubleshooting.md)を参照する。
 
+## Macを閉じた後のワークスペース維持
+
+AeroSpace 0.21.3-Betaでは、蓋を閉じて復帰すると既存ウィンドウが再検出され、選択中のワークスペースに集まる現象が報告されている。[スリープ復帰時の再検出に関する報告](https://github.com/nikitabobko/AeroSpace/discussions/2264)。
+
+`hammerspoon/aerospace_workspaces.lua`が2秒ごとにウィンドウID・アプリのプロセスID・所属ワークスペースを記録する。スリープ・画面消灯・ロック時には記録を凍結し、復帰・ロック解除後に1秒間隔で6回確認して元のワークスペースへ戻す。同じアプリの複数ウィンドウも個別に扱う。Aqua VoiceとRaycast、新規ウィンドウ、終了済みウィンドウ、別プロセスに再利用されたIDは復元対象外にする。
+
+Hammerspoonの既存設定から自動起動する。CLI処理は非同期で直列実行し、応答が2秒以内に返らなければ中断する。アプリ単位のワークスペース固定は行わない。最後の記録からスリープまでの約2秒以内に行った移動は記録されない場合がある。復帰直後の確認中は、手動移動よりスリープ前の所属を優先する。Hammerspoon再起動前の記録や、すでに失われた配置は復元できない。タイルの分割構造や全画面状態は復元対象外。
+
+```sh
+# Hammerspoonの設定を再読み込みする
+hs -A -c 'hs.timer.doAfter(0.1, hs.reload); return true'
+
+# enabled=true・trackedWindowsが表示されることを確認する
+hs -A -c 'return hs.inspect(aerospaceworkspaces.status())'
+
+# 実際のウィンドウを動かさず、復元処理を検証する
+hs -A -c 'return dofile(os.getenv("HOME") .. "/.dotfiles/scripts/test-aerospace-workspaces.lua")'
+```
+
+実機確認は、複数ワークスペースにウィンドウを分けて2秒以上待ち、蓋を閉じてから開き、ロック解除後に所属が維持されるかを確認する。一時停止はHammerspoonコンソールまたはCLIから`aerospaceworkspaces.stop()`を実行する。
+
 ## 関連ファイル
 
 - AeroSpace: `aerospace/aerospace.toml`
+- スリープ復帰時の所属維持: `hammerspoon/aerospace_workspaces.lua`
 - Ghostty: `ghostty/config`
 - JankyBorders: `borders/bordersrc`
 - SketchyBar: `sketchybar/sketchybarrc`

@@ -11,6 +11,9 @@ breaktimer = require("break_timer")
 -- Ghostty の Ctrl+h/j/k/l は TUI・tmux 内でも AeroSpace のフォーカス移動に使う。
 ghosttynavigation = require("ghostty_navigation")
 
+-- Restore each window's workspace after lid close, sleep, or screen lock.
+aerospaceworkspaces = require("aerospace_workspaces").start()
+
 -- Rotate the active theme's wallpapers, with legacy screen variants as fallback.
 wallpaper = require("wallpaper").start()
 
