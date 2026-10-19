@@ -66,6 +66,25 @@ gaps.outer.right = 16
 
 通常ウィンドウは自動的にタイル表示され、同じワークスペースに追加すると利用可能な領域を分割する。Aqua VoiceとRaycastはオーバーレイとしてフローティング表示を維持する。
 
+### dwindle風の自動分割
+
+`scripts/aerospace-autotile.sh` が選択中のタイルのサイズを読み、次のウィンドウを追加するための分割方向を準備する。横幅が高さ以上なら左右、縦長なら上下に分割する。横長のモニターでは、2分割後も横幅に余裕があれば左右分割を続ける。
+
+公式版AeroSpaceとmacOS標準の`osascript`・CoreGraphicsのみを使用する。Hammerspoonや常駐ポーリング処理、追加の画面収録権限は不要。起動時・フォーカス変更時・通常ウィンドウ検出時に実行し、浮動ウィンドウとAeroSpaceの全画面表示は対象外にする。macOSからサイズを取得できなかった場合は何も変更しない。
+
+`split`が準備した単一ウィンドウのコンテナを保持するため、`enable-normalization-flatten-containers`を`false`にする。分割方向を実際の寸法で決めるため、`enable-normalization-opposite-orientation-for-nested-containers`も`false`にする。既存の配置は自動で組み直さず、次に開くウィンドウから適用する。サイズ変更だけでは再計算しないため、手動リサイズ後は一度別のウィンドウへ移って戻るか、補助スクリプトを実行する。
+
+別のMacでもリポジトリを`~/.dotfiles`に配置し、通常どおり`./setup.sh`で設定をリンクすれば利用できる。Apple SiliconとIntelのHomebrewのパスを両方検索する。既存環境への反映・検証は以下で行う。
+
+```sh
+aerospace reload-config --dry-run --no-gui --warnings-as-errors
+aerospace reload-config --no-gui
+bash "$HOME/.dotfiles/scripts/aerospace-autotile.sh"
+python3 "$HOME/.dotfiles/scripts/test-aerospace-autotile.py"
+```
+
+自動分割を無効にする場合は、`after-startup-command`・`on-focus-changed`・`on-window-detected`から補助スクリプトの呼び出しを削除し、上記2つの正規化設定を`true`に戻す。
+
 アコーディオン表示への切り替えキーは設定しない。デフォルトは導入時から `tiles` で、以前の `Ctrl + Option + ,` は削除済み。起動時、ウィンドウ・ワークスペースのフォーカス変更時、新規ウィンドウの検出時に、対象ワークスペースのルートを `tiles` に戻す。これはAeroSpace本体のアコーディオン機能を無効化する設定ではなく、外部CLIから明示的に変更されたレイアウトを常時監視するものでもない。
 
 AeroSpaceのフローティング表示は、全ワークスペースへの固定表示を意味しない。Aqua Voiceのバーはワークスペース変更時に追従スクリプトで移動する。バーの点滅・消失やSecure Inputの警告が発生した場合は、[Aqua Voice・AeroSpace トラブルシューティング](./aqua-voice-aerospace-troubleshooting.md)を参照する。
