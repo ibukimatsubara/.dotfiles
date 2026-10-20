@@ -29,7 +29,7 @@ auto_submit = false
 shift_enter_newlines = true
 fallback_to_clipboard = true
 pre_type_delay_ms = 150
-paste_keys = "ctrl+shift+v"
+paste_keys = "shift+insert"
 restore_clipboard = true
 restore_clipboard_delay_ms = 1000
 

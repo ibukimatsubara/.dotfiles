@@ -40,10 +40,17 @@ def focus_target(window, clients, key):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('key', choices=list('hjklui'))
-    key = parser.parse_args().key
+    parser.add_argument('--passthrough-modifiers', type=str.upper, choices=('CTRL', 'SUPER'),
+                        default='CTRL',
+                        help='modifier forwarded by sendshortcut passthroughs (default: %(default)s)')
+    arguments = parser.parse_args()
+    key = arguments.key
+    # Forward the modifier that triggered navigation so swapped Ctrl/Super keys
+    # reach the focused client before Ghostty's reverse remapping.
+    modifier = arguments.passthrough_modifiers
     window = json.loads(ipc('-j', 'activewindow'))
     if window.get('class', '').lower() not in ('com.mitchellh.ghostty', 'ghostty'):
-        ipc('dispatch', 'sendshortcut', f'CTRL,{key.upper()},')
+        ipc('dispatch', 'sendshortcut', f'{modifier},{key.upper()},')
         return
     # Layer-shell launchers retain the underlying window in activewindow IPC.
     # Preserve search/editing keys while a launcher owns keyboard focus.
@@ -57,7 +64,7 @@ def main():
             helper = Path(__file__).with_name('ubuntu-desktop-shell.sh')
             opened = subprocess.run([str(helper), 'launcher-open'], capture_output=True, timeout=0.5)
             if opened.returncode == 0:
-                ipc('dispatch', 'sendshortcut', f'CTRL,{key.upper()},')
+                ipc('dispatch', 'sendshortcut', f'{modifier},{key.upper()},')
                 return
         except (OSError, subprocess.TimeoutExpired):
             pass
@@ -65,13 +72,13 @@ def main():
         try:
             opened = subprocess.run(['vicinae', 'state', 'open'], capture_output=True, timeout=0.25)
             if opened.returncode == 0:
-                ipc('dispatch', 'sendshortcut', f'CTRL,{key.upper()},')
+                ipc('dispatch', 'sendshortcut', f'{modifier},{key.upper()},')
                 return
         except (OSError, subprocess.TimeoutExpired):
             pass
     if key in 'ui':
         if window.get('title', '').startswith('[tmux] '):
-            ipc('dispatch', 'sendshortcut', f'CTRL,{key.upper()},')
+            ipc('dispatch', 'sendshortcut', f'{modifier},{key.upper()},')
         else:
             ipc('dispatch', 'workspace', 'e-1' if key == 'u' else 'e+1')
         return

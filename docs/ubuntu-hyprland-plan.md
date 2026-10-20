@@ -194,6 +194,87 @@ Ghosttyの起動速度改善（2026-10-17）: 別プロセス起動ではウィ�
 
 対象は `pfu-limited-hhkb-hybrid` とそのkeyboard/consumer-controlインターフェースに限定し、他のキーボードやGNOME側の割り当ては変更しない。マシンローカル設定はsetup再実行でも保持する。標準的なCapsLockを送る別キーボードでは別の割り当てが必要。XKBでキー変換を検証し、Hyprlandの実デバイスにオプションが反映されたことを確認済み。
 
+### SofleのControl / Super調整（2026-10-20）
+
+Sofleでは、ユーザーがControlとして使いたい位置から `KEY_LEFTMETA`、
+Superとして使いたい位置から `KEY_LEFTCTRL` が届くことを実機で確認した。
+`platforms/ubuntu/hypr/conf/sofle-modifiers.conf` で `mtkb-w-sofle` とその
+system-control / consumer-controlインターフェースに `ctrl:swap_lwin_lctl` を適用する。
+このプロファイルは任意適用で、`~/.config/hypr/local.conf` の最後から
+`~/.config/hypr/sofle-modifiers.conf` を経由して読み込む。
+後者には `source = ~/.dotfiles/platforms/ubuntu/hypr/conf/sofle-modifiers.conf` を置く。
+
+同ファイルは既存ショートカットを一度解除し、CTRLとSUPERを交換して再登録する。
+これにより、ウィンドウ・ワークスペース移動、ランチャー、スクショ、マウス操作は
+従来と同じ物理キーで使える。元のバインドのフラグとアクションは維持する。
+この補正はHyprlandの共通バインドなので、別のキーボードに切り替える場合も適用される。
+共有バインドを変更した場合は、このローカルファイルの解除・再登録内容も見直す。
+
+Chromeでは交換後のControlで `Ctrl+T` / `Ctrl+W` / `Ctrl+V` を使う。
+デスクトップ操作は維持しているため、すべてのCtrlショートカットをChromeへ
+渡す設定ではない。例えば `Ctrl+Shift+V` はクリップボード履歴を開く。
+
+GhosttyはUbuntu設定の末尾で任意の `~/.config/ghostty/local.conf` を読み込む。
+このマシンでは同ファイルに
+`config-file = ~/.dotfiles/platforms/ubuntu/ghostty-sofle.conf` を置く。
+この任意プロファイル内の `key-remap = left_ctrl=left_super` と
+`key-remap = left_super=left_ctrl` で交換を打ち消し、貼り付け、Ctrl+Cなどの
+シェル入力、tmuxの操作を従来の物理キーに保つ。
+`hyprland-navigation.py` の `--passthrough-modifiers SUPER` は、
+tmuxやランチャーへ入力を戻す際もGhostty内の変換より前の修飾キーを渡す。
+指定がなければ従来どおりCTRLを渡す。
+
+日本語入力も従来の物理キー位置を保つため、ローカルのSofle設定に
+`SUPER+Space` → `fcitx5-remote -t` を追加した。
+交換前のControl位置は交換後のSuperなので、Fcitx標準のCtrl+Spaceだけでは
+この物理キーから切り替わらない。ランチャーは従来のSuper位置（交換後はCtrl）を使う。
+
+Voxtypeの自動貼り付けは `shift+insert` に変更し、Ghosttyにも
+`shift+insert=paste_from_clipboard` を追加した。
+従来の自動入力Ctrl+Shift+Vは、交換後のクリップボード履歴キーと衝突し、
+Ghostty内のControl / Super補正も受けるため使わない。
+Shift+Spaceの録音開始・停止キー自体は維持する。
+このマシンで有効なtalk-switch経由の割り当ては、`hypr/local.conf` にも保存する。
+実行時の上書きだけではHyprlandの自動再読み込みで直接Voxtypeを呼ぶ古い設定へ戻る。
+また、ローカル設定を保存すると自動再読み込みされるため、同じ切り替えキーを
+直後に `hyprctl keyword bind` で重複登録しない。
+Voxtypeを再起動して設定を反映した後は、talk-switchがidleかつerrorなしであることも確認する。
+文字起こし中の再トグルでtalk-switchにエラーが残った場合は、
+Voxtypeがidleに戻ったことを確認して `talk-switch resume` で音声経路を復帰する。
+
+ターミナルCLIの画像添付用に、ローカルのCtrl+Vを `scripts/hyprland-paste.py` へ渡す。
+修飾キーの転送だけでは実際のCodexに添付されなかったため、GhosttyかつPNG画像のときは
+クリップボードの画像を権限0600の一時PNGへ保存し、そのファイルパスを通常の
+Shift+Insert貼り付けで端末へ渡す。Codexは画像パスのbracketed pasteを画像添付として扱う。
+貼り付け後は元のPNGを復元するが、その間にユーザーが別の内容をコピーした場合は
+上書きしない。`wl-copy` の常駐所有プロセスがpipeを保持して親の待機を妨げないように、
+標準出力・標準エラーを切り離して起動する。
+テキスト、Chrome等、PNGを取得できない場合は従来のCtrl+Vをそのまま転送する。
+Enterや自動送信は行わず、一時PNGはCLIが後から読めるように残す。
+実機確認では、evdevのCtrl+Vから登録済みバインド・helperを経由し、クリップボードから
+取得したPNGがCodex入力欄の `[Image #1]` になることをスクリーンショットで確認した。
+元PNGのバイト単位の復元と、Enterを送っていないことも確認済み。
+ユーザーも貼り付け問題の解消を確認した。Claude Codeでの添付表示は別途確認が必要。
+
+設定検証ではXKBの左右キー変換、Hyprlandの64件の対応バインド、
+Sofleの3インターフェースへの反映、Ghosttyの設定構文を確認した。
+既存GhosttyにはDBusの `reload-config` を送り、フォーカスを変更せず再読み込みした。
+Chrome・ターミナルでの実際のキー入力は手動確認の対象とする。
+
+元へ戻す場合は `local.conf` のSofle用sourceを外し、Ghosttyの
+`local.conf` にある上記プロファイルの読み込みも外して、両方の設定を再読み込みする。
+Hyprlandの再読み込みは実行時だけ登録された別アプリのバインドもリセットするので、
+音声入力などの実行時登録は必要に応じて元のアプリから復元する。
+
+### Ghosttyの終了確認ダイアログ
+
+このマシンのGhostty 1.3.0-dev GTK版では、確認ダイアログのボタンはCancelとCloseで、
+標準設定にCloseへ初期フォーカスを指定する項目はない。
+`confirm-close-surface` は確認の有無（true / false / always）を制御する設定である。
+確認を残してCloseを初期選択にするにはGTKのダイアログ実装側の対応が必要なため、
+ここでは確認自体を無効にする変更は行っていない。
+参照: [Ghostty Configuration Reference](https://ghostty.org/docs/config/reference#confirm-close-surface)。
+
 ## Ubuntuの見た目をmacOSへ寄せる設定
 
 macOSのテーマJSON・Ghostty設定・SketchyBar設定は維持し、追加の `ubuntu-style.json` と `ubuntu-ghostty.conf` を生成する。macOS向けの既存生成物は両プリセットで変更前とバイト単位で同じことを確認した。
