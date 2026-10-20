@@ -8,16 +8,18 @@ auto-reload-config = true
 
 # Keep workspace roots tiled when starting or changing windows/workspaces.
 # The default alone does not reset a workspace's existing layout.
-after-startup-command = ['layout --root tiles']
-on-focus-changed = ['layout --root tiles']
+after-startup-command = ['layout --root tiles', 'exec-and-forget /bin/bash "$HOME/.dotfiles/scripts/aerospace-autotile.sh"']
+on-focus-changed = ['layout --root tiles', 'exec-and-forget /bin/bash "$HOME/.dotfiles/scripts/aerospace-autotile.sh"']
 
 # Keep SketchyBar workspace state synchronized with AeroSpace.
 exec-on-workspace-change = ['/bin/bash', '-c',
     '$HOME/.dotfiles/scripts/aerospace-workspace-changed.sh "$AEROSPACE_FOCUSED_WORKSPACE"'
 ]
 
-enable-normalization-flatten-containers = true
-enable-normalization-opposite-orientation-for-nested-containers = true
+# Retain the single-window container prepared by split for the next window.
+# Its direction comes from the tile's dimensions, not its parent's direction.
+enable-normalization-flatten-containers = false
+enable-normalization-opposite-orientation-for-nested-containers = false
 
 # Use tiles for automatically managed windows; utility windows float below.
 default-root-container-layout = 'tiles'
@@ -50,6 +52,12 @@ run = 'layout --root tiles'
 [[on-window-detected]]
 if = 'test %{app-bundle-id} = com.electron.aqua-voice || test %{app-bundle-id} = com.raycast.macos'
 run = 'layout floating'
+
+# Prepare newly detected tiled windows even when the app does not focus them.
+# The helper always checks the actual focus and ignores floating/fullscreen.
+[[on-window-detected]]
+if = 'true'
+run = 'exec-and-forget /bin/bash "$HOME/.dotfiles/scripts/aerospace-autotile.sh"'
 
 [mode.main.binding]
     # Move only between tiled windows. Floating overlays such as Aqua Voice
