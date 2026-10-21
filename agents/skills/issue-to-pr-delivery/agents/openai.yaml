@@ -1,3 +1,0 @@
-interface:
-  display_name: "Issue to PR Delivery"
-  short_description: "Deliver traced changes from issue through PR"
