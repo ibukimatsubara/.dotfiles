@@ -124,10 +124,23 @@ systemctl --user enable --now voxtype.service
 `~/.config/hypr/local.conf` に一つだけ登録する。
 
 ```ini
-bind = SHIFT, Space, exec, ~/.local/bin/voxtype record toggle
+bind = SHIFT, Space, exec, /home/iv/Mibuki/talk-switch/.venv/bin/talk-switch record toggle
 ```
 
-開始・停止は Hyprland 側の toggle を使う。
+開始・停止は Hyprland 側の toggle を使う。Shift+Space は talk-switch 経由で Voxtype を呼ぶため、
+talk-switch のサービスが止まっているとキーが無反応になる。
+talk-switch は DJI MIC MINI が USB から消えると意図的に異常終了するので、
+`talk-switch.service` を `Restart=on-failure` と `StartLimitIntervalSec=0` で常駐させ、
+マイクの再接続後に自動で復帰させる（`systemd-run` の試験ユニットは再起動しないので使わない）。
+
+```bash
+mkdir -p "$HOME/.config/talk-switch"
+# 入力元の node.name は `pw-dump` で確認する。シリアルを含むので dotfiles には保存しない。
+printf 'TALK_SWITCH_SOURCE=%s\n' 'alsa_input.usb-DJI_...analog-stereo' > "$HOME/.config/talk-switch/environment"
+cp "$HOME/.dotfiles/platforms/ubuntu/voxtype/talk-switch.service" "$HOME/.config/systemd/user/talk-switch.service"
+systemctl --user daemon-reload
+systemctl --user enable --now talk-switch.service
+```
 他のアプリや IME が同じ Shift+Space を奪っていないかも確認する。
 
 ### Esc でキャンセル

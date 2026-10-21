@@ -1,0 +1,20 @@
+[Unit]
+Description=Talk Switch assistant microphone gate for Voxtype
+After=pipewire.service wireplumber.service voxtype.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=XDG_RUNTIME_DIR=%t
+EnvironmentFile=%h/.config/talk-switch/environment
+ExecStart=%h/Mibuki/talk-switch/.venv/bin/talk-switch run --source ${TALK_SWITCH_SOURCE}
+KillMode=control-group
+# The mic disappearing (USB unplug, hub reset) exits with failure; keep retrying until it returns.
+Restart=on-failure
+RestartSec=3
+RestartSteps=5
+RestartMaxDelaySec=30
+
+[Install]
+WantedBy=default.target
