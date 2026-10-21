@@ -34,12 +34,12 @@ key-mapping.preset = 'qwerty'
 # Keep windows away from the display edge so native rounded corners, blur,
 # shadows, and JankyBorders remain visible even in AeroSpace fullscreen.
 # The larger top gap reserves the SketchyBar footprint; the built-in display
-# needs more room than external monitors.
+# needs less room than external monitors.
 gaps.inner.horizontal = 10
 gaps.inner.vertical = 10
 gaps.outer.left = 16
 gaps.outer.bottom = 16
-gaps.outer.top = [{ monitor.built-in = 52 }, 32]
+gaps.outer.top = [{ monitor.built-in = 32 }, 52]
 gaps.outer.right = 16
 
 # Apply the same guard when a window is created without changing focus.

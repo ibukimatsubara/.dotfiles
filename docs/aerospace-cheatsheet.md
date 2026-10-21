@@ -55,13 +55,13 @@ gaps.inner.horizontal = 10
 gaps.inner.vertical = 10
 gaps.outer.left = 16
 gaps.outer.bottom = 16
-gaps.outer.top = [{ monitor.built-in = 52 }, 32]
+gaps.outer.top = [{ monitor.built-in = 32 }, 52]
 gaps.outer.right = 16
 ```
 
 - `inner`: ウィンドウ同士の間隔。
 - `outer`: ディスプレイ端とウィンドウの間隔。
-- 上側はSketchyBarの高さとオフセットを確保する。MacBook内蔵画面は52px、外部モニターは32pxにする。AeroSpaceがウィンドウのあるモニターに応じて自動で切り替える。
+- 上側はSketchyBarの高さとオフセットを確保する。外部モニターはバーの下端（40px）から余白を取って52px、MacBook内蔵画面は32pxにする。AeroSpaceがウィンドウのあるモニターに応じて自動で切り替える。
 - 値を大きくすると角丸や背景が目立ち、小さくすると作業領域が広がる。
 - 外側余白はタイル表示に適用される。フローティング表示でもSketchyBarは最前面に表示される。
 
