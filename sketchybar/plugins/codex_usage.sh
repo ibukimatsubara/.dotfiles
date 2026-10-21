@@ -5,6 +5,8 @@ CODEX_DATA_DIR="${CODEX_HOME:-$HOME/.codex}"
 
 # shellcheck source=/dev/null
 . "$CONFIG_DIR/colors.sh"
+# shellcheck source=/dev/null
+. "$CONFIG_DIR/plugins/usage_meter.sh"
 
 case "$SENDER" in
     mouse.clicked)
@@ -16,42 +18,6 @@ case "$SENDER" in
         exit 0
         ;;
 esac
-
-circle_icon() {
-    percentage="$1"
-
-    if [ "$percentage" -le 0 ]; then
-        printf '○'
-    elif [ "$percentage" -le 12 ]; then
-        printf '󰪞'
-    elif [ "$percentage" -le 25 ]; then
-        printf '󰪟'
-    elif [ "$percentage" -le 37 ]; then
-        printf '󰪠'
-    elif [ "$percentage" -le 50 ]; then
-        printf '󰪡'
-    elif [ "$percentage" -le 62 ]; then
-        printf '󰪢'
-    elif [ "$percentage" -le 75 ]; then
-        printf '󰪣'
-    elif [ "$percentage" -le 87 ]; then
-        printf '󰪤'
-    else
-        printf '󰪥'
-    fi
-}
-
-meter_color() {
-    percentage="$1"
-
-    if [ "$percentage" -le 25 ]; then
-        printf '%s' "$RED_COLOR"
-    elif [ "$percentage" -le 50 ]; then
-        printf '%s' "$YELLOW_COLOR"
-    else
-        printf '%s' "$GREEN_COLOR"
-    fi
-}
 
 window_label() {
     minutes="$1"
@@ -101,7 +67,7 @@ latest_record="$({
 ' 2>/dev/null | sort | tail -n 1)"
 
 if [ -z "$latest_record" ]; then
-    sketchybar --set "$NAME" icon="○" icon.color="$STATUS_ICON_COLOR" label="--%" \
+    sketchybar --set "$NAME" icon="○" icon.color="$STATUS_ICON_COLOR" label="CX --%" \
                --set codex.usage.primary drawing=on icon="○" icon.color="$MUTED_COLOR" label="NO USAGE SNAPSHOT" \
                --set codex.usage.secondary drawing=off \
                --set codex.usage.reset label="Run Codex to refresh"
@@ -160,7 +126,7 @@ EOF
     sketchybar --set "$NAME" \
         icon="$selected_icon" \
         icon.color="$STATUS_ICON_COLOR" \
-        label="$selected_remaining%" \
+        label="CX $selected_remaining%" \
         label.color="$selected_color" \
         --set codex.usage.reset label="$reset_label"
 fi

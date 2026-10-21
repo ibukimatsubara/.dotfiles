@@ -349,7 +349,7 @@ sketchybar --add item codex_usage right \
         icon="󰪥" \
         icon.font="$FONT:Regular:15.0" \
         icon.color="$STATUS_ICON_COLOR" \
-        label="--%" \
+        label="CX --%" \
         label.color="$TEXT_COLOR" \
         update_freq=60 \
         background.drawing=on \
@@ -437,6 +437,101 @@ sketchybar --add item codex.usage.source popup.codex_usage \
         label.padding_left=0 \
         label.padding_right=10
 
+sketchybar --add event claude_usage_update
+
+sketchybar --add item claude_usage right \
+    --set claude_usage \
+        icon="󰪥" \
+        icon.font="$FONT:Regular:15.0" \
+        icon.color="$STATUS_ICON_COLOR" \
+        label="CC --%" \
+        label.color="$TEXT_COLOR" \
+        update_freq=60 \
+        background.drawing=on \
+        background.color="$MODULE_COLOR" \
+        background.border_color="$BORDER_COLOR" \
+        background.border_width=1 \
+        background.corner_radius="$RADIUS_MEDIUM" \
+        background.height="$MODULE_HEIGHT" \
+        background.shadow.drawing=on \
+        background.shadow.color="$SHADOW_COLOR" \
+        background.shadow.angle=90 \
+        background.shadow.distance=3 \
+        popup.align=center \
+        popup.y_offset=8 \
+        popup.height="$MODULE_HEIGHT" \
+        popup.blur_radius="$BLUR_RADIUS" \
+        popup.background.color="$MODULE_COLOR" \
+        popup.background.border_color="$BORDER_COLOR" \
+        popup.background.border_width=1 \
+        popup.background.corner_radius="$RADIUS_LARGE" \
+        popup.background.shadow.drawing=on \
+        popup.background.shadow.color="$SHADOW_COLOR" \
+        popup.background.shadow.angle=90 \
+        popup.background.shadow.distance=4 \
+        script="$PLUGIN_DIR/claude_usage.sh" \
+    --subscribe claude_usage claude_usage_update mouse.clicked mouse.exited.global
+
+sketchybar --add item claude.usage.title popup.claude_usage \
+    --set claude.usage.title \
+        icon="󰚩" \
+        icon.color="$DARK_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="CLAUDE CODE USAGE" \
+        label.font="$FONT:Bold:11.0" \
+        label.color="$DARK_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10 \
+        background.drawing=on \
+        background.color="$ACCENT_COLOR" \
+        background.corner_radius="$RADIUS_SMALL" \
+        background.height="$MODULE_HEIGHT"
+
+sketchybar --add item claude.usage.weekly popup.claude_usage \
+    --set claude.usage.weekly \
+        icon="󰪥" \
+        icon.color="$GREEN_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="LIMIT · --% LEFT" \
+        label.padding_left=0 \
+        label.padding_right=10
+
+sketchybar --add item claude.usage.five_hour popup.claude_usage \
+    --set claude.usage.five_hour \
+        drawing=off \
+        icon="󰪥" \
+        icon.color="$GREEN_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="LIMIT · --% LEFT" \
+        label.padding_left=0 \
+        label.padding_right=10
+
+sketchybar --add item claude.usage.reset popup.claude_usage \
+    --set claude.usage.reset \
+        icon="󰥔" \
+        icon.color="$MAUVE_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="Reset unavailable" \
+        label.color="$MUTED_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10
+
+sketchybar --add item claude.usage.source popup.claude_usage \
+    --set claude.usage.source \
+        icon="󰋼" \
+        icon.color="$MUTED_COLOR" \
+        icon.padding_left=10 \
+        icon.padding_right=7 \
+        label="STATUSLINE SNAPSHOT" \
+        label.font="$FONT:Bold:9.0" \
+        label.color="$MUTED_COLOR" \
+        label.padding_left=0 \
+        label.padding_right=10
+
 sketchybar --add bracket status weather cpu memory battery date clock \
     --set status \
         background.drawing=on \
@@ -452,7 +547,7 @@ sketchybar --add bracket status weather cpu memory battery date clock \
 
 if [ "$BAR_ATTACHED" -eq 1 ]; then
     # Merge group surfaces into the full-width bar while retaining focus highlights.
-    for group in now_playing pomodoro workspace_group codex_usage status; do
+    for group in now_playing pomodoro workspace_group codex_usage claude_usage status; do
         sketchybar --set "$group" \
             background.color="$BAR_COLOR" \
             background.border_width=0 \
@@ -462,11 +557,11 @@ if [ "$BAR_ATTACHED" -eq 1 ]; then
 
     if [ "$BAR_SECTIONS" -eq 1 ]; then
         # Native brackets track changing item widths without polling their geometry.
-        for group in pomodoro workspace_group codex_usage status; do
+        for group in pomodoro workspace_group codex_usage claude_usage status; do
             sketchybar --set "$group" background.drawing=off
         done
         sketchybar --add bracket section.left brand pomodoro "${workspace_items[@]}" \
-            --add bracket section.right codex_usage weather cpu memory battery date clock
+            --add bracket section.right claude_usage codex_usage weather cpu memory battery date clock
         # Overlapping brackets can reorder their members; preserve the left controls.
         sketchybar --reorder brand pomodoro "${workspace_items[@]}"
         for section in section.left now_playing section.right; do
@@ -504,7 +599,7 @@ if [ "$BAR_ATTACHED" -eq 1 ]; then
                 --move section.flare.left after workspace.9 \
                 --move section.flare.center_left before now_playing.artwork \
                 --move section.flare.center_right after now_playing.title \
-                --move section.flare.right after codex_usage \
+                --move section.flare.right after claude_usage \
                 --set '/section\.flare\.center_.*/' drawing=off
         fi
     fi

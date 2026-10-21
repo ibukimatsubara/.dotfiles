@@ -6,6 +6,24 @@ cwd=$(echo "$input" | jq -r '.cwd')
 model=$(echo "$input" | jq -r '.model.display_name')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 
+# Share plan rate limits with the SketchyBar claude_usage item.
+rate_limits=$(echo "$input" | jq -c '.rate_limits // empty')
+if [ -n "$rate_limits" ]; then
+  snapshot_dir="${XDG_CACHE_HOME:-$HOME/.cache}/claude-code"
+  snapshot_file="$snapshot_dir/rate-limits.json"
+  previous=$(jq -c '.rate_limits // empty' "$snapshot_file" 2>/dev/null)
+  if mkdir -p "$snapshot_dir" && snapshot_tmp=$(mktemp "$snapshot_dir/.rate-limits.XXXXXX"); then
+    if jq -n --argjson rate_limits "$rate_limits" '{captured_at: (now | floor), rate_limits: $rate_limits}' >"$snapshot_tmp" &&
+      mv "$snapshot_tmp" "$snapshot_file"; then
+      if [ "$rate_limits" != "$previous" ] && command -v sketchybar >/dev/null 2>&1; then
+        sketchybar --trigger claude_usage_update >/dev/null 2>&1 &
+      fi
+    else
+      rm -f "$snapshot_tmp"
+    fi
+  fi
+fi
+
 # Colors (ANSI — terminal will dim these)
 cyan='\033[36;1m'
 magenta='\033[35;1m'
