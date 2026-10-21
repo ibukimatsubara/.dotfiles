@@ -2,8 +2,12 @@ engine = "whisper"
 state_file = "auto"
 
 [hotkey]
-enabled = false
+# Start/stop stays on Hyprland's Shift+Space binding. The evdev listener is
+# enabled only so Escape can cancel; F24 is a placeholder that is never pressed.
+enabled = true
+key = "F24"
 mode = "toggle"
+cancel_key = "ESC"
 
 [audio]
 device = "voxtype_dji"

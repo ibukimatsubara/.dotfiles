@@ -13,7 +13,7 @@
 | モデル | Whisper `large-v3-turbo`、モデル名で指定 |
 | 言語 | 日本語固定 `ja`、英語への翻訳は無効 |
 | マイク | DJI MIC MINI、PipeWire 経由の ALSA PCM `voxtype_dji` |
-| 操作 | Shift+Space で録音開始・停止を切り替え |
+| 操作 | Shift+Space で録音開始・停止を切り替え、Esc で録音・認識を破棄 |
 | 起動 | `voxtype.service` をユーザーの `default.target` で自動起動 |
 | モデル読み込み | 起動時に読み込み、常駐させる |
 | ストリーミング | 無効。録音停止後に一括認識・貼り付け |
@@ -127,8 +127,18 @@ systemctl --user enable --now voxtype.service
 bind = SHIFT, Space, exec, ~/.local/bin/voxtype record toggle
 ```
 
-Voxtype 内蔵のキー監視は `hotkey.enabled=false`。Hyprland 側の toggle を使う。
+開始・停止は Hyprland 側の toggle を使う。
 他のアプリや IME が同じ Shift+Space を奪っていないかも確認する。
+
+### Esc でキャンセル
+
+`hotkey.cancel_key="ESC"` で、録音中または認識中に Esc を押すと結果を破棄する。
+`cancel_key` は Voxtype 内蔵のキー監視 (evdev) でしか効かないため `hotkey.enabled=true` にしている。
+開始・停止キー `hotkey.key` は普段押さない `F24` にして、Shift+Space と二重に切り替わらないようにする。
+ユーザーが `input` グループに入っている必要がある (`id` で確認し、追加後は再ログイン)。
+
+evdev はキーを横取りしないので、Esc はフォーカス中のアプリにも届く。
+待機中の Esc は何もしない。ydotool などの仮想キーボードは監視対象外なので、確認は実キーで行う。
 
 ### 7. Caelestia
 
