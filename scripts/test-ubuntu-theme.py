@@ -48,10 +48,58 @@ class UbuntuThemeTests(unittest.TestCase):
             config = Path(tmp)
             (config / 'dotfiles').mkdir()
             (config / 'dotfiles/desktop-shell').write_text('caelestia\n')
-            with patch.object(m, 'CONFIG', config), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc, patch.object(m, 'command') as command:
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'ROTATION', config / 'missing.json'), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc, patch.object(m, 'command') as command:
                 m.wallpaper()
                 ipc.assert_not_called()
                 command.assert_called_once_with('caelestia', 'wallpaper', '-r')
+
+    def test_caelestia_wallpaper_cycles_listed_images(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            (home / '.config/dotfiles').mkdir(parents=True)
+            (home / '.config/dotfiles/desktop-shell').write_text('caelestia\n')
+            for name in ('a.png', 'c.png'):
+                (home / name).write_bytes(b'')
+            rotation = home / 'wallpapers.json'
+            rotation.write_text(json.dumps({'rotation_seconds': 60, 'wallpapers': ['a.png', 'missing.png', 'c.png']}))
+            current = home / 'state/caelestia/wallpaper/path.txt'
+            current.parent.mkdir(parents=True)
+            with patch.object(m, 'CONFIG', home / '.config'), patch.object(m, 'STATE', home / 'state'), patch.object(m, 'ROTATION', rotation), patch.object(m.Path, 'home', return_value=home), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'command') as command:
+                for selected, expected in [('/elsewhere.png', 'a.png'), (str(home / 'a.png'), 'c.png'), (str(home / 'c.png'), 'a.png')]:
+                    current.write_text(selected + '\n')
+                    m.wallpaper()
+                    command.assert_called_with('caelestia', 'wallpaper', '-f', str((home / expected).resolve()))
+
+    def test_caelestia_wallpaper_matches_resolved_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / 'home'
+            pictures = Path(tmp) / 'pictures'
+            pictures.mkdir()
+            home.mkdir()
+            (home / 'Pictures').symlink_to(pictures)
+            (home / '.config/dotfiles').mkdir(parents=True)
+            (home / '.config/dotfiles/desktop-shell').write_text('caelestia\n')
+            for name in ('a.png', 'b.png'):
+                (pictures / name).write_bytes(b'')
+            rotation = home / 'wallpapers.json'
+            rotation.write_text(json.dumps({'rotation_seconds': 60, 'wallpapers': ['Pictures/a.png', 'Pictures/b.png']}))
+            current = home / 'state/caelestia/wallpaper/path.txt'
+            current.parent.mkdir(parents=True)
+            current.write_text(str((pictures / 'a.png').resolve()))
+            with patch.object(m, 'CONFIG', home / '.config'), patch.object(m, 'STATE', home / 'state'), patch.object(m, 'ROTATION', rotation), patch.object(m.Path, 'home', return_value=home), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'command') as command:
+                m.wallpaper()
+                command.assert_called_once_with('caelestia', 'wallpaper', '-f', str((pictures / 'b.png').resolve()))
+
+    def test_rotation_rejects_short_interval(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rotation = Path(tmp) / 'wallpapers.json'
+            rotation.write_text('{"rotation_seconds": 5, "wallpapers": []}')
+            with patch.object(m, 'ROTATION', rotation), self.assertRaisesRegex(ValueError, '60 seconds'):
+                m.rotation()
+
+    def test_repository_rotation_list_is_valid(self):
+        seconds, _ = m.rotation()
+        self.assertGreaterEqual(seconds, 60)
 
     def test_live_caelestia_theme_apply_uses_its_wallpaper_backend(self):
         with tempfile.TemporaryDirectory() as tmp:

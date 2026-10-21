@@ -53,6 +53,8 @@ spawn python3 "$scripts_dir/ubuntu-break-timer.py" watch
 spawn python3 "$scripts_dir/ubuntu-mic-priority.py" --watch
 if [ "$desktop_shell" = dms ]; then
     spawn python3 "$scripts_dir/ubuntu-theme.py" watch
+elif [ "$desktop_shell" = caelestia ]; then
+    spawn python3 "$scripts_dir/ubuntu-theme.py" rotate
 fi
 if command -v vicinae >/dev/null 2>&1; then
     spawn "$scripts_dir/hyprland-native.sh" vicinae server --config "${XDG_CONFIG_HOME:-$HOME/.config}/vicinae/vicinae.json"
