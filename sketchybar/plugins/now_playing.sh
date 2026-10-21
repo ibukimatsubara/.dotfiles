@@ -9,12 +9,51 @@ set_section_flares() {
     fi
 }
 
+# Slide the island in from above the bar (tanh) and back out (sin).
+visibility_path="$cache_dir/now-playing-visibility"
+show_frames=20
+hide_frames=15
+
+hidden_offset() {
+    bar_height="$(sketchybar --query bar 2>/dev/null | jq -r '.height // 40' 2>/dev/null)"
+    printf '%s' "$(( ${bar_height:-40} + 8 ))"
+}
+
+set_offset() {
+    sketchybar ${2:+--animate "$2" "$3"} \
+        --set now_playing y_offset="$1" \
+        --set now_playing.artwork y_offset="$1" \
+        --set now_playing.title y_offset="$1" \
+        --set '/section\.flare\.center_.*/' y_offset="$1"
+}
+
+is_drawn() {
+    [ "$(sketchybar --query now_playing.title 2>/dev/null | jq -r '.geometry.drawing' 2>/dev/null)" = "on" ]
+}
+
 hide_now_playing() {
-    set_section_flares off
-    sketchybar \
-        --set now_playing.artwork drawing=off \
-        --set now_playing.title drawing=off \
-        --set now_playing drawing=off
+    mkdir -p "$cache_dir"
+    intent="$(cat "$visibility_path" 2>/dev/null)"
+    if ! is_drawn; then
+        printf 'hidden\n' > "$visibility_path"
+        return
+    fi
+    # A close animation is already running.
+    case "$intent" in hidden*) return ;; esac
+
+    token="hidden:$$:$(date +%s)"
+    printf '%s\n' "$token" > "$visibility_path"
+    set_offset "$(hidden_offset)" sin "$hide_frames"
+    # Stop drawing once the slide finishes, unless playback resumed meanwhile.
+    (
+        sleep 0.35
+        [ "$(cat "$visibility_path" 2>/dev/null)" = "$token" ] || exit 0
+        set_section_flares off
+        sketchybar \
+            --set now_playing.artwork drawing=off \
+            --set now_playing.title drawing=off \
+            --set now_playing drawing=off
+    ) >/dev/null 2>&1 &
 }
 
 if ! command -v media-control >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
@@ -114,8 +153,22 @@ else
     find "$cache_dir" -type f -name 'media-artwork-*' ! -name "$(basename "$artwork_path")" -delete 2>/dev/null
 fi
 
+intent="$(cat "$visibility_path" 2>/dev/null)"
+animate_in=false
+if ! is_drawn; then
+    animate_in=true
+    set_offset "$(hidden_offset)"
+elif [ "$intent" != "shown" ]; then
+    # Playback resumed mid-close: slide back down from the current position.
+    animate_in=true
+fi
+printf 'shown\n' > "$visibility_path"
+
 sketchybar \
     --set now_playing.artwork drawing=on background.image="$artwork_path" \
     --set now_playing.title drawing=on label="$title" \
     --set now_playing drawing=on
 set_section_flares on
+if [ "$animate_in" = "true" ]; then
+    set_offset 0 tanh "$show_frames"
+fi
