@@ -109,7 +109,9 @@ def apply():
     atomic_write(CONFIG / 'dotfiles/hypr/theme.conf', (generation / 'hyprland.conf').read_text())
     if in_session():
         if desktop_shell() == 'caelestia':
-            command('caelestia', 'wallpaper', '-f', theme['wallpapers'][0]['path'])
+            # Leave the wallpaper to the rotation list when one is configured.
+            if not rotation()[1]:
+                command('caelestia', 'wallpaper', '-f', theme['wallpapers'][0]['path'])
             command('hyprctl', 'reload')
             return
         ipc('settings', 'set', 'customThemeFile', dms_file)

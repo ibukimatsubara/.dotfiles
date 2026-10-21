@@ -112,10 +112,29 @@ class UbuntuThemeTests(unittest.TestCase):
                 (current / name).write_text(content)
             (config / 'dotfiles').mkdir()
             (config / 'dotfiles/desktop-shell').write_text('caelestia\n')
-            with patch.object(m, 'CONFIG', config), patch.object(m, 'DATA', config / 'data'), patch.object(m, 'CURRENT', current), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc, patch.object(m, 'command') as command:
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'DATA', config / 'data'), patch.object(m, 'CURRENT', current), patch.object(m, 'ROTATION', config / 'missing.json'), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'ipc') as ipc, patch.object(m, 'command') as command:
                 m.apply()
                 ipc.assert_not_called()
                 self.assertIn(unittest.mock.call('caelestia', 'wallpaper', '-f', '/test.png'), command.call_args_list)
+
+    def test_live_caelestia_theme_apply_keeps_rotation_wallpaper(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp)
+            current = config / 'desktop-theme/current'
+            current.mkdir(parents=True)
+            for name, content in [('dms-theme.json', '{}'), ('hyprland.conf', '# colors\n'),
+                                  ('vicinae-theme.toml', '[meta]\nversion = 1\n'),
+                                  ('theme.json', '{"wallpapers":[{"path":"/test.png"}]}')]:
+                (current / name).write_text(content)
+            (config / 'dotfiles').mkdir()
+            (config / 'dotfiles/desktop-shell').write_text('caelestia\n')
+            (config / 'a.png').write_bytes(b'')
+            rotation = config / 'wallpapers.json'
+            rotation.write_text(json.dumps({'rotation_seconds': 60, 'wallpapers': ['a.png']}))
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'DATA', config / 'data'), patch.object(m, 'CURRENT', current), patch.object(m, 'ROTATION', rotation), patch.object(m.Path, 'home', return_value=config), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'command') as command:
+                m.apply()
+                self.assertFalse([c for c in command.call_args_list if c.args[:2] == ('caelestia', 'wallpaper')])
+                command.assert_called_with('hyprctl', 'reload')
 
     def test_mutable_settings_symlinks_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
