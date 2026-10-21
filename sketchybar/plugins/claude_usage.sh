@@ -1,7 +1,7 @@
 #!/bin/sh
 
 CONFIG_DIR="${CONFIG_DIR:-$HOME/.config/sketchybar}"
-# Written by claude/statusline-command.sh from the statusline rate_limits input.
+# Written by the Claude statusline script (agent-env: harnesses/claude/statusline-command.sh).
 SNAPSHOT_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/claude-code/rate-limits.json"
 
 # shellcheck source=/dev/null

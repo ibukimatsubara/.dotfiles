@@ -85,7 +85,7 @@ class PlatformTests(unittest.TestCase):
         script = ('DOTFILES_PLATFORM=ubuntu; '
                   'source "$1/platforms/common/setup.sh"; '
                   'source "$1/platforms/ubuntu/setup.sh"; '
-                  'code() { :; }; link_ai_clis() { :; }; '
+                  'code() { :; }; '
                   'install_neovim_plugins() { :; }; setup_common')
         self.shell(script)
         before = sorted(str(p) for p in self.home.rglob('*.bak-*'))

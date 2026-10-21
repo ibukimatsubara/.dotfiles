@@ -9,12 +9,6 @@ create_directories() {
     mkdir -p ~/.config/nvim/undo
     mkdir -p ~/.local/share/nvim/undo
     mkdir -p ~/.local/share/nvim/session
-
-    # User-scoped AI agent configuration directories
-    mkdir -p ~/.agents
-    mkdir -p ~/.codex
-    mkdir -p ~/.claude
-    mkdir -p ~/.claude/skills
     mkdir -p "$HOME/.config/herdr"
 
     print_success "Directories created"
@@ -46,27 +40,6 @@ link_managed_path() {
     mkdir -p "$(dirname "$target_path")"
     ln -s "$source_path" "$target_path"
     print_success "Linked $target_path"
-}
-
-sync_managed_tree() {
-    local source_path="$1"
-    local target_path="$2"
-
-    if [ -d "$target_path" ] && [ ! -L "$target_path" ] && \
-       diff -qr "$source_path" "$target_path" >/dev/null 2>&1; then
-        print_success "$target_path already synchronized"
-        return
-    fi
-
-    if [ -e "$target_path" ] || [ -L "$target_path" ]; then
-        local backup_path="$target_path.bak-$(date +%Y%m%d-%H%M%S)"
-        print_warning "Backing up existing $target_path to $backup_path"
-        mv "$target_path" "$backup_path"
-    fi
-
-    mkdir -p "$(dirname "$target_path")"
-    cp -R "$source_path" "$target_path"
-    print_success "Synchronized $target_path"
 }
 
 setup_zsh() {
@@ -298,47 +271,6 @@ check_requirements() {
     return 0
 }
 
-link_ai_clis() {
-    print_info "🤖 Linking AI CLI configs..."
-
-    # Personal instructions and reusable agents.
-    link_managed_path "$HOME/.dotfiles/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
-    sync_managed_tree "$HOME/.dotfiles/codex/agents" "$HOME/.codex/agents"
-    link_managed_path "$HOME/.dotfiles/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
-    sync_managed_tree "$HOME/.dotfiles/claude/agents" "$HOME/.claude/agents"
-
-    # Shared Agent Skills. Codex loads ~/.agents/skills directly; Claude gets
-    # per-skill links so unrelated Claude-only skills remain untouched.
-    link_managed_path "$HOME/.dotfiles/agents/skills" "$HOME/.agents/skills"
-
-    local shared_skill
-    for shared_skill in \
-        ai-accuracy-evaluation \
-        customer-technical-deliverable \
-        flutter-release \
-        issue-to-pr-delivery; do
-        sync_managed_tree \
-            "$HOME/.dotfiles/agents/skills/$shared_skill" \
-            "$HOME/.claude/skills/$shared_skill"
-    done
-
-    # Claude Code statusLine script — dotfiles is the single source of truth.
-    if [ -d ~/.claude ]; then
-        backup_file ~/.claude/statusline-command.sh
-        ln -sf ~/.dotfiles/claude/statusline-command.sh ~/.claude/statusline-command.sh
-        print_success "Linked ~/.claude/statusline-command.sh"
-        print_warning "settings.json must set statusLine.command = bash ~/.claude/statusline-command.sh"
-    fi
-
-    # Codex CLI: config.toml is machine-managed, so we don't symlink it.
-    # Merge codex/statusline.toml's [tui] block by hand, or run /statusline in Codex.
-    print_warning "Codex: merge ~/.dotfiles/codex/statusline.toml [tui] block into ~/.codex/config.toml (or use /statusline)"
-
-    if [ -x "$HOME/.dotfiles/scripts/setup-ai-agent-tools.sh" ]; then
-        "$HOME/.dotfiles/scripts/setup-ai-agent-tools.sh"
-    fi
-}
-
 setup_common() {
     create_directories
     setup_zsh
@@ -348,6 +280,5 @@ setup_common() {
     link_ghostty
     link_music_configs || return 1
     link_vscode || return 1
-    link_ai_clis
     install_neovim_plugins
 }
