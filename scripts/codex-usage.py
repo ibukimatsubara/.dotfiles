@@ -12,6 +12,7 @@ MAX_FILES = 16
 TAIL_BYTES = 262144
 LOOKBACK_DAYS = 14
 STALE_SECONDS = 3600
+WEEK_MINUTES = 10080
 
 
 def number(value):
@@ -29,8 +30,8 @@ def window(raw):
 
 def snapshot(home, now=None):
     now = time.time() if now is None else now
-    result = {'available': False, 'label': '--', 'tooltip': 'No local Codex usage snapshot',
-              'remaining_percent': None, 'primary': None, 'secondary': None,
+    result = {'available': False, 'label': '--', 'tooltip': 'No local Codex weekly usage snapshot',
+              'remaining_percent': None, 'weekly': None,
               'stale': False, 'snapshot_at': None}
     files = []
     # Bound traversal as well as reads: only known daily directories, then recent files.
@@ -59,8 +60,10 @@ def snapshot(home, now=None):
                 limits = event['payload']['rate_limits']
                 if limits.get('limit_id') != 'codex':
                     continue
-                primary = window(limits.get('primary'))
-                if primary is None:
+                # The weekly window may arrive as primary or secondary depending on the plan.
+                weekly = next((w for w in map(window, (limits.get('primary'), limits.get('secondary')))
+                               if w and w['window_minutes'] == WEEK_MINUTES), None)
+                if weekly is None:
                     continue
                 stamp = datetime.fromisoformat(event['timestamp'].replace('Z', '+00:00'))
                 if stamp.tzinfo is None:
@@ -69,32 +72,28 @@ def snapshot(home, now=None):
                 if epoch > now + 300:
                     continue
                 if latest is None or epoch > latest[0]:
-                    latest = (epoch, primary, window(limits.get('secondary')))
+                    latest = (epoch, weekly)
             except (ValueError, TypeError, KeyError, AttributeError, OverflowError):
                 continue
     if latest is None:
         return result
-    epoch, primary, secondary = latest
-    windows = [w for w in (primary, secondary) if w is not None]
-    remaining = min(w['remaining_percent'] for w in windows)
+    epoch, weekly = latest
+    # A window whose reset time has passed is full again, even if no newer snapshot exists.
+    reset = weekly['resets_at'] is not None and weekly['resets_at'] <= now
+    remaining = 100 if reset else round(weekly['remaining_percent'])
     stale = now - epoch > STALE_SECONDS or datetime.fromtimestamp(epoch, timezone.utc).date() != datetime.fromtimestamp(now, timezone.utc).date()
     stamp = datetime.fromtimestamp(epoch, timezone.utc).isoformat()
-    descriptions = []
-    for name, item in [('Primary', primary), ('Secondary', secondary)]:
-        if item:
-            detail = f"{name}: {item['remaining_percent']:g}% remaining"
-            if item['window_minutes'] is not None:
-                detail += f" ({item['window_minutes']:g} min window)"
-            if item['resets_at'] is not None:
-                try:
-                    detail += '; resets ' + datetime.fromtimestamp(item['resets_at'], timezone.utc).isoformat()
-                except (ValueError, OverflowError, OSError):
-                    pass
-            descriptions.append(detail)
-    result.update(available=True, label=f'{remaining:g}%' + (' stale' if stale else ''),
-                  tooltip=('Stale local snapshot\n' if stale else 'Local snapshot\n') + '\n'.join(descriptions) + '\nUpdated ' + stamp,
-                  remaining_percent=remaining, primary=primary, secondary=secondary,
-                  stale=stale, snapshot_at=stamp)
+    detail = f'Weekly: {remaining}% remaining'
+    if reset:
+        detail += '; reset since snapshot'
+    elif weekly['resets_at'] is not None:
+        try:
+            detail += '; resets ' + datetime.fromtimestamp(weekly['resets_at']).astimezone().strftime('%a %m/%d %H:%M')
+        except (ValueError, OverflowError, OSError):
+            pass
+    result.update(available=True, label=f'{remaining}%',
+                  tooltip=('Stale local snapshot\n' if stale else 'Local snapshot\n') + detail + '\nUpdated ' + datetime.fromtimestamp(epoch).astimezone().strftime('%a %m/%d %H:%M'),
+                  remaining_percent=remaining, weekly=weekly, stale=stale, snapshot_at=stamp)
     return result
 
 

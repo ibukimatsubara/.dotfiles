@@ -32,6 +32,7 @@ Variants {
         ServiceRef { service: Cpu }
         ServiceRef { service: Memory }
         ServiceRef { service: Storage }
+        property var claudeSnapshot: ({})
         property var codexSnapshot: ({})
         PomoruStatus { id: pomoru }
         VoxtypeStatus { id: voxtype }
@@ -53,6 +54,16 @@ Variants {
         }
 
         Process {
+            id: claudePoll
+            command: ["python3", Quickshell.env("HOME") + "/.dotfiles/scripts/claude-usage.py"]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    try { bar.claudeSnapshot = JSON.parse(text); }
+                    catch (error) { bar.claudeSnapshot = {}; }
+                }
+            }
+        }
+        Process {
             id: codexPoll
             command: ["python3", Quickshell.env("HOME") + "/.dotfiles/scripts/codex-usage.py"]
             stdout: StdioCollector {
@@ -67,7 +78,10 @@ Variants {
             running: true
             repeat: true
             triggeredOnStart: true
-            onTriggered: { if (!codexPoll.running) codexPoll.running = true; }
+            onTriggered: {
+                if (!claudePoll.running) claudePoll.running = true;
+                if (!codexPoll.running) codexPoll.running = true;
+            }
         }
 
         function toggleDrawer(name: string): void {
@@ -221,9 +235,14 @@ Variants {
                     Layout.maximumWidth: implicitWidth
                     spacing: 10
                     Metric {
-                        icon: "terminal"
-                        label: bar.codexSnapshot.available ? bar.codexSnapshot.label : "--"
-                        detail: "Codex remaining\n" + (bar.codexSnapshot.tooltip ?? "Usage unavailable")
+                        icon: ""
+                        label: "CC " + (bar.claudeSnapshot.available ? bar.claudeSnapshot.label : "--")
+                        detail: "Claude Code weekly remaining\n" + (bar.claudeSnapshot.tooltip ?? "Usage unavailable")
+                    }
+                    Metric {
+                        icon: ""
+                        label: "CX " + (bar.codexSnapshot.available ? bar.codexSnapshot.label : "--")
+                        detail: "Codex weekly remaining\n" + (bar.codexSnapshot.tooltip ?? "Usage unavailable")
                     }
                     Metric { icon: "memory"; label: Math.round(Cpu.percentage * 100) + "%"; detail: "CPU usage" }
                     Metric { icon: "memory_alt"; label: Math.round(Memory.percentage * 100) + "%"; detail: "Memory usage" }

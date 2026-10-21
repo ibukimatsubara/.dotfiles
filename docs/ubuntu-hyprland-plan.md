@@ -161,7 +161,7 @@ Vicinaeの入力注入サーバーは初期状態で無効。履歴から選ん�
 DMSバー右側に休憩タイマーとCodex使用量を追加した。それぞれクリックで詳細を開く。設定の再実行では初回だけバーへ追加し、その後の並び替え・無効化を保持する。
 
 - 休憩タイマーは作業30分・休憩3分・スヌーズ3分。`Super+P` で開始／作業と休憩を切替、`Super+Shift+P` でスヌーズ、`Super+Ctrl+P` で停止。バーの詳細から各操作もできる。時間切れの後は手動開始が初期値。通知と音はHyprland内だけで実行し、状態はログアウトをまたいで保存する。保存した期限を過ぎて再ログインした場合は時間切れとして扱う。通知は重複を避ける方式のため、通知処理が異常終了した瞬間の通知は失われる場合がある。
-- Codex使用量はローカルのセッション記録に残る直近のレート制限情報を60秒ごとに読む。二つの利用枠のうち残りが少ない割合を表示する。APIへの問い合わせは行わず、情報がないと `--`、古い記録には `stale` を表示する。会話本文や認証情報は出力しない。
+- Codex使用量はローカルのセッション記録に残る直近のレート制限情報を60秒ごとに読む。週枠（10080分）の残り割合を表示する。APIへの問い合わせは行わず、情報がないと `--` を表示し、古い記録であることは詳細に表示する。会話本文や認証情報は出力しない。
 - マイクは明示した機器名の優先順位を5秒ごとに確認する。初期値は空で現在の入力を維持する。`python3 ~/.dotfiles/scripts/ubuntu-mic-priority.py --list` で `node.name` を確認し、`${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/mic-priority.json` の `preferred_sources` に上位から記載する。globが使える。`--once --dry-run` で切替候補を確認できる。
 
 休憩時間等の個人設定は `${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles/break-timer.json`。これらのJSONは初回のみコピーし、再設定でも保持する。タイマー通知・マイク監視・テーマ監視はHyprlandセッションの子プロセスとして起動・終了する。GNOMEやシステムの定期実行agent、Home Assistant用サービスは変更しない。
@@ -357,9 +357,14 @@ JSONの個人設定は引き続き `~/.config/caelestia/shell.json` に保持し
 表示する。`bar.workspaces.showWindows` で表示を切り替え、`maxWindowIcons` で
 各ワークスペースの上限を指定する（既定5、0なら制限なし）。
 
-上バーにはCodexの残り利用枠、CPU・メモリ・システムSSDの使用率、天気を表示する。
-Codexは既存の `scripts/codex-usage.py` からローカルの利用枠スナップショットを1分ごとに読み、
-取得時刻・リセット時刻などはホバーで確認できる。CPU・メモリ・ストレージはCaelestiaのサービスを使う。
+上バーにはClaude Code（`CC`）・Codex（`CX`）の週間残り利用枠、CPU・メモリ・システムSSDの使用率、天気を表示する。
+どちらもローカルのスナップショットを1分ごとに読み、外部サービスへは接続しない。
+`CC` は `scripts/claude-usage.py` が `~/.cache/claude-code/rate-limits.json` の `seven_day` を読む。
+このファイルはagent-envのClaude Code statusLineスクリプトが書くため、
+`~/.claude/settings.json` に `statusLine`（`bash ~/.claude/statusline-command.sh`）が必要。
+`CX` は `scripts/codex-usage.py` がCodexセッションログから週枠（10080分の窓）だけを読む。
+リセット時刻を過ぎたスナップショットは100%として扱い、古いスナップショットや取得時刻・リセット時刻はホバーで確認できる。
+OpenCode Goは公開の利用量APIがないため表示しない。CPU・メモリ・ストレージはCaelestiaのサービスを使う。
 天気の場所は個人用JSONの `services.weatherLocation`（都市名または緯度,経度）、
 摂氏表示は `services.useFahrenheit=false` で設定する。
 Bluetoothボタンは表示せず、アプリのトレイは `bar.entries` の `id: "tray"` を
