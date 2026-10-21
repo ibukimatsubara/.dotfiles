@@ -105,8 +105,7 @@ legacyは既存環境の互換性のため残していますが、新しいセ�
 ├── platforms/          # common / macos / ubuntu
 ├── vscode/             # settings、keybindings、extensions
 ├── chrome/             # Vimium C exportと復元メモ
-├── codex/              # 未配置の旧custom agents、リモートMac用指示
-├── claude/             # 未配置の旧custom agents
+├── codex/              # リモートMac用のCodex指示
 ├── ghostty/
 ├── tmux/
 ├── zsh/
@@ -136,7 +135,6 @@ Codex / Claude Codeの共通指示、skills、statusline、plugin導入は、202
 別リポジトリ [agent-env](https://github.com/ibukimatsubara/agent-env) で管理します。
 このリポジトリの`setup.sh`は、`~/.codex`・`~/.claude`・`~/.agents`へ何も配置しません。
 
-`claude/agents/`、`codex/agents/`に残る定義は配置されていません。
 `codex/remote-home-AGENTS.md`は`scripts/setup-open-local-sender.sh`がリモートMacへリンクします。
 
 ## ドキュメント

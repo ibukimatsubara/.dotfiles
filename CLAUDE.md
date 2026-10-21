@@ -30,8 +30,7 @@ Both scripts should stay idempotent. Existing files are moved to `*.bak-YYYYMMDD
 ├── install.sh / setup.sh   # OS-detecting entry points
 ├── platforms/              # common / macos / ubuntu install, setup, and overrides
 ├── AGENTS.md               # Repo guidelines for Codex (and other agents)
-├── claude/agents/          # Undeployed legacy Claude custom agents
-├── codex/                  # Undeployed legacy Codex agents; remote-home-AGENTS.md for remote Macs
+├── codex/                  # remote-home-AGENTS.md for the remote Codex preview setup
 ├── vscode/                 # settings.json, keybindings.json, extensions.txt
 ├── tmux/tmux.conf
 ├── zsh/                    # main.zsh, aliases/, configs/, functions/
@@ -63,7 +62,6 @@ Both scripts should stay idempotent. Existing files are moved to `*.bak-YYYYMMDD
 
 Notes:
 - Agent harness files (global `CLAUDE.md` / `AGENTS.md`, skills, status lines, plugin installer) live in the agent-env repo (github.com/ibukimatsubara/agent-env). `setup.sh` must not write to `~/.claude`, `~/.codex`, or `~/.agents`.
-- `claude/agents/` and `codex/agents/` are not deployed anywhere.
 
 ## Verification
 
