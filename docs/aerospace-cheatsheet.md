@@ -10,6 +10,7 @@
 | Ghostty で `Ctrl + H/J/K/L` | 左・下・上・右のタイルへフォーカス（端では反対側へ循環） |
 | `Ctrl + F` | SketchyBarと外側の余白を残した全画面表示 |
 | `Ctrl + Y/O` | 前・次のワークスペースへ移動（端では反対側へ循環） |
+| `Ctrl + Shift + 1〜9` | 選択中のウィンドウを指定番号のワークスペースへ送る（表示は現在のワークスペースに留まる） |
 | Ghostty の tmux 外で `Ctrl + U/I` | `Ctrl + Y/O` と同じ前・次のワークスペース移動（端で循環） |
 
 Ghostty の `Ctrl + H/J/K/L` と `Ctrl + U/I` は Hammerspoon が選択中のウィンドウを判定して振り分ける。`Ctrl + H/J/K/L` はClaude CodeなどのTUIやtmux内でもAeroSpaceへ送る。tmux内の `Ctrl + U/I` は既存のセッション切り替えとして動作し、他のアプリには干渉しない。判定には `tmux/tmux.conf` の `set-titles-string` が付ける `[tmux] ` という接頭辞を使う。tmux の設定を再読み込みしてから利用する。
@@ -54,13 +55,13 @@ gaps.inner.horizontal = 10
 gaps.inner.vertical = 10
 gaps.outer.left = 16
 gaps.outer.bottom = 16
-gaps.outer.top = 48
+gaps.outer.top = 32
 gaps.outer.right = 16
 ```
 
 - `inner`: ウィンドウ同士の間隔。
 - `outer`: ディスプレイ端とウィンドウの間隔。
-- 上側はSketchyBarの高さとオフセットを確保するため52pxにする。
+- 上側はSketchyBarの高さとオフセットを確保するため32pxにする。
 - 値を大きくすると角丸や背景が目立ち、小さくすると作業領域が広がる。
 - 外側余白はタイル表示に適用される。フローティング表示でもSketchyBarは最前面に表示される。
 

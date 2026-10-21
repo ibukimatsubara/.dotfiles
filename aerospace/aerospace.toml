@@ -38,7 +38,7 @@ gaps.inner.horizontal = 10
 gaps.inner.vertical = 10
 gaps.outer.left = 16
 gaps.outer.bottom = 16
-gaps.outer.top = 52
+gaps.outer.top = 32
 gaps.outer.right = 16
 
 # Apply the same guard when a window is created without changing focus.
@@ -73,3 +73,14 @@ run = 'exec-and-forget /bin/bash "$HOME/.dotfiles/scripts/aerospace-autotile.sh"
     # Cycle through workspaces without relying on their numeric names.
     ctrl-y = 'workspace --wrap-around prev'
     ctrl-o = 'workspace --wrap-around next'
+
+    # Send the focused window to a numbered workspace.
+    ctrl-shift-1 = 'move-node-to-workspace 1'
+    ctrl-shift-2 = 'move-node-to-workspace 2'
+    ctrl-shift-3 = 'move-node-to-workspace 3'
+    ctrl-shift-4 = 'move-node-to-workspace 4'
+    ctrl-shift-5 = 'move-node-to-workspace 5'
+    ctrl-shift-6 = 'move-node-to-workspace 6'
+    ctrl-shift-7 = 'move-node-to-workspace 7'
+    ctrl-shift-8 = 'move-node-to-workspace 8'
+    ctrl-shift-9 = 'move-node-to-workspace 9'
