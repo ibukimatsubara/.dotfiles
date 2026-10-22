@@ -1,0 +1,16 @@
+[Unit]
+Description=Observe listener and known tunnel changes without blocking traffic
+
+[Service]
+Type=oneshot
+Environment="PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/env uv run --offline --no-project --no-managed-python --python /usr/bin/python3 python -I "%h/.local/libexec/ubuntu-network-watch.py"
+UMask=0077
+NoNewPrivileges=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+Nice=19
+IOSchedulingClass=idle
+TimeoutStartSec=20s
+MemoryMax=128M
+TasksMax=32

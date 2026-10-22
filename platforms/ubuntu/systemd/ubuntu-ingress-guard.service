@@ -1,0 +1,14 @@
+[Unit]
+Description=Limit new public-source TCP connections to this host
+After=network-pre.target
+Before=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/ubuntu-ingress-guard.nft
+ExecReload=/usr/sbin/nft -f /etc/ubuntu-ingress-guard.nft
+ExecStop=/usr/sbin/nft delete table inet ubuntu_ingress_guard
+
+[Install]
+WantedBy=multi-user.target
