@@ -444,26 +444,49 @@ general {
 ### Space 1 のログイン時配置
 
 Hyprland にログインすると `scripts/hyprland-workspace-one.py` が、対象モニターと
-選択中のデスクトップシェルの表示を確認してから、pomoru、cliamp
-（`music-player.sh` の Music プレイリスト）、Chrome アプリ表示の Notion Calendar
-（`https://calendar.notion.com`、既定プロファイル）を Space 1 に開く。
+選択中のデスクトップシェルの表示を確認してから、pomoru、Zen Browser（`https://chatgpt.com/dots/home`）、
+Mibuki Status Board（`~/Mibuki/mibuki-status-board` で `./mibuki-status-board` を実行する Ghostty。
+終了するとそのディレクトリの zsh に戻る）、
+cliamp（`music-player.sh` の Music プレイリスト）を Space 1 に開く。
 Caelestia は背景とトップバー、DMS はバーの layer surface を確認する。
 モニターの解像度・スケール・バーの予約領域が連続する2回の確認で一致してから起動する。
 固定秒数の sleep だけで準備完了とは判断しない。準備待ちは最大60秒。
 
-アプリは最初から通常のタイルとして開き、配置は dwindle に任せる。
-既存の対象ウィンドウは再利用し、Space 1 にあるタイル配置を維持する。
+配置は左から Zen、上下に分けた pomoru / cliamp、Status Board の3列。
+dwindle はフォーカス中のタイルを preselect の方向へ分割するため、
+pomoru を先に開いてフォーカスし、ほかのアプリを1つずつ、前のウィンドウの出現を待ってから開く
+（Zen は左、Status Board は右、cliamp は下）。
+4つとも今回開き、どれも20秒以内に出現した場合だけ、Zen の列を画面幅の1/3にする（`splitratio exact 0.667`）。
+最後に、起動前にフォーカスしていた別のウィンドウへフォーカスを戻す。なければ Zen にフォーカスする。
+組み立て中だけフォーカスと表示中の workspace が Space 1 へ移る。
+アプリが出現しないまま120秒でタイムアウトした場合も、残った preselect を解除してフォーカスを戻す。
+20秒以内に出現しないアプリは待たずに次へ進むので、その場合の配置は dwindle に任せる。
+preselect は次に開いたタイルに適用されるため、組み立て中に別のウィンドウが開くと配置がずれることがある。
+Zen が複数のウィンドウを復元した場合は、最初に出現した1つを左の列として扱い、閉じられたら今回開いた別の Zen ウィンドウを使う。
+復元されたほかのウィンドウも、その時点で表示中の Space 1 に開くため、3列にはならない。
+Zen を終了するときはウィンドウを1つにしておく。異常終了が続くと Zen はセッション復元ページを表示し、
+そこで復元するとウィンドウが増えることがある。
+4つとも Space 1 にタイル表示済みなら何も開かず、フォーカスも移さずに現在の配置を維持する。
+起動前から別 workspace にある Zen ウィンドウは対象外とし、移動しない。
+Zen は既定で前回のセッションを復元するため、Zen が起動していなければ `--new-window` を付けない
+（付けると復元分と合わせてウィンドウが2つになる）。
+起動前にプロファイルのセッション（`sessionstore.jsonlz4`、なければ異常終了時の
+`sessionstore-backups/recovery.jsonlz4`、`recovery.baklz4`）と `zen-sessions.jsonlz4`（いずれも mozlz4 形式）を読み、
+復元されるタブに ChatGPT がなければ URL を渡して復元したウィンドウへタブとして開かせる。
+既にあれば URL を渡さないので、ログインのたびにタブが増えることはない。
+セッションを読めない場合は URL を渡す。Zen が既に起動していれば `--new-window` で開く。
+この場合ウィンドウは既存の Zen プロセスが開くので exec のルールは効かず、組み立て中にフォーカスしている
+Space 1 に開く。別の workspace に開いた場合は Space 1 へ移す。
 タイマー開始や音楽再生の操作は各アプリ側で行う。
-起動・修復のために workspace を切り替えたり、対象ウィンドウへフォーカスを移したりしない。
 以前の起動で floating のまま残ったウィンドウは、タイルへ戻して Space 1 に配置する。
 
 ウィンドウの検出と配置は最大120秒間確認し、一時的な IPC・配置エラーは再試行する。
 毎回最新のウィンドウ一覧を読み、起動要求への応答が失われても重複起動を避ける。
 接続前の失敗は再送し、応答だけが失われた場合はウィンドウの出現を待つ。
-Ghostty は有効なアプリID `com.dotfiles.pomoru` / `com.dotfiles.music` で識別する。
+Ghostty は有効なアプリID `com.dotfiles.pomoru` / `com.dotfiles.music` / `com.dotfiles.status` で識別する。
 タイトルだけが後から変わるのを待つ必要はなく、旧形式の既存ウィンドウも識別する。
-`conf/rules.conf` のクラス指定ルールでも Space 1・タイル・初回フォーカス抑制を指定し、
-既存 Chrome プロセスに起動要求が転送される場合も同じ配置を適用する。
+`conf/rules.conf` のクラス指定ルールでも、これらの Ghostty に Space 1・タイル・初回フォーカス抑制を指定する。
+Ghostty は表示されるまで中のコマンドを開始しないため、Space 1 を見ていない間に開いた場合は表示時に起動する。
 ログイン時の処理経過とエラーは
 `${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/workspace-one.log` に保存する。
 新しく起動するウィンドウは最初からタイル表示なので、起動待ちがタイムアウトしても
