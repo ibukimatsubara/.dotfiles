@@ -43,8 +43,13 @@ alias at='(){oj t -c "python3 ./$1/main.py" -d ./$1/tests/}'
 alias as='(){cd $1;acc s ./main.py -- --guess-python-interpreter pypy -w 0 -y;cd -}'
 
 # AI Tools (dangerous mode)
-alias claudec='claude --dangerously-skip-permissions'
-alias codexc='codex -a never -s danger-full-access'
+if command -v kai-code >/dev/null 2>&1; then
+  alias claudec='kai-code claude'
+  alias codexc='kai-code codex'
+else
+  alias claudec='claude --dangerously-skip-permissions'
+  alias codexc='codex -a never -s danger-full-access'
+fi
 alias dcode='dsh --profile dsh-tui'
 
 # lazygit
