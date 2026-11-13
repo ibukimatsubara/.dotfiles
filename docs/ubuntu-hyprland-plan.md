@@ -156,7 +156,7 @@ Vicinaeの入力注入サーバーは初期状態で無効。履歴から選ん�
 
 ## 追加した共通機能
 
-共通テーマの正本は `desktop-themes/*/theme.json`。`python3 ~/.dotfiles/scripts/desktop-theme.py apply anime-blue` でGhostty・Hyprlandの枠色・DMS・Vicinae向け設定を生成する。初期テーマはAnime Blue。Ubuntuではログアウト中でも次回起動用の設定を準備できる。Vicinae 0.29のテーマファイルは `${XDG_DATA_HOME:-$HOME/.local/share}/vicinae/themes/` に配置する（[該当バージョンの検索処理](https://github.com/vicinaehq/vicinae/blob/v0.29.1/src/server/src/theme/theme-db.cpp)）。Hyprland内ではテーマ監視処理が反映と壁紙ローテーションを行う。テーマ選択は `Super+Ctrl+Alt+T`、次のテーマは `Super+Ctrl+Alt+N`、次の壁紙は `Super+Ctrl+Alt+W`。Ghosttyの既存ウィンドウは設定の再読み込みが必要な場合がある。
+共通テーマの正本は `desktop-themes/*/theme.json`。`python3 ~/.dotfiles/scripts/desktop-theme.py apply anime-blue` でGhostty・Hyprlandの枠色・DMS・Vicinae向け設定を生成する。初期テーマはAnime Blue。Ubuntuではログアウト中でも次回起動用の設定を準備できる。Vicinae 0.29のテーマファイルは `${XDG_DATA_HOME:-$HOME/.local/share}/vicinae/themes/` に配置する（[該当バージョンの検索処理](https://github.com/vicinaehq/vicinae/blob/v0.29.1/src/server/src/theme/theme-db.cpp)）。Hyprland内ではテーマ監視処理が反映と壁紙ローテーションを行う。テーマ選択は `Super+Ctrl+Alt+T`、次のテーマは `Super+Ctrl+Alt+N`、次の壁紙は `Super+Ctrl+Alt+W`。押したキー・クリック・ホイールを右下に表示する表示の切り替えは `Super+Ctrl+Alt+K`（直近3件、`/dev/input` を読むため input グループが要る）。Ghosttyの既存ウィンドウは設定の再読み込みが必要な場合がある。
 
 DMSバー右側に休憩タイマーとCodex使用量を追加した。それぞれクリックで詳細を開く。設定の再実行では初回だけバーへ追加し、その後の並び替え・無効化を保持する。
 
