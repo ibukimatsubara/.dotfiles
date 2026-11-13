@@ -444,7 +444,7 @@ general {
 ### Space 1 のログイン時配置
 
 Hyprland にログインすると `scripts/hyprland-workspace-one.py` が、対象モニターと
-選択中のデスクトップシェルの表示を確認してから、pomoru、Zen Browser（`https://chatgpt.com/dots/home`）、
+選択中のデスクトップシェルの表示を確認してから、pomoru、Zen Browser（`https://muse.ai/`）、
 Mibuki Status Board（`~/Mibuki/mibuki-status-board` で `./mibuki-status-board` を実行する Ghostty。
 終了するとそのディレクトリの zsh に戻る）、
 cliamp（`music-player.sh` の Music プレイリスト）を Space 1 に開く。

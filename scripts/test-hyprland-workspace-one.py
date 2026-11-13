@@ -229,14 +229,14 @@ class StartupTests(unittest.TestCase):
         m.start()
         self.assertEqual(other['workspace']['id'], 5)
         # Zen is already running elsewhere: ask it for a window, not a tab.
-        browser = next(command for _, command in self.hypr.launches if 'chatgpt.com' in command)
-        self.assertIn('zen --new-window https://chatgpt.com/dots/home', browser)
+        browser = next(command for _, command in self.hypr.launches if 'muse.ai' in command)
+        self.assertIn('zen --new-window https://muse.ai/', browser)
         self.assert_ready()
 
     def test_cold_zen_opens_the_url_without_a_second_window(self):
         m.start()
-        browser = next(command for _, command in self.hypr.launches if 'chatgpt.com' in command)
-        self.assertIn('zen https://chatgpt.com/dots/home', browser)
+        browser = next(command for _, command in self.hypr.launches if 'muse.ai' in command)
+        self.assertIn('zen https://muse.ai/', browser)
 
     def test_late_apps_do_not_block_the_rest_or_resize_an_unexpected_split(self):
         self.hypr.delay = 25
@@ -264,7 +264,7 @@ class StartupTests(unittest.TestCase):
         self.assertEqual(self.hypr.active_window, '0x999')
 
     def test_restored_session_with_the_page_does_not_add_another_tab(self):
-        self.session_urls = {'https://chatgpt.com/dots/home'}
+        self.session_urls = {'https://muse.ai/'}
         m.start()
         browser = next(command for _, command in self.hypr.launches if 'ubuntu-app-launch.sh zen' in command)
         self.assertTrue(browser.endswith('ubuntu-app-launch.sh zen'))

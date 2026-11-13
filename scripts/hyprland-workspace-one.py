@@ -115,7 +115,7 @@ SPLITS = {'browser': 'l', 'status': 'r', 'music': 'd'}
 BROWSER_RATIO = 0.667
 # Zen restores its last session on startup, so a cold launch with only the URL
 # adds a tab to the restored window instead of opening a second window.
-BROWSER_URL = 'https://chatgpt.com/dots/home'
+BROWSER_URL = 'https://muse.ai/'
 ZEN_CONFIG = Path.home() / '.config/zen'
 STATUS_BOARD = Path.home() / 'Mibuki/mibuki-status-board'
 # Stop waiting for an app that never maps so the remaining tiles still open.
