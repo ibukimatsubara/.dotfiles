@@ -82,6 +82,7 @@ Superは通常Windowsキー、MacキーボードではCommandに相当する。�
 | Super+y | DMS壁紙選択 |
 | Super+Alt+l | ロック |
 | Print / Super+Shift+s | 範囲撮影、Pictures/Screenshotsへ保存してコピー |
+| Super+Shift+3（Sofleプロファイル） | 全画面撮影、Pictures/Screenshotsへ保存してコピー |
 | Super+Shift+Escape | DMSの電源メニュー |
 
 macOSのAeroSpace/Hammerspoonと同じ操作へ合わせている。GhosttyではCtrl+h/j/k/lをタイルの方向移動（浮動ウィンドウを除外、端で循環）に使う。Ctrl+u/iは、ウィンドウタイトルが `[tmux] ` で始まる場合はtmuxへそのまま渡して前／次セッションへ切り替え、それ以外では前／次ワークスペースへ移動する。VS Code等の他アプリとVicinaeの検索画面では元のCtrlキー入力を渡す。tmuxを使う場合は先に `tmux` で入る必要がある。
