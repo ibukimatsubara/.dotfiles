@@ -78,6 +78,17 @@ for name in dotfilesBreakTimer dotfilesCodexUsage; do
     link_managed_path "$DOTFILES_ROOT/platforms/ubuntu/dms/plugins/$name" "$config_dir/DankMaterialShell/plugins/$name"
 done
 python3 "$DOTFILES_ROOT/scripts/ubuntu-desktop-preferences.py"
+# evdev has no wheel for the distribution Python, so the trackball remapper
+# runs from a uv-managed interpreter that can build it.
+kensington_venv="${XDG_DATA_HOME:-$HOME/.local/share}/dotfiles/kensington-venv"
+if ! "$kensington_venv/bin/python" -c 'import evdev' >/dev/null 2>&1; then
+    if command -v uv >/dev/null 2>&1; then
+        uv venv --allow-existing "$kensington_venv" >/dev/null
+        uv pip install --python "$kensington_venv/bin/python" evdev >/dev/null
+    else
+        print_warning 'uv is missing; skipping the Kensington trackball remapper environment'
+    fi
+fi
 # Prefer the distro-integrated Code package over an older user-local tarball.
 if [ -x /usr/bin/code ] && [ -L "$HOME/.local/bin/code" ]; then
     case "$(readlink -f "$HOME/.local/bin/code")" in
