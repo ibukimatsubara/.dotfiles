@@ -63,6 +63,11 @@ fi
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
 mkdir -p "$state_dir"
 spawn python3 -u "$scripts_dir/hyprland-workspace-one.py" >"$state_dir/workspace-one.log" 2>&1
+# The trackball remapper needs evdev; setup-desktop.sh installs it in this venv.
+kensington_python="${XDG_DATA_HOME:-$HOME/.local/share}/dotfiles/kensington-venv/bin/python"
+if [ -x "$kensington_python" ]; then
+    spawn "$kensington_python" -u "$scripts_dir/kensington-mouse.py" >"$state_dir/kensington-mouse.log" 2>&1
+fi
 while hyprctl -j monitors >/dev/null 2>&1; do
     sleep 3 & wait "$!" || true
 done

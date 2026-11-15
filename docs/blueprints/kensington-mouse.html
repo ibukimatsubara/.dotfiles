@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231e3a8a'/%3E%3Ccircle cx='16' cy='16' r='8' fill='white'/%3E%3C/svg%3E">
+<title>Kensington 4ボタン操作 Blueprint</title>
+<style>
+:root{--paper:#f8fafc;--surface:#fff;--ink:#172033;--muted:#4b5b70;--line:#d5dee9;--blue:#1e3a8a;--blue-soft:#eaf0fb;--idle:#e7ecf2;--warn:#77500a;--warn-bg:#fff8e8}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Noto Sans CJK JP","Yu Gothic",sans-serif}main{max-width:1160px;margin:auto;padding:48px 28px 40px}a{color:var(--blue);text-underline-offset:4px}a:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:5px}h1,h2,h3,p{margin-top:0}h1{font-size:clamp(28px,4vw,44px);line-height:1.4;letter-spacing:-.03em;margin-bottom:12px}h2{font-size:24px;line-height:1.5;margin-bottom:8px}h3{font-size:17px;margin-bottom:6px}.eyebrow{font-size:12px;letter-spacing:.14em;font-weight:750;color:var(--blue);margin-bottom:12px}.lead{color:var(--muted);max-width:48em;margin-bottom:20px}.status{display:inline-block;border:1px solid #ddc281;background:var(--warn-bg);color:var(--warn);font-size:13px;font-weight:650;padding:4px 12px;border-radius:4px}.intro{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin:32px 0 44px;padding:28px 32px;background:var(--surface);border:1px solid var(--line);border-radius:8px}.intro ul{padding-left:1.3em;margin:16px 0 0}.intro li{margin:8px 0}.device{margin:0;text-align:center}.device svg{display:block;max-width:340px;width:100%;height:auto;margin:auto}.device figcaption{font-size:13px;color:var(--muted);margin-top:12px}.device .button{fill:var(--blue-soft);stroke:var(--blue);stroke-width:1.5}.device .label{font-size:17px;font-weight:700;fill:var(--blue)}.device .action{font-size:13px;fill:var(--muted)}.ball{fill:#fff;stroke:#9baabd;stroke-width:2}.device .ball-label{fill:var(--muted);font-size:14px}.section-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:20px}.section-head p{color:var(--muted);margin:0}.legend{display:flex;align-items:center;gap:9px;white-space:nowrap;font-size:13px;color:var(--muted)}.swatch{width:14px;height:14px;background:var(--blue);border-radius:3px;display:inline-block}.table-wrap{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}table{width:100%;border-collapse:collapse;table-layout:fixed}caption{text-align:left;padding:16px 20px;font-size:14px;background:var(--blue-soft);color:var(--blue)}th,td{padding:15px 20px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}thead th{font-size:13px;color:var(--muted);font-weight:650;background:#f5f7fa}thead th:nth-child(1){width:14%}thead th:nth-child(2){width:25%}thead th:nth-child(3){width:28%}thead th:nth-child(4){width:33%}tbody th{font-size:15px;font-weight:650}tbody td{font-size:14px}tbody td:last-child{color:var(--muted)}tbody:last-child tr:last-child>*{border-bottom:0}.group th{font-size:12px;letter-spacing:.06em;background:#f3f6fa;color:var(--muted);padding:8px 20px}.mini{display:block;width:76px;height:60px}.mini rect{fill:var(--idle);stroke:#acb8c7;stroke-width:1}.mini rect.on{fill:var(--blue);stroke:var(--blue)}.mini text{font-size:9px;font-weight:650;fill:#45546a}.mini text.on{fill:#fff}.mini circle{fill:#fff;stroke:#acb8c7;stroke-width:1}.note{font-size:13px;color:var(--muted);margin:14px 0 0}.key{display:inline-block;border:1px solid var(--line);background:#f5f7fa;border-radius:4px;padding:0 7px;color:var(--ink);font:13px/1.8 ui-monospace,monospace}.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:44px}.details-grid section{border-top:2px solid var(--ink);padding-top:18px}.details-grid h2{font-size:20px}.details-grid ul{padding-left:1.3em;margin:14px 0}.details-grid li{margin:10px 0;color:var(--muted);font-size:14px}.details-grid strong{color:var(--ink)}details{margin-top:32px;padding:18px 22px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}summary{font-weight:650;cursor:pointer;min-height:44px;display:list-item;align-content:center}details ul{padding-left:1.3em;color:var(--muted);font-size:14px}details li{margin:8px 0}footer{border-top:1px solid var(--line);margin-top:36px;padding-top:18px;display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;font-size:13px;color:var(--muted)}
+@media(max-width:760px){main{padding:28px 16px}.intro{grid-template-columns:1fr;gap:24px;padding:24px;margin:24px 0 32px}.device svg{max-width:280px}.section-head{align-items:start;flex-direction:column;gap:10px}.details-grid{grid-template-columns:1fr;gap:24px}.table-wrap{border:0;background:none;overflow:visible}table,caption,tbody,tr,td,tbody th{display:block;width:100%}caption{border:1px solid var(--line);border-radius:6px;margin-bottom:12px}thead{display:none}.group th{border:0;padding:12px 0;background:none}tbody tr:not(.group){display:grid;grid-template-columns:84px 1fr;background:var(--surface);border:1px solid var(--line);border-radius:6px;margin-bottom:10px;padding:14px;column-gap:12px}tbody tr:not(.group)>*{padding:0;border:0}.diagram-cell{grid-column:1;grid-row:1/4;align-self:center}tbody tr:not(.group)>th{grid-column:2;margin-bottom:4px}tbody tr:not(.group)>td:nth-child(3){grid-column:2;font-weight:650;margin-bottom:4px}tbody tr:not(.group)>td:last-child{grid-column:2;font-size:13px}}
+@media print{body{background:white}main{padding:0;max-width:none}.intro{margin:20px 0;padding:16px}.device svg{max-width:230px}.details-grid{margin-top:24px}tr,section,.intro{break-inside:avoid}details{display:none}footer{margin-top:18px}a{color:inherit}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden"><defs><symbol id="button-map" viewBox="0 0 96 76" style="font-size:10px;font-weight:650">
+<rect x="3" y="3" width="40" height="30" rx="5" style="fill:var(--tl,var(--idle))"/><rect x="53" y="3" width="40" height="30" rx="5" style="fill:var(--tr,var(--idle))"/><rect x="3" y="43" width="40" height="30" rx="5" style="fill:var(--bl,var(--idle))"/><rect x="53" y="43" width="40" height="30" rx="5" style="fill:var(--br,var(--idle))"/>
+<text x="23" y="22" text-anchor="middle" style="fill:var(--tl-text,#45546a)">左上</text><text x="73" y="22" text-anchor="middle" style="fill:var(--tr-text,#45546a)">右上</text><text x="23" y="62" text-anchor="middle" style="fill:var(--bl-text,#45546a)">左下</text><text x="73" y="62" text-anchor="middle" style="fill:var(--br-text,#45546a)">右下</text><circle cx="48" cy="38" r="15" fill="#fff" stroke="#acb8c7" stroke-width="1"/>
+</symbol></defs></svg>
+<main>
+<header>
+<p class="eyebrow">BLUEPRINT / INPUT DESIGN</p>
+<h1>Kensington 4ボタン操作</h1>
+<p class="lead">クリック、ウィンドウ移動、音声入力まで。<br>キーボードに手を伸ばさず、単押しと同時押しで操作するための割り当て案。</p>
+<span class="status">実装済み</span>
+</header>
+<section class="intro" aria-labelledby="layout-heading">
+<div>
+<h2 id="layout-heading">上で選ぶ。左右で切り替える。</h2>
+<p>上の単押しはフォーカス移動。<br>同じ側の上下同時押しはワークスペース切り替え。</p>
+<ul>
+<li>下の2ボタンは、いつもの左右クリック。</li>
+<li>上の2ボタンを同時に押すと、音声入力。</li>
+<li>通常のドラッグ・ダブルクリック・スクロールは維持。</li>
+</ul>
+</div>
+<figure class="device">
+<svg viewBox="0 0 320 280" role="img" aria-labelledby="device-title device-desc">
+<title id="device-title">4ボタンの位置と単押しの機能</title>
+<desc id="device-desc">中央にボール。左上は左フォーカス、右上は右フォーカス、左下は左クリック、右下は右クリック。機種の外観ではなく位置の模式図。</desc>
+<rect class="button" x="10" y="14" width="138" height="104" rx="16"/>
+<rect class="button" x="172" y="14" width="138" height="104" rx="16"/>
+<rect class="button" x="10" y="162" width="138" height="104" rx="16"/>
+<rect class="button" x="172" y="162" width="138" height="104" rx="16"/>
+<text class="label" x="69" y="54" text-anchor="middle">左上</text><text class="action" x="69" y="79" text-anchor="middle">← フォーカス</text>
+<text class="label" x="251" y="54" text-anchor="middle">右上</text><text class="action" x="251" y="79" text-anchor="middle">フォーカス →</text>
+<text class="label" x="69" y="209" text-anchor="middle">左下</text><text class="action" x="69" y="234" text-anchor="middle">左クリック</text>
+<text class="label" x="251" y="209" text-anchor="middle">右下</text><text class="action" x="251" y="234" text-anchor="middle">右クリック</text>
+<circle class="ball" cx="160" cy="140" r="57"/><text class="ball-label" x="160" y="145" text-anchor="middle">ボール</text>
+</svg>
+<figcaption>ボタン位置の模式図。左右クリックの位置は仮置き。</figcaption>
+</figure>
+</section>
+<section aria-labelledby="operations-heading">
+<div class="section-head"><div><h2 id="operations-heading">操作一覧</h2><p>単押し4通り ＋ 2ボタン同時押し6通り</p></div><div class="legend"><span class="swatch" aria-hidden="true"></span>青いボタンを押す</div></div>
+<div class="table-wrap">
+<table>
+<caption>「＋」はマウスの同時押し。キー名はソフトウェアが生成する入力で、キーボード操作は不要。</caption>
+<thead><tr><th scope="col">押す位置</th><th scope="col">マウスの操作</th><th scope="col">機能</th><th scope="col">動作・入力</th></tr></thead>
+<tbody>
+<tr class="group"><th colspan="4" scope="colgroup">01 — 単押し</th></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="左下だけを押す" style="--bl:var(--blue);--bl-text:#fff"><use href="#button-map"/></svg></td><th scope="row">左下</th><td>左クリック</td><td>通常の選択。押したままボールを動かすとドラッグ。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="右下だけを押す" style="--br:var(--blue);--br-text:#fff"><use href="#button-map"/></svg></td><th scope="row">右下</th><td>右クリック</td><td>コンテキストメニューを開く。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="左上だけを押す" style="--tl:var(--blue);--tl-text:#fff"><use href="#button-map"/></svg></td><th scope="row">左上</th><td>← 左へフォーカス</td><td>同じワークスペース内で、操作対象を左のウィンドウへ。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="右上だけを押す" style="--tr:var(--blue);--tr-text:#fff"><use href="#button-map"/></svg></td><th scope="row">右上</th><td>右へフォーカス →</td><td>同じワークスペース内で、操作対象を右のウィンドウへ。</td></tr>
+</tbody>
+<tbody>
+<tr class="group"><th colspan="4" scope="colgroup">02 — 2ボタン同時押し</th></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="左上と左下を同時に押す" style="--tl:var(--blue);--bl:var(--blue);--tl-text:#fff;--bl-text:#fff"><use href="#button-map"/></svg></td><th scope="row">左上 ＋ 左下</th><td>← 前のワークスペース</td><td>作業スペースを前へ切り替える。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="右上と右下を同時に押す" style="--tr:var(--blue);--br:var(--blue);--tr-text:#fff;--br-text:#fff"><use href="#button-map"/></svg></td><th scope="row">右上 ＋ 右下</th><td>次のワークスペース →</td><td>作業スペースを次へ切り替える。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="左上と右上を同時に押す" style="--tl:var(--blue);--tr:var(--blue);--tl-text:#fff;--tr-text:#fff"><use href="#button-map"/></svg></td><th scope="row">左上 ＋ 右上</th><td>音声入力の開始／停止</td><td>録音の開始と停止を切り替える。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="左下と右下を同時に押す" style="--bl:var(--blue);--br:var(--blue);--bl-text:#fff;--br-text:#fff"><use href="#button-map"/></svg></td><th scope="row">左下 ＋ 右下</th><td>中クリック</td><td>アプリの中クリック動作。例：リンクを別タブで開く。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="左上と右下を同時に押す" style="--tl:var(--blue);--br:var(--blue);--tl-text:#fff;--br-text:#fff"><use href="#button-map"/></svg></td><th scope="row">左上 ＋ 右下</th><td>確定 <span class="key">Enter</span></td><td>アプリによって改行・確定・送信など。必ず送信になるわけではない。</td></tr>
+<tr><td class="diagram-cell"><svg class="mini" viewBox="0 0 96 76" role="img" aria-label="右上と左下を同時に押す" style="--tr:var(--blue);--bl:var(--blue);--tr-text:#fff;--bl-text:#fff"><use href="#button-map"/></svg></td><th scope="row">右上 ＋ 左下</th><td>キャンセル <span class="key">Esc</span></td><td>ダイアログや操作を取り消す。音声入力の破棄に使うかは要確認。</td></tr>
+</tbody>
+</table>
+</div>
+<p class="note">3ボタン同時押し4通りと、4ボタン同時押し1通りは予備として未割り当て。長押しや専用のダブル押しによる追加機能は、今回の案には含めない。</p>
+<p class="note">実装は <code>scripts/kensington-mouse.py</code> と <code>platforms/ubuntu/kensington-mouse.toml</code>。Kensingtonのポインタだけを掴んで同じ入力を出し直し、Hyprlandのセッション開始時に起動する。同時押しの許容時間は200ms。左右クリックは <code>left_handed = true</code> のまま（物理の右が主ボタン）。</p>
+<p class="note">実機のコードは下段が <code>BTN_LEFT</code>/<code>BTN_RIGHT</code>、左上が <code>BTN_MIDDLE</code>、右上が <code>BTN_SIDE</code>。左上のmiddleクリックは左下＋右下の同時押しに移る。</p>
+</section>
+<div class="details-grid">
+<section aria-labelledby="decisions-heading"><h2 id="decisions-heading">実機で決めること</h2><ul>
+<li><strong>機種と入力：</strong>型番、各ボタンのコード、スクロール方式、同時押しがOSへ届くかを確認。</li>
+<li><strong>切り替え先：</strong>「セッションの左右」はHyprlandのワークスペースと仮定。tmuxを指すなら対象を変更。</li>
+<li><strong>前後のルール：</strong>空の番号も含めるか、使用中だけを巡回するか、端で折り返すか。</li>
+<li><strong>音声入力：</strong>会話ではCtrl＋Space相当。リポジトリ資料はShift＋Space → Talk Switchのため、現在の実機で呼び出し先を確認。</li>
+<li><strong>同時押し判定：</strong>押す順番・時間差の許容範囲と、通常クリック・ドラッグの応答性を両立させる。</li>
+<li><strong>適用範囲：</strong>対象のKensingtonだけに適用し、既存設定やデバイス側の処理との二重発火を防ぐ。</li>
+</ul></section>
+<section aria-labelledby="acceptance-heading"><h2 id="acceptance-heading">使える状態の条件</h2><ul>
+<li><strong>全10操作がマウスだけで完結。</strong>割り当て自体も実際の押しやすさを見て最終確認する。</li>
+<li><strong>基本操作を壊さない。</strong>左右クリック、ダブルクリック、ドラッグ、スクロールを維持。</li>
+<li><strong>同時押しは1回だけ。</strong>単押しの混入、押す・離す順番による誤発火、押しっぱなしの連発を防ぐ。</li>
+<li><strong>未割り当てでも誤動作しない。</strong>3・4ボタン同時押しで余計な動作や押しっぱなし状態を残さない。</li>
+<li><strong>移動先が明確。</strong>フォーカス移動とワークスペース切り替えが、決めた対象に対して動く。</li>
+<li><strong>勝手に送信しない。</strong>音声入力の開始・停止ができ、確定操作なしに文章を送らない。</li>
+<li><strong>元に戻せる。</strong>他のマウスを変えず、設定を外せば従来の操作に戻る。</li>
+</ul></section>
+</div>
+<details><summary>今回含めない機能・設計上の注意</summary><ul><li>タブ移動、ブラウザの戻る／進む、コピー／貼り付け、クリップボード履歴、スクリーンショットは、基本案を試してから検討する。</li><li>Escで音声入力を破棄するかは、音声入力ツールの挙動を確認して決める。</li><li>この図は接続機種の外観や、同時押しが実現可能であることを保証するものではない。</li><li>実機の4ボタンは、下段が<code>BTN_LEFT</code>/<code>BTN_RIGHT</code>、左上が<code>BTN_MIDDLE</code>、右上が<code>BTN_SIDE</code>。設定は対象のKensingtonだけに効き、止めれば元に戻る。</li></ul></details>
+<footer><span>Kensington mouse / Blueprint</span><span><a href="kensington-mouse.md">Markdown版</a> · <a href="../voxtype.md">音声入力の現行資料</a></span></footer>
+</main>
+</body>
+</html>

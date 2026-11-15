@@ -1,0 +1,30 @@
+# Kensington SlimBlade Pro (047d:80d6) 4-button chords.
+# Positions follow the desk layout, with the ball between the two columns:
+#
+#   top_left          top_right
+#              ball
+#   bottom_left       bottom_right
+
+[device]
+vendor = 0x047d
+product = 0x80d6
+
+[gesture]
+# A chord must be complete within this window. Holding a bottom button longer
+# turns it into an ordinary click or drag, so the chord no longer starts.
+hold_ms = 200
+
+[buttons]
+bottom_left = 272   # BTN_LEFT
+bottom_right = 273  # BTN_RIGHT
+top_left = 274      # BTN_MIDDLE on this device
+top_right = 275     # BTN_SIDE on this device
+
+[commands]
+# Same targets as the existing Hyprland key bindings.
+focus_left = ["hyprctl", "dispatch", "movefocus", "l"]
+focus_right = ["hyprctl", "dispatch", "movefocus", "r"]
+workspace_previous = ["hyprctl", "dispatch", "workspace", "e-1"]
+workspace_next = ["hyprctl", "dispatch", "workspace", "e+1"]
+# Shift+Space runs the same command through the talk-switch microphone gate.
+voice_toggle = ["$HOME/Mibuki/talk-switch/.venv/bin/talk-switch", "record", "toggle"]
