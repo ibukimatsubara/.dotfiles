@@ -20,6 +20,23 @@ wallpaper = require("wallpaper").start()
 -- Ctrl+Option+Cmd+T: pick a desktop theme; N: next theme; W: next wallpaper.
 desktoptheme = require("desktop_theme").start()
 
+-- 後から head-insert した tap が注釈より先に物理クリックを受け、描画には入れ替え後のボタンが届く。
+local kensington_path = package.searchpath("kensington_swap", package.cpath)
+if not kensington_path then
+  print("kensington_swap が無いので左右入れ替えは無効")
+else
+  local loaded, kensington_module = pcall(require, "kensington_swap")
+  if not loaded then
+    print("kensington_swap の読み込みに失敗: " .. tostring(kensington_module))
+  else
+    kensingtonswap = kensington_module
+    local started, start_error = kensingtonswap:start()
+    if not started then
+      print("kensington_swap の開始に失敗: " .. tostring(start_error))
+    end
+  end
+end
+
 -- Mic priority (higher = preferred)
 local micPriority = {
   ["DJI MIC MINI"]        = 4,

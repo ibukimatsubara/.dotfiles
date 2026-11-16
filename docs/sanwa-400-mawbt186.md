@@ -84,7 +84,9 @@ hidutil property \
 LinearMouseは利用方針に合わないため不採用とし、試行で追加したアプリはアンインストール、作成した設定はゴミ箱へ移した。
 macOS標準設定は`Click Right Side`のままで、Kensingtonだけの反転は未完了。
 追加の設定アプリを使わず、自作・最小構成で進める方針。
-既存のHammerspoonで入力元を確実に識別できるかは未検証で、自作コードはまだ追加していない。
+既存のHammerspoon内で動く自作Cモジュールの候補を追加した。
+実機で入力元を確実に識別できるかは未検証で、有効化前に観測専用モードで確認する。
+ビルドと確認の手順は [kensington-macos.md](./kensington-macos.md) を参照。
 Ubuntuでは、後述の既存Hyprland設定と実機の入力イベントを確認するところから再開する。
 
 ## Ubuntuで確認する手順
