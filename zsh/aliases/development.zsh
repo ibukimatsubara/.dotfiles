@@ -50,6 +50,7 @@ else
   alias claudec='claude --dangerously-skip-permissions'
   alias codexc='codex -a never -s danger-full-access'
 fi
+alias agyc='agy --dangerously-skip-permissions'
 alias dcode='dsh --profile dsh-tui'
 
 # lazygit
