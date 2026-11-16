@@ -12,6 +12,7 @@
 - [wallpapers.md](./wallpapers.md) - フリーレン・ユウカ壁紙の配布元・別マシンでの取得手順、Caelestia の自動切替、写真壁紙
 - [voxtype.md](./voxtype.md) - Ubuntuの日本語音声入力、GPU・streaming・辞書・ログイン時の自動起動と復元
 - [Kensington操作Blueprint（図解HTML）](./blueprints/kensington-mouse.html) / [Markdown](./blueprints/kensington-mouse.md) - 4ボタンと同時押しの割り当てとUbuntu向けの実装
+- [sanwa-400-mawbt186.md](./sanwa-400-mawbt186.md) - ペンマウスのUSB識別情報・接続不良の切り分けとUbuntu向け左右クリック設定メモ
 - [skhd.md](./skhd.md) - macOSのワークスペース単位のアプリショートカット
 - [aqua-voice-aerospace-troubleshooting.md](./aqua-voice-aerospace-troubleshooting.md) - Aqua Voiceの表示・ショートカット問題の切り分け
 - [remote-codex-preview.md](./remote-codex-preview.md) - リモートCodexの成果物を手元Macで開く
