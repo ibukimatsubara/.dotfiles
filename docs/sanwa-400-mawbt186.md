@@ -2,7 +2,8 @@
 
 確認日: 2026-11-16。
 Ubuntuでの識別・接続確認・左右クリック設定に使うための実機メモ。
-macOSでレシーバー経由の入力復旧を確認したが、Ubuntuではまだ動作確認していない。
+macOSでレシーバー経由の入力復旧を確認した。
+Ubuntuでもペンマウスが使えていることを利用者が確認済み。
 
 ## 実機のUSB識別情報
 
@@ -144,4 +145,17 @@ device {
 `true`が希望なら現在の全体設定を継承できるため、同じ値を追加する必要はない。
 適用後は左右クリック・ドラッグ・ホイールと、Kensingtonの従来の操作を実機で確認する。
 
-このメモ作成時にはUbuntuの設定ファイルは変更しておらず、上記コマンド・設定例もUbuntu上では未実行。
+### このマシンへ反映した設定
+
+2026-11-16、Ubuntu上でUSB `3151:3020` とポインタ名 `yichip-wireless-device-mouse` を確認した。
+[input.conf](../platforms/ubuntu/hypr/conf/input.conf)に次のデバイス別設定を追加し、`hyprctl reload` 後に設定エラーがないことを確認した。
+
+```ini
+device {
+    name = yichip-wireless-device-mouse
+    left_handed = false
+}
+```
+
+全体の `left_handed = true` を保ち、ペンだけ通常の左右配置へ戻す。
+設定反映後の物理ボタンの押し比べは利用者の確認待ち。

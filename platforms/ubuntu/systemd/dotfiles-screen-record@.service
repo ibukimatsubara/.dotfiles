@@ -1,0 +1,9 @@
+[Unit]
+Description=Screen recording to clipboard (%i)
+
+[Service]
+Type=exec
+ExecStart=%h/.dotfiles/scripts/ubuntu-screen-record.sh capture %i
+ExecStopPost=%h/.dotfiles/scripts/ubuntu-screen-record.sh finish %i
+KillSignal=SIGINT
+TimeoutStopSec=120

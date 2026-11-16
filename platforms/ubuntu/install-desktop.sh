@@ -19,7 +19,7 @@ sudo apt-get install -y --no-install-recommends \
     hyprland dms hypridle hyprlock xdg-desktop-portal-hyprland \
     xdg-desktop-portal-gtk fcitx5 fcitx5-mozc fcitx5-config-qt \
     fcitx5-frontend-gtk3 fcitx5-frontend-gtk4 fcitx5-frontend-qt6 \
-    grim slurp swappy fuzzel playerctl pavucontrol xwayland jq wl-clipboard \
+    grim slurp swappy fuzzel playerctl pavucontrol xwayland jq wl-clipboard wf-recorder ffmpeg \
     python3 pipewire-bin libnotify-bin curl ca-certificates bibata-cursor-theme
 if ! command -v vicinae >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/vicinae" ]; then
     installer="$(mktemp)"
@@ -27,6 +27,7 @@ if ! command -v vicinae >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/vicinae" ]; 
     curl -fsSL https://vicinae.com/install -o "$installer"
     bash "$installer" --prefix "$HOME/.local"
 fi
+bash "$DOTFILES_ROOT/scripts/install-wlr-draw.sh"
 bash "$DOTFILES_ROOT/platforms/ubuntu/setup-desktop.sh"
 systemctl --user daemon-reload
 print_success 'Desktop installed. Log out and select Hyprland when ready.'

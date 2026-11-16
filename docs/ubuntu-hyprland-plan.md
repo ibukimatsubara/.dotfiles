@@ -12,6 +12,8 @@
 | 日本語入力 | Fcitx5 + Mozc | OSの日本語入力 |
 | ロック・アイドル制御 | hyprlock + hypridle | ロック画面、画面オフ |
 | 範囲スクリーンショット | grim + slurp + wl-copy | 範囲撮影、保存とコピー |
+| 画面録画 | wf-recorder + ffmpeg | MP4/GIF保存とファイルのコピー |
+| 画面へのラクガキ | wlr-draw | Altを押している間の描画 |
 | 音声・メディア | PipeWire / WirePlumber、wpctl、playerctl | 音量・入力機器・メディア操作 |
 | 画面共有・ファイル選択 | xdg-desktop-portal-hyprland + GTK portal | アプリからの画面共有・ファイル選択 |
 
@@ -83,7 +85,15 @@ Superは通常Windowsキー、MacキーボードではCommandに相当する。�
 | Super+Alt+l | ロック |
 | Print / Super+Shift+s | 範囲撮影、Pictures/Screenshotsへ保存してコピー |
 | Super+Shift+3（Sofleプロファイル） | 全画面撮影、Pictures/Screenshotsへ保存してコピー |
+| スクショと同じ修飾キー+5（Sofleでは論理Ctrl+Shift+5） | 表示中のモニターをMP4録画、もう一度押すと停止・保存・コピー |
+| Alt+左ドラッグ | 画面へラクガキ（Altを離すと線を消して通常のクリックへ戻る） |
+| Alt+BackSpace | ラクガキを全消去 |
 | Super+Shift+Escape | DMSの電源メニュー |
+
+ラクガキ用の `wlr-draw` は `bash scripts/install-wlr-draw.sh` で公式配布版を `~/.local/bin` へ配置する。
+このインストーラーの対象はx86_64 Linux。
+デスクトップのインストーラーからも呼び出し、Hyprlandログイン時に常駐を始める。
+配布元と操作の詳細は [wlr-draw公式README](https://github.com/sjourdois/wlr-utils/tree/v1.11.1/crates/wlr-draw) を参照。
 
 macOSのAeroSpace/Hammerspoonと同じ操作へ合わせている。GhosttyではCtrl+h/j/k/lをタイルの方向移動（浮動ウィンドウを除外、端で循環）に使う。Ctrl+u/iは、ウィンドウタイトルが `[tmux] ` で始まる場合はtmuxへそのまま渡して前／次セッションへ切り替え、それ以外では前／次ワークスペースへ移動する。VS Code等の他アプリとVicinaeの検索画面では元のCtrlキー入力を渡す。tmuxを使う場合は先に `tmux` で入る必要がある。
 
