@@ -2,6 +2,90 @@
 #include <stdio.h>
 #include "../hammerspoon/kensington_swap.c"
 
+static bool test_source_known;
+
+static IOHIDEventRef test_copy_hid(CGEventRef event) {
+    (void)event;
+    return test_source_known ? (IOHIDEventRef)CFRetain(kCFBooleanTrue) : NULL;
+}
+
+static uint64_t test_sender_id(IOHIDEventRef event) {
+    (void)event;
+    return 42;
+}
+
+static void gesture_event(KensingtonTap *state, CGEventType input, unsigned source,
+                          CGEventType expected) {
+    test_source_known = source != 0;
+    state->copy_hid = test_copy_hid;
+    state->sender_id = test_sender_id;
+    if (test_source_known) {
+        state->last_sender = 42;
+        state->last_vendor = source == 1 ? 0x047d : 0x3151;
+        state->last_product = source == 1 ? 0x80d6 : 0x3020;
+    }
+    CGMouseButton button = input >= kCGEventRightMouseDown && input <= kCGEventRightMouseUp
+        ? kCGMouseButtonRight : input == kCGEventRightMouseDragged
+        ? kCGMouseButtonRight : kCGMouseButtonLeft;
+    CGEventRef event = CGEventCreateMouseEvent(NULL, input, CGPointMake(10, 20), button);
+    assert(event);
+    CFDataRef before = CGEventCreateData(NULL, event);
+    assert(tap_callback(NULL, input, event, state) == event);
+    if (CGEventGetType(event) != expected) {
+        fprintf(stderr, "FAIL gesture: input=%u source=%u expected=%u actual=%u\n",
+                input, source, expected, CGEventGetType(event));
+        assert(CGEventGetType(event) == expected);
+    }
+    if (input == expected) {
+        CFDataRef after = CGEventCreateData(NULL, event);
+        assert(CFEqual(before, after));
+        CFRelease(after);
+    } else {
+        assert(CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber) == 1 - button);
+    }
+    CFRelease(before);
+    CFRelease(event);
+}
+
+static void test_gestures(void) {
+    KensingtonTap state = {0};
+    gesture_event(&state, kCGEventRightMouseDown, 1, kCGEventLeftMouseDown);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventLeftMouseDragged);
+    gesture_event(&state, kCGEventRightMouseUp, 1, kCGEventLeftMouseUp);
+    assert(state.unknown[5] == 1 && state.target[5] == 0);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventRightMouseDragged);
+    gesture_event(&state, kCGEventLeftMouseDown, 1, kCGEventRightMouseDown);
+    gesture_event(&state, kCGEventLeftMouseDragged, 0, kCGEventRightMouseDragged);
+    gesture_event(&state, kCGEventLeftMouseUp, 0, kCGEventRightMouseUp);
+    gesture_event(&state, kCGEventLeftMouseDragged, 0, kCGEventLeftMouseDragged);
+    gesture_event(&state, kCGEventLeftMouseDown, 2, kCGEventLeftMouseDown);
+    gesture_event(&state, kCGEventLeftMouseDragged, 0, kCGEventLeftMouseDragged);
+    gesture_event(&state, kCGEventLeftMouseUp, 2, kCGEventLeftMouseUp);
+    gesture_event(&state, kCGEventRightMouseDown, 0, kCGEventRightMouseDown);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventRightMouseDragged);
+    gesture_event(&state, kCGEventRightMouseUp, 0, kCGEventRightMouseUp);
+    gesture_event(&state, kCGEventLeftMouseDown, 1, kCGEventRightMouseDown);
+    gesture_event(&state, kCGEventRightMouseDown, 1, kCGEventLeftMouseDown);
+    gesture_event(&state, kCGEventLeftMouseDragged, 0, kCGEventRightMouseDragged);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventLeftMouseDragged);
+    gesture_event(&state, kCGEventLeftMouseUp, 1, kCGEventRightMouseUp);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventLeftMouseDragged);
+    gesture_event(&state, kCGEventRightMouseUp, 1, kCGEventLeftMouseUp);
+    gesture_event(&state, kCGEventRightMouseDown, 1, kCGEventLeftMouseDown);
+    gesture_event(&state, kCGEventLeftMouseDown, 2, kCGEventLeftMouseDown);
+    gesture_event(&state, kCGEventLeftMouseUp, 2, kCGEventLeftMouseUp);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventLeftMouseDragged);
+    gesture_event(&state, kCGEventRightMouseUp, 1, kCGEventLeftMouseUp);
+    gesture_event(&state, kCGEventRightMouseDown, 1, kCGEventLeftMouseDown);
+    release_tap(&state);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventRightMouseDragged);
+    state.listen_only = true;
+    gesture_event(&state, kCGEventRightMouseDown, 1, kCGEventRightMouseDown);
+    gesture_event(&state, kCGEventRightMouseDragged, 0, kCGEventRightMouseDragged);
+    gesture_event(&state, kCGEventRightMouseUp, 1, kCGEventRightMouseUp);
+    puts("PASS callback gestures: source-less drag/up, pen isolation, independent buttons, stop, observer");
+}
+
 int main(void) {
     const CGEventType pairs[][2] = {
         {kCGEventLeftMouseDown, kCGEventRightMouseDown},
@@ -64,5 +148,6 @@ int main(void) {
         ++checks;
     }
     printf("PASS Kensington transform: %u cases; no events posted\n", checks);
+    test_gestures();
     return 0;
 }
