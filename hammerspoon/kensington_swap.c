@@ -39,6 +39,7 @@ typedef struct {
     CFMachPortRef tap;
     CFRunLoopSourceRef source;
     bool listen_only;
+    bool target_down[2];
     CopyIOHIDEventFn copy_hid;
     IOHIDSenderIDFn sender_id;
     uint64_t target[k_swap_count];
@@ -49,7 +50,6 @@ typedef struct {
     uint32_t last_product;
 } KensingtonTap;
 
-/* No held-button tracking: both buttons must be up before stop/reload, or macOS keeps the pre-swap button down. */
 bool kensington_transform(CGEventRef event, uint32_t vendor_id, uint32_t product_id) {
     if (!event || vendor_id != k_target_vendor || product_id != k_target_product) return false;
     CGEventType type = CGEventGetType(event);
@@ -126,7 +126,10 @@ static bool identify_event(KensingtonTap *state, CGEventRef event, uint64_t *sen
     return lookup_vendor_product(sender, vendor_id, product_id);
 }
 
+/* Both buttons must be up before stop/reload, or macOS keeps the pre-swap button down. */
 static void release_tap(KensingtonTap *state) {
+    state->target_down[0] = false;
+    state->target_down[1] = false;
     if (!state->tap && !state->source) {
         state->listen_only = false;
         return;
@@ -161,19 +164,33 @@ static CGEventRef tap_callback(CGEventTapProxy proxy, CGEventType type, CGEventR
     uint32_t vendor_id = 0;
     uint32_t product_id = 0;
     bool known = identify_event(state, event, &sender_id, &vendor_id, &product_id);
+    bool target = known && vendor_id == k_target_vendor && product_id == k_target_product;
     if (!known) {
         state->unknown[index] += 1;
-        return event;
-    }
-    state->last_sender = sender_id;
-    state->last_vendor = vendor_id;
-    state->last_product = product_id;
-    if (vendor_id == k_target_vendor && product_id == k_target_product) {
-        state->target[index] += 1;
-        if (!state->listen_only) kensington_transform(event, vendor_id, product_id);
     } else {
-        state->other[index] += 1;
+        state->last_sender = sender_id;
+        state->last_vendor = vendor_id;
+        state->last_product = product_id;
+        if (target) state->target[index] += 1;
+        else state->other[index] += 1;
     }
+
+    int slot = (type == kCGEventRightMouseDown || type == kCGEventRightMouseUp
+                || type == kCGEventRightMouseDragged) ? 1 : 0;
+    bool down = type == kCGEventLeftMouseDown || type == kCGEventRightMouseDown;
+    bool up = type == kCGEventLeftMouseUp || type == kCGEventRightMouseUp;
+    bool swap;
+    if (down) {
+        state->target_down[slot] = target;
+        swap = target;
+    } else if (known) {
+        swap = target;
+        if (up) state->target_down[slot] = false;
+    } else {
+        swap = state->target_down[slot];
+        if (up) state->target_down[slot] = false;
+    }
+    if (swap && !state->listen_only) kensington_transform(event, k_target_vendor, k_target_product);
     return event;
 }
 
