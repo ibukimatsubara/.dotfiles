@@ -19,32 +19,55 @@ workspace_9=""
 
 windows="$(aerospace list-windows --all --format '%{workspace}|%{app-name}' 2>/dev/null)"
 
+append_unique_icon() {
+    current="$1"
+    icon="$2"
+    case " $current " in
+        *" $icon "*) printf '%s' "$current"; return ;;
+    esac
+    # Cap at three distinct icons per workspace to keep the pill compact.
+    # shellcheck disable=SC2086
+    set -- $current
+    if [ "$#" -ge 3 ]; then
+        printf '%s' "$current"
+        return
+    fi
+    if [ -n "$current" ]; then
+        printf '%s %s' "$current" "$icon"
+    else
+        printf '%s' "$icon"
+    fi
+}
+
 while IFS='|' read -r workspace_id app_name; do
     [ -z "$workspace_id" ] && continue
 
     case "$app_name" in
         "Aqua Voice") continue ;;
         Finder) app_icon="󰀶" ;;
-        "Google Chrome") app_icon="" ;;
+        "Google Chrome"|Zen|"Zen Browser"|Arc|Brave*) app_icon="󰖟" ;;
         Safari) app_icon="󰀹" ;;
-        Ghostty|ghostty) app_icon="" ;;
-        "Visual Studio Code"|Code) app_icon="󰨞" ;;
-        Obsidian) app_icon="󱓧" ;;
+        Ghostty|ghostty|kitty|WezTerm) app_icon="" ;;
+        "Visual Studio Code"|Code|Cursor|"T3 Code"*|Zed) app_icon="󰨞" ;;
+        Slack|Discord) app_icon="󰭹" ;;
+        Notion|Obsidian) app_icon="󱓧" ;;
+        Calendar|"Notion Calendar") app_icon="󰃭" ;;
+        Music|Spotify|cliamp) app_icon="󰎈" ;;
         Raycast) app_icon="󰱽" ;;
         "Activity Monitor") app_icon="󰄪" ;;
         *) app_icon="󰣆" ;;
     esac
 
     case "$workspace_id" in
-        1) workspace_1="$workspace_1$app_icon " ;;
-        2) workspace_2="$workspace_2$app_icon " ;;
-        3) workspace_3="$workspace_3$app_icon " ;;
-        4) workspace_4="$workspace_4$app_icon " ;;
-        5) workspace_5="$workspace_5$app_icon " ;;
-        6) workspace_6="$workspace_6$app_icon " ;;
-        7) workspace_7="$workspace_7$app_icon " ;;
-        8) workspace_8="$workspace_8$app_icon " ;;
-        9) workspace_9="$workspace_9$app_icon " ;;
+        1) workspace_1="$(append_unique_icon "$workspace_1" "$app_icon")" ;;
+        2) workspace_2="$(append_unique_icon "$workspace_2" "$app_icon")" ;;
+        3) workspace_3="$(append_unique_icon "$workspace_3" "$app_icon")" ;;
+        4) workspace_4="$(append_unique_icon "$workspace_4" "$app_icon")" ;;
+        5) workspace_5="$(append_unique_icon "$workspace_5" "$app_icon")" ;;
+        6) workspace_6="$(append_unique_icon "$workspace_6" "$app_icon")" ;;
+        7) workspace_7="$(append_unique_icon "$workspace_7" "$app_icon")" ;;
+        8) workspace_8="$(append_unique_icon "$workspace_8" "$app_icon")" ;;
+        9) workspace_9="$(append_unique_icon "$workspace_9" "$app_icon")" ;;
     esac
 done <<EOF
 $windows

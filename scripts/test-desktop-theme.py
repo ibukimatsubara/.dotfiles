@@ -95,6 +95,9 @@ class DesktopThemeTests(unittest.TestCase):
         import tomllib
         vicinae = tomllib.loads((current / "vicinae-theme.toml").read_text())
         self.assertEqual(vicinae["colors"]["core"]["foreground"], "#123456")
+        tmux = (current / "tmux.conf").read_text()
+        self.assertIn("pane-active-border-style", tmux)
+        self.assertIn("popup-border-style", tmux)
 
     def test_next_wraps_and_current_survives_separate_processes(self):
         self.run_cli("apply", "beta")

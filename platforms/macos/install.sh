@@ -64,9 +64,9 @@ install_desktop_apps() {
 }
 
 install_fonts() {
-    print_info "🔤 Installing Nerd Fonts..."
+    print_info "🔤 Installing UI and Nerd Fonts..."
     local font
-    for font in font-jetbrains-mono-nerd-font font-hack-nerd-font; do
+    for font in font-inter font-jetbrains-mono-nerd-font font-hack-nerd-font; do
         if brew list --cask "$font" >/dev/null 2>&1; then
             print_success "$font already installed"
         elif brew install --cask "$font"; then

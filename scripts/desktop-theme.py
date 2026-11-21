@@ -185,8 +185,30 @@ def render_theme(data, directory):
         body = "".join("export {}={}\n".format(k, v) for k, v in data[field].items())
         (directory / filename).write_text(body)
     (directory / "theme.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    render_tmux(data, directory)
     render_bar_flares(data, directory)
     render_ubuntu(data, directory)
+
+
+def render_tmux(data, directory):
+    def hex_color(key, fallback):
+        return "#" + data["colors"].get(key, "0xff" + fallback.lstrip("#"))[4:]
+
+    dark = hex_color("DARK_COLOR", "131315")
+    surface = hex_color("SURFACE_COLOR", "1f1f22")
+    text = hex_color("TEXT_COLOR", "e4e1e4")
+    accent = hex_color("FOCUS_COLOR", "bfc5e8")
+    border = hex_color("BORDER_COLOR", "46464d")
+    lines = [
+        "# Generated from the shared desktop theme.",
+        f"set -g pane-active-border-style 'fg={accent}'",
+        f"set -g pane-border-style 'fg={border}'",
+        f"set -g message-style 'fg={dark},bg={accent},bold'",
+        f"set -g mode-style 'fg={dark},bg={accent},bold'",
+        f"set -g popup-style 'fg={text},bg={surface}'",
+        f"set -g popup-border-style 'fg={accent},bg={surface}'",
+    ]
+    (directory / "tmux.conf").write_text("\n".join(lines) + "\n")
 
 
 def render_ubuntu(data, directory):
