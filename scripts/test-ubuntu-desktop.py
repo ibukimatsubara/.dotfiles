@@ -181,6 +181,7 @@ with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
         self.assertEqual(data['qt'],'fcitx')
         self.assertEqual(data['qt_modules'],'wayland;fcitx;ibus')
         self.assertEqual((self.home/'shell-lock-inherited').read_text(), 'False')
+        self.assertTrue((self.home/'.config/desk-notes').is_dir())
         for key in ('DISPLAY','XAUTHORITY','XMODIFIERS','GTK_IM_MODULE'):
             self.assertIn(key,data['args'])
 
