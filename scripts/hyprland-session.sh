@@ -51,9 +51,6 @@ spawn hypridle
 spawn fcitx5
 spawn python3 "$scripts_dir/ubuntu-break-timer.py" watch
 spawn python3 "$scripts_dir/ubuntu-mic-priority.py" --watch
-# Quickshell only notices a notes file created later if its folder already exists.
-mkdir -p "$HOME/.config/desk-notes"
-spawn qs -p "$scripts_dir/../platforms/ubuntu/quickshell/desk-notes" -n
 if [ "$desktop_shell" = dms ]; then
     spawn python3 "$scripts_dir/ubuntu-theme.py" watch
 elif [ "$desktop_shell" = caelestia ]; then

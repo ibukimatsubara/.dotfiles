@@ -22,6 +22,13 @@ backend=dms
 if [ -f "$selection" ]; then read -r backend < "$selection" || true; fi
 case "$backend" in dms|caelestia) ;; *) printf 'Invalid desktop shell: %s\n' "$backend" >&2; exit 64 ;; esac
 if [ "$action" = current ]; then printf '%s\n' "$backend"; exit 0; fi
+if [ "$action" = run ]; then
+    # Quickshell only notices a notes file created later if its folder already exists.
+    mkdir -p "$HOME/.config/desk-notes"
+    if command -v qs >/dev/null 2>&1; then
+        "$scripts_dir/hyprland-native.sh" qs -p "$scripts_dir/../platforms/ubuntu/quickshell/desk-notes" -n &
+    fi
+fi
 if [ "$backend" = caelestia ]; then
     prefix="$HOME/.local/opt/caelestia"
     export PATH="$prefix/bin:$HOME/.local/bin:$PATH"
