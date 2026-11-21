@@ -1,6 +1,7 @@
-// Desk notes: every ~/.config/desk-notes/<name>.md becomes a Markdown card on the desktop, behind windows.
-// <name>.json places it in pixels from screen edges, e.g. {"top": 62, "right": 28}; without it the card sits top right.
-// The files stay out of this public repo; saving or adding one updates the cards.
+// Desk notes: every ~/.config/desk-notes/<name>.md becomes a Markdown card on the desktop, behind windows,
+// and every <name>.png/.jpg/.webp becomes a sticker.
+// <name>.json places it in pixels from screen edges, e.g. {"top": 62, "right": 28}, and "width" sizes a sticker;
+// without it the card sits top right. The files stay out of this public repo; saving or adding one updates the cards.
 import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
@@ -19,15 +20,16 @@ ShellRoot {
         const edges = ["top", "bottom", "left", "right"];
         if (place === null || typeof place !== "object" || Array.isArray(place)
                 || edges.some(edge => edge in place && !Number.isFinite(place[edge]))
-                || ("top" in place && "bottom" in place) || ("left" in place && "right" in place))
-            throw new Error('expected numbers such as {"top": 62, "right": 28}');
+                || ("top" in place && "bottom" in place) || ("left" in place && "right" in place)
+                || ("width" in place && !(Number.isFinite(place.width) && place.width > 0)))
+            throw new Error('expected numbers such as {"top": 62, "right": 28, "width": 240}');
         return place;
     }
 
     FolderListModel {
         id: notes
         folder: "file://" + Quickshell.env("HOME") + "/.config/desk-notes"
-        nameFilters: ["*.md"]
+        nameFilters: ["*.md", "*.png", "*.jpg", "*.jpeg", "*.webp"]
         showDirs: false
         // Variants keeps the cards whose paths stay listed, so feed it only finished listings.
         onStatusChanged: {
@@ -43,10 +45,11 @@ ShellRoot {
             id: note
             required property string modelData
             readonly property string filePath: modelData
+            readonly property bool isImage: !filePath.endsWith(".md")
             property string body: ""
             property var place: root.defaultPlace
 
-            visible: body.trim() !== ""
+            visible: isImage ? picture.status === Image.Ready : body.trim() !== ""
             anchors.top: place.top !== undefined
             anchors.bottom: place.bottom !== undefined
             anchors.left: place.left !== undefined
@@ -55,8 +58,8 @@ ShellRoot {
             margins.bottom: place.bottom ?? 0
             margins.left: place.left ?? 0
             margins.right: place.right ?? 0
-            implicitWidth: card.width
-            implicitHeight: card.height
+            implicitWidth: isImage ? picture.width : card.width
+            implicitHeight: isImage ? picture.height : card.height
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Bottom
@@ -64,7 +67,7 @@ ShellRoot {
             mask: Region {}
 
             FileView {
-                path: note.filePath
+                path: note.isImage ? "" : note.filePath
                 watchChanges: true
                 printErrors: false
                 onFileChanged: reload()
@@ -73,7 +76,7 @@ ShellRoot {
             }
 
             FileView {
-                path: note.filePath.replace(/\.md$/, ".json")
+                path: note.filePath.replace(/\.[^.]+$/, ".json")
                 watchChanges: true
                 printErrors: false
                 onFileChanged: reload()
@@ -88,8 +91,19 @@ ShellRoot {
                 onLoadFailed: note.place = root.defaultPlace
             }
 
+            Image {
+                id: picture
+                visible: note.isImage
+                source: note.isImage ? "file://" + note.filePath : ""
+                width: note.place.width ?? 240
+                height: implicitWidth > 0 ? width * implicitHeight / implicitWidth : 0
+                sourceSize.width: width
+                cache: false
+            }
+
             Rectangle {
                 id: card
+                visible: !note.isImage
                 width: column.width + 36
                 height: column.height + 28
                 radius: 12
