@@ -1,7 +1,7 @@
 // Desk notes: every ~/.config/desk-notes/<name>.md becomes a Markdown card on the desktop, behind windows,
-// and every <name>.png/.jpg/.webp becomes a sticker.
-// <name>.json places it in pixels from screen edges, e.g. {"top": 62, "right": 28}, and "width" sizes a sticker;
-// without it the card sits top right. The files stay out of this public repo; saving or adding one updates the cards.
+// and every <name>.png/.jpg/.webp a sticker. <name>.json places it in pixels from screen edges, e.g.
+// {"top": 62, "right": 28}; "width" sizes a card or sticker and "fontSize" a card's text. Without the JSON it
+// sits top right. The files stay out of this public repo; saving or adding one updates the desktop.
 import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
@@ -21,8 +21,8 @@ ShellRoot {
         if (place === null || typeof place !== "object" || Array.isArray(place)
                 || edges.some(edge => edge in place && !Number.isFinite(place[edge]))
                 || ("top" in place && "bottom" in place) || ("left" in place && "right" in place)
-                || ("width" in place && !(Number.isFinite(place.width) && place.width > 0)))
-            throw new Error('expected numbers such as {"top": 62, "right": 28, "width": 240}');
+                || ["width", "fontSize"].some(size => size in place && !(Number.isFinite(place[size]) && place[size] > 0)))
+            throw new Error('expected numbers such as {"top": 62, "right": 28, "width": 240, "fontSize": 19}');
         return place;
     }
 
@@ -104,7 +104,7 @@ ShellRoot {
             Rectangle {
                 id: card
                 visible: !note.isImage
-                width: column.width + 36
+                width: note.place.width ?? column.width + 36
                 height: column.height + 28
                 radius: 12
                 color: "#b3101014"
@@ -121,12 +121,12 @@ ShellRoot {
 
                         Text {
                             required property string modelData
-                            width: Math.min(implicitWidth, 420)
+                            width: note.place.width ? note.place.width - 36 : Math.min(implicitWidth, 420)
                             text: modelData
                             textFormat: Text.MarkdownText
                             wrapMode: Text.Wrap
                             color: "white"
-                            font.pixelSize: 19
+                            font.pixelSize: note.place.fontSize ?? 19
                             font.weight: Font.DemiBold
                             lineHeight: 1.15
                         }
