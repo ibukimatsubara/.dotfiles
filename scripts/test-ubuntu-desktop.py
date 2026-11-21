@@ -165,7 +165,8 @@ except OSError:
 Path(os.environ['HOME'], 'shell-lock-inherited').write_text(str(inherited))
 ''')
         # Keep the fake compositor alive until the supervised shell starts.
-        self.stub('hyprctl', '#!/bin/sh\nif [ -f "$HOME/shell-lock-inherited" ]; then exit 1; fi\nsleep 0.1\nexit 0\n')
+        self.stub('qs', '#!/bin/sh\nprintf "%s\\n" "$@" > "$HOME/qs-args"\n')
+        self.stub('hyprctl', '#!/bin/sh\nif [ -f "$HOME/shell-lock-inherited" ] && [ -f "$HOME/qs-args" ]; then exit 1; fi\nsleep 0.1\nexit 0\n')
         self.stub('dbus-update-activation-environment', """#!/usr/bin/env python3
 import os,json,sys
 with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
@@ -182,6 +183,9 @@ with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
         self.assertEqual(data['qt_modules'],'wayland;fcitx;ibus')
         self.assertEqual((self.home/'shell-lock-inherited').read_text(), 'False')
         self.assertTrue((self.home/'.config/desk-notes').is_dir())
+        qs_args=(self.home/'qs-args').read_text().splitlines()
+        self.assertEqual(qs_args[0::2], ['-p', '-n'])
+        self.assertTrue((Path(qs_args[1])/'shell.qml').is_file(), qs_args)
         for key in ('DISPLAY','XAUTHORITY','XMODIFIERS','GTK_IM_MODULE'):
             self.assertIn(key,data['args'])
 
