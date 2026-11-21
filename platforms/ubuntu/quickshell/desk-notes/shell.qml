@@ -10,6 +10,8 @@ import Quickshell.Wayland
 
 ShellRoot {
     id: root
+    // A reload pops "Config reloaded" over the windows; restart the widget to pick up edits instead.
+    settings.watchFiles: false
 
     // Lines up with the window gaps below Caelestia's top bar.
     readonly property var defaultPlace: ({ top: 62, right: 28 })
