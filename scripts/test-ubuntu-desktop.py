@@ -32,7 +32,7 @@ elif args == ['-j','clients']: print(os.environ['DESKTOP_TEST_WINDOWS'])
 else:
  with open(os.environ['DESKTOP_TEST_LOG'],'a') as f: f.write(json.dumps(args)+'\\n')
 ''')
-        for name in ('ghostty','google-chrome','code','vicinae','dms'):
+        for name in ('ghostty','google-chrome','code','vicinae','dms','qs'):
             self.stub(name, '#!/bin/sh\nexit 0\n')
         self.stub('Hyprland', '#!/bin/sh\necho "Hyprland 0.53.3"\n')
 
@@ -165,7 +165,9 @@ except OSError:
 Path(os.environ['HOME'], 'shell-lock-inherited').write_text(str(inherited))
 ''')
         # Keep the fake compositor alive until the supervised shell starts.
-        self.stub('hyprctl', '#!/bin/sh\nif [ -f "$HOME/shell-lock-inherited" ]; then exit 1; fi\nsleep 0.1\nexit 0\n')
+        self.stub('qs', '#!/bin/sh\nprintf "%s\\n" "$@" > "$HOME/qs-args"\n')
+        # Give up after 5 seconds so a missing client still lets the session clean up its children.
+        self.stub('hyprctl', '#!/bin/sh\n[ -f "$HOME/hyprctl-start" ] || date +%s > "$HOME/hyprctl-start"\nif [ -f "$HOME/shell-lock-inherited" ] && [ -f "$HOME/qs-args" ]; then exit 1; fi\n[ $(( $(date +%s) - $(cat "$HOME/hyprctl-start") )) -gt 5 ] && exit 1\nsleep 0.1\nexit 0\n')
         self.stub('dbus-update-activation-environment', """#!/usr/bin/env python3
 import os,json,sys
 with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
@@ -181,6 +183,10 @@ with open(os.environ['DESKTOP_TEST_LOG'],'w') as f:
         self.assertEqual(data['qt'],'fcitx')
         self.assertEqual(data['qt_modules'],'wayland;fcitx;ibus')
         self.assertEqual((self.home/'shell-lock-inherited').read_text(), 'False')
+        self.assertTrue((self.home/'.config/desk-notes').is_dir())
+        qs_args=(self.home/'qs-args').read_text().splitlines()
+        self.assertEqual(qs_args[0::2], ['-p', '-n'])
+        self.assertEqual(Path(qs_args[1]).resolve(), ROOT/'platforms/ubuntu/quickshell/desk-notes')
         for key in ('DISPLAY','XAUTHORITY','XMODIFIERS','GTK_IM_MODULE'):
             self.assertIn(key,data['args'])
 
