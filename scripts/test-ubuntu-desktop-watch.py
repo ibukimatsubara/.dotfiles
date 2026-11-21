@@ -151,6 +151,66 @@ printf '%s\\n' "$monitor_snapshot" >> "$XDG_RUNTIME_DIR/monitor-queries"
         self.wait_for_monitor_queries()
         self.assertEqual(len(self.starts()), 2)
 
+    def test_monitor_disconnect_restarts_shell_and_desk_notes_together(self):
+        monitors = [{'name': 'HDMI-A-1', 'x': 0, 'y': 0, 'width': 1920, 'height': 1080,
+                     'scale': 1, 'transform': 0, 'disabled': False, 'focused': True,
+                     'refreshRate': 60, 'activeWorkspace': {'id': 1, 'name': '1'}}]
+        self.write_monitors(monitors)
+        self.stub('hyprctl', '''#!/bin/sh
+test ! -f "$XDG_RUNTIME_DIR/stopped" || exit 1
+if [ "$#" = 2 ] && [ "$1" = dispatch ] && [ "$2" = forcerendererreload ]; then
+ printf 'ok\\n'
+ exit 0
+fi
+test "$#" = 2 && test "$1" = -j && test "$2" = monitors || exit 2
+monitor_snapshot="$(cat "$XDG_RUNTIME_DIR/monitors.json")"
+printf '%s\\n' "$monitor_snapshot"
+printf '%s\\n' "$monitor_snapshot" >> "$XDG_RUNTIME_DIR/monitor-queries"
+''')
+        self.stub('dms', '''#!/bin/sh
+printf '%s\\n' "$$" >> "$XDG_RUNTIME_DIR/shell-starts"
+exec sleep 120
+''')
+        # Mimic `qs -n` single-instance lock and slow shutdown on SIGTERM.
+        self.stub('qs', '''#!/usr/bin/env python3
+import fcntl, os, signal, sys, time
+from pathlib import Path
+if '-p' not in sys.argv or '-n' not in sys.argv:
+    sys.exit(2)
+signal.signal(signal.SIGTERM, signal.SIG_IGN)
+lock = open(Path(os.environ['XDG_RUNTIME_DIR']) / 'desk-notes.lock', 'w')
+try:
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    sys.exit(0)
+with open(Path(os.environ['XDG_RUNTIME_DIR']) / 'desk-notes-starts', 'a') as f:
+    f.write(f'{os.getpid()}\\n')
+time.sleep(120)
+''')
+        self.env.update(HOME=str(self.home), XDG_CONFIG_HOME=str(self.home / '.config'))
+        shell_script = str(SCRIPT.with_name('ubuntu-desktop-shell.sh'))
+        process = subprocess.Popen(['python3', str(SCRIPT), '--', 'bash', shell_script, 'run'],
+                                   env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.addCleanup(self.stop, process)
+
+        def read_pids(name):
+            path = self.home / name
+            return [int(line) for line in path.read_text().splitlines() if line] if path.exists() else []
+
+        self.wait_for(lambda: len(read_pids('shell-starts')) == 1 and len(read_pids('desk-notes-starts')) == 1)
+        first_shell = read_pids('shell-starts')[0]
+        first_notes = read_pids('desk-notes-starts')[0]
+
+        self.write_monitors([])
+        self.wait_for_monitor_queries()
+        self.write_monitors(monitors)
+        self.wait_for(lambda: len(read_pids('shell-starts')) == 2 and len(read_pids('desk-notes-starts')) == 2)
+        for old_pid in (first_shell, first_notes):
+            with self.assertRaises(ProcessLookupError):
+                os.kill(old_pid, 0)
+        os.kill(read_pids('desk-notes-starts')[1], 0)
+        self.assertIsNone(process.poll())
+
     def test_invalid_monitor_data_does_not_stop_or_restart_shell(self):
         process, monitors = self.watch_monitors()
         for response in ({'monitors': []}, [None], [{}],

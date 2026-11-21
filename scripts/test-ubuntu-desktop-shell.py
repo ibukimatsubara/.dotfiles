@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import time
 import unittest
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,6 +71,67 @@ class ShellTests(unittest.TestCase):
         selection.write_text('caelestia')
         result = self.run_shell('current')
         self.assertEqual((result.returncode, result.stdout.strip()), (0, 'caelestia'))
+
+    def test_run_starts_desk_notes_alongside_selected_shell(self):
+        log = self.home / 'launches.jsonl'
+        recorder = '''#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+entry = {
+    'bin': Path(sys.argv[0]).name,
+    'args': sys.argv[1:],
+    'display': os.environ.get('DISPLAY'),
+    'xauthority': os.environ.get('XAUTHORITY'),
+    'ld_library_path': os.environ.get('LD_LIBRARY_PATH'),
+    'qml_import_path': os.environ.get('QML_IMPORT_PATH'),
+}
+with open(os.environ['SHELL_TEST_LOG'], 'a') as f:
+    f.write(json.dumps(entry) + '\\n')
+'''
+        for name in ('dms', 'qs'):
+            p = self.bin / name
+            p.write_text(recorder)
+            p.chmod(0o755)
+        self.env.pop('LD_LIBRARY_PATH', None)
+        self.env.pop('QML_IMPORT_PATH', None)
+        self.env.update(
+            SHELL_TEST_LOG=str(log),
+            DISPLAY=':42',
+            XAUTHORITY='/test/xauth',
+        )
+        expected_desk_notes = str((ROOT / 'platforms/ubuntu/quickshell/desk-notes').resolve())
+        for backend, expected_shell in (('dms', ('dms', ['run'])), ('caelestia', ('qs', ['-c', 'caelestia', '-n']))):
+            with self.subTest(backend=backend):
+                if log.exists():
+                    log.unlink()
+                notes_dir = self.home / '.config/desk-notes'
+                if notes_dir.exists():
+                    notes_dir.rmdir()
+                self.select(backend)
+                result = self.run_shell('run')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                deadline = time.monotonic() + 3
+                entries = []
+                while time.monotonic() < deadline:
+                    if log.exists():
+                        entries = [json.loads(line) for line in log.read_text().splitlines() if line]
+                        if len(entries) >= 2:
+                            break
+                    time.sleep(0.05)
+                self.assertTrue(notes_dir.is_dir())
+                desk_notes = [
+                    e for e in entries
+                    if e['bin'] == 'qs' and len(e['args']) == 3 and e['args'][0] == '-p' and e['args'][2] == '-n'
+                ]
+                self.assertEqual(len(desk_notes), 1, entries)
+                self.assertEqual(str(Path(desk_notes[0]['args'][1]).resolve()), expected_desk_notes)
+                self.assertIsNone(desk_notes[0]['display'])
+                self.assertIsNone(desk_notes[0]['xauthority'])
+                self.assertIsNone(desk_notes[0]['ld_library_path'])
+                self.assertIsNone(desk_notes[0]['qml_import_path'])
+                shell_entries = [e for e in entries if e != desk_notes[0]]
+                self.assertEqual(len(shell_entries), 1, entries)
+                self.assertEqual((shell_entries[0]['bin'], shell_entries[0]['args']), expected_shell)
 
 
 if __name__ == '__main__':
