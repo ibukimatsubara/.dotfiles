@@ -12,20 +12,37 @@ ShellRoot {
 
     // Lines up with the window gaps below Caelestia's top bar.
     readonly property var defaultPlace: ({ top: 62, right: 28 })
+    property var files: []
+
+    function parsePlace(json) {
+        const place = JSON.parse(json);
+        const edges = ["top", "bottom", "left", "right"];
+        if (place === null || typeof place !== "object" || Array.isArray(place)
+                || edges.some(edge => edge in place && !Number.isFinite(place[edge]))
+                || ("top" in place && "bottom" in place) || ("left" in place && "right" in place))
+            throw new Error('expected numbers such as {"top": 62, "right": 28}');
+        return place;
+    }
 
     FolderListModel {
         id: notes
         folder: "file://" + Quickshell.env("HOME") + "/.config/desk-notes"
         nameFilters: ["*.md"]
         showDirs: false
+        // Variants keeps the cards whose paths stay listed, so feed it only finished listings.
+        onStatusChanged: {
+            if (status === FolderListModel.Ready)
+                root.files = Array.from({ length: count }, (_, i) => get(i, "filePath"));
+        }
     }
 
-    Instantiator {
-        model: notes
+    Variants {
+        model: root.files
 
         PanelWindow {
             id: note
-            required property string filePath
+            required property string modelData
+            readonly property string filePath: modelData
             property string body: ""
             property var place: root.defaultPlace
 
@@ -62,7 +79,7 @@ ShellRoot {
                 onFileChanged: reload()
                 onLoaded: {
                     try {
-                        note.place = JSON.parse(text());
+                        note.place = root.parsePlace(text());
                     } catch (error) {
                         console.warn("desk-notes: " + path + ": " + error);
                         note.place = root.defaultPlace;
