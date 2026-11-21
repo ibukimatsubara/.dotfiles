@@ -90,6 +90,21 @@ class UbuntuThemeTests(unittest.TestCase):
                 m.wallpaper()
                 command.assert_called_once_with('caelestia', 'wallpaper', '-f', str((pictures / 'b.png').resolve()))
 
+    def test_random_wallpaper_skips_current_image(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            for name in ('a.png', 'b.png'):
+                (home / name).write_bytes(b'')
+            rotation = home / 'wallpapers.json'
+            rotation.write_text(json.dumps({'rotation_seconds': 60, 'wallpapers': ['a.png', 'b.png']}))
+            current = home / 'state/caelestia/wallpaper/path.txt'
+            current.parent.mkdir(parents=True)
+            current.write_text(str(home / 'a.png'))
+            with patch.object(m, 'STATE', home / 'state'), patch.object(m, 'ROTATION', rotation), patch.object(m.Path, 'home', return_value=home), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'show') as show:
+                for _ in range(5):
+                    m.random_wallpaper()
+                    show.assert_called_with(str((home / 'b.png').resolve()))
+
     def test_rotation_rejects_short_interval(self):
         with tempfile.TemporaryDirectory() as tmp:
             rotation = Path(tmp) / 'wallpapers.json'
@@ -145,6 +160,78 @@ class UbuntuThemeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'symlinked'):
                 m.atomic_write(settings, '{}')
             self.assertEqual(original.read_text(), '{"keep": true}')
+
+    def test_sync_caelestia_generates_ghostty_hypr_and_tmux_themes(self):
+        scheme = {
+            'mode': 'dark',
+            'colours': {
+                'surface': '131315',
+                'surfaceContainerLowest': '0e0e10',
+                'surfaceContainer': '1f1f22',
+                'onSurface': 'e4e1e4',
+                'outlineVariant': '46464d',
+                'primary': 'bfc5e8',
+                'onPrimary': '292f4b',
+                'tertiary': 'e2bbd8',
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / 'config'
+            state = Path(tmp) / 'state'
+            (state / 'caelestia').mkdir(parents=True)
+            (state / 'caelestia/scheme.json').write_text(json.dumps(scheme))
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'STATE', state), patch.dict(m.os.environ, {}, clear=True), patch.object(m.subprocess, 'run') as run:
+                changed = m.sync_caelestia()
+                self.assertTrue(changed)
+                run.assert_not_called()
+            ghostty = (config / 'dotfiles/ghostty/caelestia-theme.conf').read_text()
+            self.assertIn('theme = Catppuccin Mocha', ghostty)
+            self.assertIn('background-opacity = 0.78', ghostty)
+            self.assertIn('foreground = #e4e1e4', ghostty)
+            self.assertIn('cursor-color = #bfc5e8', ghostty)
+            self.assertIn('cursor-text = #292f4b', ghostty)
+            self.assertIn('split-divider-color = #46464d', ghostty)
+            hypr = (config / 'dotfiles/hypr/theme.conf').read_text()
+            self.assertIn('col.active_border = rgba(bfc5e8dd) rgba(e2bbd8aa) 45deg', hypr)
+            self.assertIn('col.inactive_border = rgba(46464d66)', hypr)
+            self.assertIn('rounding = 10', hypr)
+            self.assertIn('windowrule = no_blur on, match:class ^(com\\.mitchellh\\.ghostty|ghostty)$', hypr)
+            tmux = (config / 'dotfiles/tmux/theme.conf').read_text()
+            self.assertIn("set -g pane-active-border-style 'fg=#bfc5e8'", tmux)
+            self.assertIn("set -g pane-border-style 'fg=#46464d'", tmux)
+            self.assertIn("set -g popup-border-style 'fg=#bfc5e8,bg=#1f1f22'", tmux)
+
+    def test_sync_caelestia_is_idempotent_and_reloads_only_on_change(self):
+        scheme = {
+            'mode': 'dark',
+            'colours': {
+                'surface': '131315',
+                'surfaceContainerLowest': '0e0e10',
+                'surfaceContainer': '1f1f22',
+                'onSurface': 'e4e1e4',
+                'outlineVariant': '46464d',
+                'primary': 'bfc5e8',
+                'onPrimary': '292f4b',
+                'tertiary': 'e2bbd8',
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / 'config'
+            state = Path(tmp) / 'state'
+            (state / 'caelestia').mkdir(parents=True)
+            (state / 'caelestia/scheme.json').write_text(json.dumps(scheme))
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'STATE', state), patch.dict(m.os.environ, {'HYPRLAND_INSTANCE_SIGNATURE': 'fixture'}), patch.object(m, 'live_reload_caelestia') as reload_fn:
+                self.assertTrue(m.sync_caelestia())
+                self.assertEqual(reload_fn.call_count, 1)
+                self.assertFalse(m.sync_caelestia())
+                self.assertEqual(reload_fn.call_count, 1)
+
+    def test_sync_caelestia_handles_missing_scheme_gracefully(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / 'config'
+            state = Path(tmp) / 'state'
+            with patch.object(m, 'CONFIG', config), patch.object(m, 'STATE', state):
+                self.assertFalse(m.sync_caelestia())
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,33 +9,66 @@ import qs.services
 StyledRect {
     id: root
 
-    // Prefer a player actually playing over an idle browser or paused player.
-    readonly property var player: Players.list.find(p => p.isPlaying) ?? Players.active
+    // Prefer a playing track with metadata, then any player with metadata, then the active fallback.
+    readonly property var player: Players.list.find(p => p.isPlaying && (p.trackTitle ?? "").length > 0)
+        ?? Players.list.find(p => (p.trackTitle ?? "").length > 0)
+        ?? Players.active
     readonly property string title: player?.trackTitle ?? ""
     readonly property string artist: player?.trackArtist ?? ""
     readonly property string artwork: Players.getArtUrl(player)
     readonly property bool available: player !== null && title.length > 0
+    readonly property string uiFont: "Inter"
+    readonly property real naturalTextWidth: titleMetrics.advanceWidth + (artist.length > 0 ? sepMetrics.advanceWidth + artistMetrics.advanceWidth + 10 : 0)
+    // 6px left margin + 20px cover + 8px gap + text + 12px right margin
+    readonly property real preferredWidth: Math.min(320, Math.max(120, Math.ceil(naturalTextWidth) + 48))
 
-    implicitHeight: 32
+    TextMetrics {
+        id: titleMetrics
+        font.family: root.uiFont
+        font.pixelSize: 12
+        font.weight: Font.Medium
+        text: root.title
+    }
+    TextMetrics {
+        id: sepMetrics
+        font.family: root.uiFont
+        font.pixelSize: 12
+        font.weight: Font.Medium
+        text: "·"
+    }
+    TextMetrics {
+        id: artistMetrics
+        font.family: root.uiFont
+        font.pixelSize: 12
+        font.weight: Font.Normal
+        text: root.artist
+    }
+
+    implicitWidth: preferredWidth
+    implicitHeight: 30
     radius: 10
     color: hover.containsMouse ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainer
+    border.width: 1
+    border.color: Qt.alpha(Colours.palette.m3outlineVariant, hover.containsMouse ? 0.45 : 0.28)
 
     RowLayout {
+        id: contentRow
         anchors.fill: parent
-        anchors.leftMargin: 7
-        anchors.rightMargin: 8
-        spacing: 7
+        anchors.leftMargin: 6
+        anchors.rightMargin: 10
+        spacing: 8
 
         StyledClippingRect {
-            Layout.preferredWidth: 24
-            Layout.preferredHeight: 24
-            radius: 6
+            Layout.preferredWidth: 20
+            Layout.preferredHeight: 20
+            Layout.alignment: Qt.AlignVCenter
+            radius: 5
 
             Image {
                 anchors.fill: parent
                 source: Qt.resolvedUrl("media-placeholder.png")
-                sourceSize.width: 48
-                sourceSize.height: 48
+                sourceSize.width: 40
+                sourceSize.height: 40
                 fillMode: Image.PreserveAspectCrop
                 visible: cover.status !== Image.Ready
             }
@@ -43,23 +76,57 @@ StyledRect {
                 id: cover
                 anchors.fill: parent
                 source: root.artwork
-                sourceSize.width: 48
-                sourceSize.height: 48
+                sourceSize.width: 40
+                sourceSize.height: 40
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 visible: status === Image.Ready
             }
         }
 
-        StyledText {
+        RowLayout {
             Layout.fillWidth: true
-            text: root.artist ? root.title + " · " + root.artist : root.title
-            color: Colours.palette.m3onSurface
-            elide: Text.ElideRight
-            maximumLineCount: 1
-            textFormat: Text.PlainText
-        }
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 5
 
+            StyledText {
+                Layout.fillWidth: true
+                Layout.maximumWidth: Math.ceil(titleMetrics.advanceWidth) + 2
+                Layout.minimumWidth: 48
+                text: root.title
+                color: Colours.palette.m3onSurface
+                font.family: root.uiFont
+                font.pixelSize: 12
+                font.weight: Font.Medium
+                elide: Text.ElideRight
+                maximumLineCount: 1
+                textFormat: Text.PlainText
+            }
+
+            StyledText {
+                visible: root.artist.length > 0
+                text: "·"
+                color: Colours.palette.m3outline
+                font.family: root.uiFont
+                font.pixelSize: 12
+                font.weight: Font.Medium
+                textFormat: Text.PlainText
+            }
+
+            StyledText {
+                visible: root.artist.length > 0
+                Layout.fillWidth: true
+                Layout.maximumWidth: Math.ceil(artistMetrics.advanceWidth) + 2
+                text: root.artist
+                color: Colours.palette.m3onSurfaceVariant
+                font.family: root.uiFont
+                font.pixelSize: 12
+                font.weight: Font.Normal
+                elide: Text.ElideRight
+                maximumLineCount: 1
+                textFormat: Text.PlainText
+            }
+        }
     }
 
     MouseArea {

@@ -18,15 +18,30 @@
   },
   "appearance": {
     "font": {
-      "clock": "Rubik",
-      "workspaces": "Rubik"
+      "headline": {
+        "family": "Inter"
+      },
+      "title": {
+        "family": "Inter"
+      },
+      "body": {
+        "family": "Inter"
+      },
+      "label": {
+        "family": "Inter"
+      },
+      "mono": {
+        "family": "JetBrains Mono"
+      },
+      "clock": "Inter",
+      "workspaces": "Inter"
     }
   },
   "bar": {
     "persistent": false,
     "showOnHover": false,
     "workspaces": {
-      "shown": 9,
+      "shown": 5,
       "label": "",
       "occupiedLabel": "",
       "activeLabel": "",
