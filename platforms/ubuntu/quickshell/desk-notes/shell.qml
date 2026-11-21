@@ -42,17 +42,27 @@ ShellRoot {
             color: "#b3101014"
             border.color: "#40ffffff"
 
-            Text {
+            Column {
                 id: body
                 anchors.centerIn: parent
-                width: Math.min(implicitWidth, 420)
-                text: root.notes
-                textFormat: Text.MarkdownText
-                wrapMode: Text.Wrap
-                color: "white"
-                font.pixelSize: 19
-                font.weight: Font.DemiBold
-                lineHeight: 1.15
+
+                // Replacing a MarkdownText's text squeezes the gaps between blocks,
+                // so each version of the file gets a fresh Text.
+                Repeater {
+                    model: [root.notes]
+
+                    Text {
+                        required property string modelData
+                        width: Math.min(implicitWidth, 420)
+                        text: modelData
+                        textFormat: Text.MarkdownText
+                        wrapMode: Text.Wrap
+                        color: "white"
+                        font.pixelSize: 19
+                        font.weight: Font.DemiBold
+                        lineHeight: 1.15
+                    }
+                }
             }
         }
     }
