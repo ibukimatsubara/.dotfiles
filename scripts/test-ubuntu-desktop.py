@@ -32,7 +32,7 @@ elif args == ['-j','clients']: print(os.environ['DESKTOP_TEST_WINDOWS'])
 else:
  with open(os.environ['DESKTOP_TEST_LOG'],'a') as f: f.write(json.dumps(args)+'\\n')
 ''')
-        for name in ('ghostty','google-chrome','code','vicinae','dms'):
+        for name in ('ghostty','google-chrome','code','vicinae','dms','qs'):
             self.stub(name, '#!/bin/sh\nexit 0\n')
         self.stub('Hyprland', '#!/bin/sh\necho "Hyprland 0.53.3"\n')
 
