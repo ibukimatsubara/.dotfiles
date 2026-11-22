@@ -22,6 +22,49 @@ backend=dms
 if [ -f "$selection" ]; then read -r backend < "$selection" || true; fi
 case "$backend" in dms|caelestia) ;; *) printf 'Invalid desktop shell: %s\n' "$backend" >&2; exit 64 ;; esac
 if [ "$action" = current ]; then printf '%s\n' "$backend"; exit 0; fi
+if [ "$action" = run ]; then
+    shell_pid=
+    # -n can exit desk-notes alone; only the desktop shell's exit ends this run.
+    # Reap both on shutdown so the watcher cannot restart over a dying instance.
+    stop_children() {
+        local status=$?
+        local pid attempt
+        # A second SIGTERM (watcher killpg / systemd control-group) must not abort
+        # reaping. Signal only live jobs so a reused PID of an exited notes process
+        # is never killed. Stay under the watcher's 3s SIGKILL.
+        trap - EXIT
+        trap '' HUP INT TERM
+        for pid in $(jobs -pr); do
+            kill -TERM -- "$pid" 2>/dev/null || true
+        done
+        for attempt in {1..20}; do
+            if [ -z "$(jobs -pr)" ]; then
+                break
+            fi
+            sleep 0.1
+        done
+        for pid in $(jobs -pr); do
+            kill -KILL -- "$pid" 2>/dev/null || true
+        done
+        wait 2>/dev/null || true
+        exit "$status"
+    }
+    trap stop_children EXIT HUP INT TERM
+    # Quickshell only notices a notes file created later if its folder already exists.
+    # A failed mkdir must not abort the desktop shell.
+    if command -v qs >/dev/null 2>&1 && mkdir -p "$HOME/.config/desk-notes"; then
+        "$scripts_dir/hyprland-native.sh" qs -p "$scripts_dir/../platforms/ubuntu/quickshell/desk-notes" -n &
+    fi
+    run_managed() {
+        "$@" &
+        shell_pid=$!
+        set +e
+        wait -- "$shell_pid"
+        status=$?
+        set -e
+        exit "$status"
+    }
+fi
 if [ "$backend" = caelestia ]; then
     prefix="$HOME/.local/opt/caelestia"
     export PATH="$prefix/bin:$HOME/.local/bin:$PATH"
@@ -30,7 +73,7 @@ if [ "$backend" = caelestia ]; then
     export CAELESTIA_LIB_DIR="$prefix/lib/caelestia"
     export QS_ICON_THEME="${QS_ICON_THEME:-Yaru}"
     case "$action" in
-        run) exec "$scripts_dir/hyprland-native.sh" qs -c caelestia -n ;;
+        run) run_managed "$scripts_dir/hyprland-native.sh" qs -c caelestia -n ;;
         launcher|spotlight) exec caelestia shell drawers toggle launcher ;;
         launcher-open) [ "$(caelestia shell drawers isOpen launcher)" = 1 ]; exit $? ;;
         settings) exec caelestia shell nexus open ;;
@@ -41,7 +84,7 @@ if [ "$backend" = caelestia ]; then
     esac
 fi
 case "$action" in
-    run) exec "$scripts_dir/hyprland-native.sh" dms run ;;
+    run) run_managed "$scripts_dir/hyprland-native.sh" dms run ;;
     launcher) exec "$scripts_dir/ubuntu-launcher.sh" ;;
     spotlight) exec dms ipc call spotlight toggle ;;
     settings) exec dms ipc call settings focusOrToggle ;;
