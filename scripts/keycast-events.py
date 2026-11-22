@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import selectors
+import socket
 import struct
 import subprocess
 import sys
@@ -77,14 +78,31 @@ def emit(text, seconds, micros):
     print(json.dumps({'text': text, 'time': stamp}, ensure_ascii=False), flush=True)
 
 
-def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None):
+def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None, hypr_socket=None):
     # flock would take an unlocked file and make hyprlock's flock -n fail. Match the hold instead.
     if uid is None:
         uid = os.getuid()
-    if lock_path is None:
-        runtime = os.environ.get('XDG_RUNTIME_DIR')
-        if runtime:
-            lock_path = Path(runtime) / 'dotfiles-hyprlock.lock'
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    if lock_path is None and runtime:
+        lock_path = Path(runtime) / 'dotfiles-hyprlock.lock'
+    if hypr_socket is None:
+        sig = os.environ.get('HYPRLAND_INSTANCE_SIGNATURE')
+        if runtime and sig:
+            hypr_socket = Path(runtime) / 'hypr' / sig / '.socket.sock'
+    # Hyprland owns ext-session-lock-v1, so a live socket covers hyprlock and DMS; scan /proc only if it is unreachable.
+    hypr_socket_ok = False
+    if hypr_socket is not None:
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.settimeout(0.2)
+                sock.connect(os.fspath(hypr_socket))
+                sock.sendall(b'locked')
+                reply = sock.recv(64).strip(b'\x00\r\n\t ')
+        except OSError:
+            reply = None
+        if reply == b'true':
+            return True
+        hypr_socket_ok = reply == b'false'
     if lock_path is not None:
         try:
             st = Path(lock_path).stat()
@@ -100,6 +118,8 @@ def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None):
                 parts = line.split()
                 if len(parts) >= 6 and parts[1] == 'FLOCK' and parts[5] == token:
                     return True
+    if hypr_socket_ok:
+        return False
     try:
         entries = proc_root.iterdir()
     except OSError:
@@ -111,10 +131,36 @@ def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None):
             # Another session's hyprlock is not this screen.
             if entry.stat().st_uid != uid:
                 continue
-            comm = (entry / 'comm').read_text()
+            # comm is capped at 15 bytes and may end mid-codepoint.
+            comm = (entry / 'comm').read_bytes().strip()
         except OSError:
             continue
-        if comm.strip() == 'hyprlock':
+        if comm == b'hyprlock':
+            return True
+    return False
+
+
+def drain_handles(handles):
+    dead = []
+    for handle in handles:
+        while True:
+            try:
+                chunk = handle.read(EVENT.size * 64)
+            except BlockingIOError:
+                break
+            except OSError:
+                dead.append(handle)
+                break
+            # FileIO.read returns None, not BlockingIOError, when a non-blocking fd would block.
+            if not chunk:
+                break
+    return dead
+
+
+def has_displayable_event(data):
+    for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
+        _, _, kind, code, value = EVENT.unpack_from(data, offset)
+        if kind == EV_KEY or (kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value):
             return True
     return False
 
@@ -125,14 +171,21 @@ class EventState:
         self.held = set()
         self.pending = None  # A modifier combination pressed with no other key yet.
         self.locked = False
+        self.unlocked_at = None
 
-    def sync_lock(self, locked):
+    def sync_lock(self, locked, now=None):
         locked = bool(locked)
+        unlocked = self.locked and not locked
         if locked and not self.locked:
             self.held.clear()
             self.pending = None
             print(json.dumps({'clear': True}), flush=True)
+        elif unlocked:
+            self.held.clear()
+            self.pending = None
+            self.unlocked_at = time.time() if now is None else now
         self.locked = locked
+        return unlocked
 
     def process_handle(self, handle, device, swapped, locked):
         data = handle.read(EVENT.size * 64) or b''
@@ -145,6 +198,9 @@ class EventState:
     def apply(self, data, device, swapped):
         for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
             seconds, micros, kind, code, value = EVENT.unpack_from(data, offset)
+            # Kernel time can predate unlock; ignore those so a password cannot replay.
+            if self.unlocked_at is not None and seconds + micros / 1_000_000 <= self.unlocked_at:
+                continue
             if kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value:
                 arrow = ('↑' if value > 0 else '↓') if code == REL_WHEEL else ('→' if value > 0 else '←')
                 for _ in range(abs(value)):
@@ -187,9 +243,21 @@ def main():
     opened = {}
     rescan = 0
     swapped = set()
+    next_lock_check = 0
+
+    def close_dead(handles):
+        for handle in handles:
+            selector.unregister(handle)
+            opened.pop(handle.name, None)
+            handle.close()
+
     while True:
-        state.sync_lock(screen_locked())
-        if time.monotonic() >= rescan:
+        now_mono = time.monotonic()
+        if now_mono >= next_lock_check:
+            if state.sync_lock(screen_locked()):
+                close_dead(drain_handles(list(opened.values())))
+            next_lock_check = now_mono + 0.25
+        if now_mono >= rescan:
             swapped = swapped_keyboards()
             for path, device in devices().items():
                 if path not in opened:
@@ -202,26 +270,20 @@ def main():
                     opened[path] = handle
                     selector.register(handle, selectors.EVENT_READ, device)
             rescan = time.monotonic() + 3
-        # A lock can land between select and read; drain either way so a password cannot replay.
         for key, _ in selector.select(timeout=0.25):
             handle, device = key.fileobj, key.data
-            locked = screen_locked()
-            if locked:
-                state.sync_lock(True)
             try:
-                if locked:
-                    state.process_handle(handle, device, swapped, True)
-                    data = None
-                else:
-                    data = handle.read(EVENT.size * 64) or b''
+                data = handle.read(EVENT.size * 64) or b''
             except OSError:
                 # Unplugged: forget it and pick it up again on the next rescan.
-                selector.unregister(handle)
-                opened.pop(handle.name, None)
-                handle.close()
+                close_dead([handle])
                 continue
-            if locked or screen_locked():
-                state.sync_lock(True)
+            # Pointer motion is not shown; asking Hyprland on every batch pegs a core.
+            if not state.locked and not has_displayable_event(data):
+                continue
+            if state.sync_lock(screen_locked()):
+                close_dead(drain_handles(list(opened.values())))
+            if state.locked:
                 continue
             state.apply(data, device, swapped)
 

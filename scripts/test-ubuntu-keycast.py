@@ -196,7 +196,9 @@ class KeycastEventsLockTests(unittest.TestCase):
 
         def fake_open(path, mode='rb', buffering=0):
             if path == dev_path:
-                return os.fdopen(read_fd, 'rb', buffering=0)
+                handle = os.fdopen(read_fd, 'rb', buffering=0)
+                self.addCleanup(handle.close)
+                return handle
             return open(path, mode, buffering=buffering)
 
         out = io.StringIO()
