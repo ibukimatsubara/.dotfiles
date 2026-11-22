@@ -1,5 +1,5 @@
 // Keycast: shows the last three key presses, clicks and wheel turns at the bottom right of each screen.
-// Started and stopped by scripts/ubuntu-keycast.sh; input comes from scripts/keycast-events.py.
+// The desktop shell starts this instance; scripts/ubuntu-keycast.sh toggles it. Input comes from scripts/keycast-events.py.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -8,7 +8,14 @@ import Quickshell.Wayland
 ShellRoot {
     id: root
 
+    property bool enabled: true
+
     ListModel { id: entries }
+
+    function reset() {
+        entries.clear();
+        clear.stop();
+    }
 
     function add(event) {
         const now = Date.now();
@@ -33,6 +40,24 @@ ShellRoot {
         clear.restart();
     }
 
+    onEnabledChanged: {
+        if (!enabled)
+            reset();
+    }
+
+    IpcHandler {
+        target: "keycast"
+
+        function toggle(): string {
+            root.enabled = !root.enabled;
+            return root.enabled ? "shown" : "hidden";
+        }
+
+        function status(): string {
+            return root.enabled ? "shown" : "hidden";
+        }
+    }
+
     Timer {
         id: clear
         interval: 4000
@@ -40,12 +65,16 @@ ShellRoot {
     }
 
     Process {
-        running: true
+        running: root.enabled
         command: ["python3", Quickshell.env("HOME") + "/.dotfiles/scripts/keycast-events.py"]
         stdout: SplitParser {
             onRead: line => {
                 try {
-                    root.add(JSON.parse(line));
+                    const event = JSON.parse(line);
+                    if (event.clear === true)
+                        root.reset();
+                    else
+                        root.add(event);
                 } catch (error) {
                     console.warn("keycast: " + line);
                 }
@@ -59,6 +88,7 @@ ShellRoot {
         PanelWindow {
             required property var modelData
             screen: modelData
+            visible: root.enabled
             anchors.bottom: true
             anchors.right: true
             margins.bottom: 16

@@ -77,14 +77,118 @@ def emit(text, seconds, micros):
     print(json.dumps({'text': text, 'time': stamp}, ensure_ascii=False), flush=True)
 
 
+def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None):
+    # flock would take an unlocked file and make hyprlock's flock -n fail. Match the hold instead.
+    if uid is None:
+        uid = os.getuid()
+    if lock_path is None:
+        runtime = os.environ.get('XDG_RUNTIME_DIR')
+        if runtime:
+            lock_path = Path(runtime) / 'dotfiles-hyprlock.lock'
+    if lock_path is not None:
+        try:
+            st = Path(lock_path).stat()
+        except OSError:
+            st = None
+        if st is not None:
+            token = f'{os.major(st.st_dev):02x}:{os.minor(st.st_dev):02x}:{st.st_ino}'
+            try:
+                locks = Path('/proc/locks').read_text()
+            except OSError:
+                locks = ''
+            for line in locks.splitlines():
+                parts = line.split()
+                if len(parts) >= 6 and parts[1] == 'FLOCK' and parts[5] == token:
+                    return True
+    try:
+        entries = proc_root.iterdir()
+    except OSError:
+        return False
+    for entry in entries:
+        if not entry.name.isdigit():
+            continue
+        try:
+            # Another session's hyprlock is not this screen.
+            if entry.stat().st_uid != uid:
+                continue
+            comm = (entry / 'comm').read_text()
+        except OSError:
+            continue
+        if comm.strip() == 'hyprlock':
+            return True
+    return False
+
+
+class EventState:
+    def __init__(self, names):
+        self.names = names
+        self.held = set()
+        self.pending = None  # A modifier combination pressed with no other key yet.
+        self.locked = False
+
+    def sync_lock(self, locked):
+        locked = bool(locked)
+        if locked and not self.locked:
+            self.held.clear()
+            self.pending = None
+            print(json.dumps({'clear': True}), flush=True)
+        self.locked = locked
+
+    def process_handle(self, handle, device, swapped, locked):
+        data = handle.read(EVENT.size * 64) or b''
+        if locked:
+            self.held.clear()
+            self.pending = None
+            return
+        self.apply(data, device, swapped)
+
+    def apply(self, data, device, swapped):
+        for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
+            seconds, micros, kind, code, value = EVENT.unpack_from(data, offset)
+            if kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value:
+                arrow = ('↑' if value > 0 else '↓') if code == REL_WHEEL else ('→' if value > 0 else '←')
+                for _ in range(abs(value)):
+                    emit('Wheel ' + arrow, seconds, micros)
+                continue
+            if kind != EV_KEY:
+                continue
+            if device in swapped and code in (29, 125):
+                code = 154 - code
+            modifier = MODIFIERS.get(code)
+            if modifier:
+                if value == 1:
+                    self.held.add(modifier)
+                    self.pending = set(self.held)
+                elif value == 0:
+                    if self.pending and modifier in self.pending:
+                        emit('+'.join(m for m in ORDER if m in self.pending), seconds, micros)
+                    self.held.discard(modifier)
+                    self.pending = None
+                continue
+            if value == 0:
+                continue
+            self.pending = None
+            text = label(code, self.names)
+            prefix = [m for m in ORDER if m in self.held]
+            if len(text) == 1 and text.isalpha():
+                # Letters read as typed: lowercase, or uppercase with Shift alone.
+                if prefix == ['Shift']:
+                    prefix = []
+                elif not prefix:
+                    text = text.lower()
+            # Held-key repeats print the same text, which the overlay counts as ×N.
+            emit('+'.join(prefix + [text]), seconds, micros)
+
+
 def main():
     names = key_names()
+    state = EventState(names)
     selector = selectors.DefaultSelector()
     opened = {}
-    held = set()
-    pending = None  # A modifier combination pressed with no other key yet.
     rescan = 0
+    swapped = set()
     while True:
+        state.sync_lock(screen_locked())
         if time.monotonic() >= rescan:
             swapped = swapped_keyboards()
             for path, device in devices().items():
@@ -98,51 +202,28 @@ def main():
                     opened[path] = handle
                     selector.register(handle, selectors.EVENT_READ, device)
             rescan = time.monotonic() + 3
-        for key, _ in selector.select(timeout=3):
+        # A lock can land between select and read; drain either way so a password cannot replay.
+        for key, _ in selector.select(timeout=0.25):
             handle, device = key.fileobj, key.data
+            locked = screen_locked()
+            if locked:
+                state.sync_lock(True)
             try:
-                data = handle.read(EVENT.size * 64) or b''
+                if locked:
+                    state.process_handle(handle, device, swapped, True)
+                    data = None
+                else:
+                    data = handle.read(EVENT.size * 64) or b''
             except OSError:
                 # Unplugged: forget it and pick it up again on the next rescan.
                 selector.unregister(handle)
                 opened.pop(handle.name, None)
                 handle.close()
                 continue
-            for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
-                seconds, micros, kind, code, value = EVENT.unpack_from(data, offset)
-                if kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value:
-                    arrow = ('↑' if value > 0 else '↓') if code == REL_WHEEL else ('→' if value > 0 else '←')
-                    for _ in range(abs(value)):
-                        emit('Wheel ' + arrow, seconds, micros)
-                    continue
-                if kind != EV_KEY:
-                    continue
-                if device in swapped and code in (29, 125):
-                    code = 154 - code
-                modifier = MODIFIERS.get(code)
-                if modifier:
-                    if value == 1:
-                        held.add(modifier)
-                        pending = set(held)
-                    elif value == 0:
-                        if pending and modifier in pending:
-                            emit('+'.join(m for m in ORDER if m in pending), seconds, micros)
-                        held.discard(modifier)
-                        pending = None
-                    continue
-                if value == 0:
-                    continue
-                pending = None
-                text = label(code, names)
-                prefix = [m for m in ORDER if m in held]
-                if len(text) == 1 and text.isalpha():
-                    # Letters read as typed: lowercase, or uppercase with Shift alone.
-                    if prefix == ['Shift']:
-                        prefix = []
-                    elif not prefix:
-                        text = text.lower()
-                # Held-key repeats print the same text, which the overlay counts as ×N.
-                emit('+'.join(prefix + [text]), seconds, micros)
+            if locked or screen_locked():
+                state.sync_lock(True)
+                continue
+            state.apply(data, device, swapped)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-# Toggle the on-screen keycast overlay (keys, clicks, wheel) for screen recordings.
+# Toggle the keycast overlay owned by the desktop shell (a standalone qs would escape the watcher).
 set -euo pipefail
-config="$HOME/.dotfiles/platforms/ubuntu/quickshell/keycast"
-if qs list -p "$config" 2>/dev/null | grep -q '^Instance'; then
-    qs kill -p "$config"
-else
-    qs -p "$config" -n -d
-fi
+scripts_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+config="$(cd "$scripts_dir/../platforms/ubuntu/quickshell/keycast" && pwd)"
+exec "$scripts_dir/hyprland-native.sh" qs ipc -p "$config" call keycast toggle
