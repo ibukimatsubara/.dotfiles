@@ -76,7 +76,7 @@ class ShellTests(unittest.TestCase):
     def test_run_starts_desk_notes_and_keycast_alongside_selected_shell(self):
         log = self.home / 'launches.jsonl'
         recorder = '''#!/usr/bin/env python3
-import json, os, sys
+import json, os, signal, sys, time
 from pathlib import Path
 entry = {
     'bin': Path(sys.argv[0]).name,
@@ -88,6 +88,12 @@ entry = {
 }
 with open(os.environ['SHELL_TEST_LOG'], 'a') as f:
     f.write(json.dumps(entry) + '\\n')
+is_main_shell = entry['bin'] == 'dms' or (entry['bin'] == 'qs' and '-c' in entry['args'])
+if is_main_shell:
+    stopped = False
+    signal.signal(signal.SIGTERM, lambda *_: globals().update(stopped=True))
+    while not stopped:
+        time.sleep(0.05)
 '''
         for name in ('dms', 'qs'):
             p = self.bin / name
@@ -112,16 +118,18 @@ with open(os.environ['SHELL_TEST_LOG'], 'a') as f:
                 if notes_dir.exists():
                     notes_dir.rmdir()
                 self.select(backend)
-                result = self.run_shell('run')
-                self.assertEqual(result.returncode, 0, result.stderr)
-                deadline = time.monotonic() + 3
-                entries = []
-                while time.monotonic() < deadline:
-                    if log.exists():
-                        entries = [json.loads(line) for line in log.read_text().splitlines() if line]
-                        if len(entries) >= 3:
-                            break
-                    time.sleep(0.05)
+                proc = subprocess.Popen(
+                    ['bash', str(ROOT / 'scripts/ubuntu-desktop-shell.sh'), 'run'],
+                    env=self.env, start_new_session=True,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+                try:
+                    self.wait_for(lambda: len(self.read_jsonl(log)) >= 3)
+                    entries = self.read_jsonl(log)
+                    os.killpg(proc.pid, signal.SIGTERM)
+                    proc.wait(timeout=3)
+                finally:
+                    self.kill_group(proc)
                 self.assertTrue(notes_dir.is_dir())
                 overlays = [
                     e for e in entries
