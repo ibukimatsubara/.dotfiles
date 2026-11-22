@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import tempfile
 import time
@@ -132,6 +133,191 @@ with open(os.environ['SHELL_TEST_LOG'], 'a') as f:
                 shell_entries = [e for e in entries if e != desk_notes[0]]
                 self.assertEqual(len(shell_entries), 1, entries)
                 self.assertEqual((shell_entries[0]['bin'], shell_entries[0]['args']), expected_shell)
+
+    def wait_for(self, predicate, timeout=5):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if predicate():
+                return
+            time.sleep(0.05)
+        self.fail('Timed out waiting for desktop shell child processes')
+
+    def read_jsonl(self, path):
+        if not path.exists():
+            return []
+        return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+    def kill_group(self, proc):
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        if proc.poll() is None:
+            proc.wait(timeout=5)
+
+    def test_run_waits_for_desk_notes_and_survives_repeated_term(self):
+        self.select('dms')
+        events = self.home / 'term-events.jsonl'
+        stopped_marker = self.home / 'desk-notes-clean-exit'
+        (self.bin / 'qs').write_text('''#!/usr/bin/env python3
+import json, os, signal, time
+from pathlib import Path
+with Path(os.environ['TEST_EVENTS']).open('a') as f:
+    f.write(json.dumps({'label': 'desk-notes', 'pid': os.getpid()}) + '\\n')
+stopped = False
+signal.signal(signal.SIGTERM, lambda *_: globals().update(stopped=True))
+while not stopped:
+    time.sleep(0.05)
+time.sleep(0.25)
+Path(os.environ['TEST_STOPPED_MARKER']).write_text('clean')
+''')
+        (self.bin / 'qs').chmod(0o755)
+        (self.bin / 'dms').write_text('''#!/usr/bin/env python3
+import json, os, signal, time
+from pathlib import Path
+with Path(os.environ['TEST_EVENTS']).open('a') as f:
+    f.write(json.dumps({'label': 'dms', 'pid': os.getpid()}) + '\\n')
+stopped = False
+signal.signal(signal.SIGTERM, lambda *_: globals().update(stopped=True))
+while not stopped:
+    time.sleep(0.05)
+''')
+        (self.bin / 'dms').chmod(0o755)
+        env = dict(self.env, TEST_EVENTS=str(events), TEST_STOPPED_MARKER=str(stopped_marker))
+        proc = subprocess.Popen(['bash', str(ROOT / 'scripts/ubuntu-desktop-shell.sh'), 'run'],
+                                env=env, start_new_session=True,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            self.wait_for(lambda: len(self.read_jsonl(events)) >= 2)
+            records = {r['label']: r for r in self.read_jsonl(events)}
+            os.killpg(proc.pid, signal.SIGTERM)
+            time.sleep(0.05)
+            os.killpg(proc.pid, signal.SIGTERM)
+            proc.wait(timeout=3)
+            self.assertTrue(stopped_marker.exists(),
+                            'runner exited before desk-notes finished shutting down')
+            for rec in records.values():
+                with self.assertRaises(ProcessLookupError):
+                    os.kill(rec['pid'], 0)
+        finally:
+            self.kill_group(proc)
+
+    def test_run_keeps_shell_running_and_avoids_signaling_exited_desk_notes(self):
+        self.select('dms')
+        pid_file = self.home / 'early-qs.pid'
+        dms_ready = self.home / 'dms-ready'
+        trace_file = self.home / 'runner.trace'
+        (self.bin / 'qs').write_text('''#!/usr/bin/env python3
+import os, sys
+from pathlib import Path
+Path(os.environ['TEST_PID_FILE']).write_text(str(os.getpid()))
+sys.exit(0)
+''')
+        (self.bin / 'qs').chmod(0o755)
+        (self.bin / 'dms').write_text('''#!/usr/bin/env python3
+import os, signal, sys, time
+from pathlib import Path
+deadline = time.monotonic() + 2
+while not Path(os.environ['TEST_PID_FILE']).exists() and time.monotonic() < deadline:
+    time.sleep(0.05)
+Path(os.environ['TEST_DMS_READY']).write_text('ready')
+stopped = False
+signal.signal(signal.SIGTERM, lambda *_: globals().update(stopped=True))
+while not stopped:
+    time.sleep(0.05)
+sys.exit(0)
+''')
+        (self.bin / 'dms').chmod(0o755)
+        env = dict(self.env, TEST_PID_FILE=str(pid_file), TEST_DMS_READY=str(dms_ready))
+        with trace_file.open('w') as trace:
+            proc = subprocess.Popen(['bash', '-x', str(ROOT / 'scripts/ubuntu-desktop-shell.sh'), 'run'],
+                                    env=env, start_new_session=True,
+                                    stdout=subprocess.DEVNULL, stderr=trace)
+            try:
+                self.wait_for(lambda: dms_ready.exists())
+                time.sleep(0.25)
+                self.assertIsNone(proc.poll(), 'shell runner exited when desk-notes exited early')
+                os.killpg(proc.pid, signal.SIGTERM)
+                proc.wait(timeout=5)
+            finally:
+                self.kill_group(proc)
+        exited_pid = pid_file.read_text().strip()
+        self.assertNotIn(f'kill -TERM -- {exited_pid}', trace_file.read_text())
+
+    def test_run_kills_stubborn_desk_notes_after_shell_exits(self):
+        self.select('dms')
+        pid_file = self.home / 'stubborn-qs.pid'
+        exiting_marker = self.home / 'dms-exiting'
+        (self.bin / 'qs').write_text('''#!/usr/bin/env python3
+import os, signal, time
+from pathlib import Path
+signal.signal(signal.SIGTERM, signal.SIG_IGN)
+Path(os.environ['TEST_PID_FILE']).write_text(str(os.getpid()))
+while True:
+    time.sleep(1)
+''')
+        (self.bin / 'qs').chmod(0o755)
+        (self.bin / 'dms').write_text('''#!/usr/bin/env python3
+import os, sys, time
+from pathlib import Path
+deadline = time.monotonic() + 2
+while not Path(os.environ['TEST_PID_FILE']).exists() and time.monotonic() < deadline:
+    time.sleep(0.05)
+Path(os.environ['TEST_EXITING_MARKER']).write_text('exiting')
+sys.exit(42)
+''')
+        (self.bin / 'dms').chmod(0o755)
+        env = dict(self.env, TEST_PID_FILE=str(pid_file), TEST_EXITING_MARKER=str(exiting_marker))
+        proc = subprocess.Popen(['bash', str(ROOT / 'scripts/ubuntu-desktop-shell.sh'), 'run'],
+                                env=env, start_new_session=True,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            self.wait_for(lambda: exiting_marker.exists())
+            exit_code = proc.wait(timeout=2.8)
+            self.assertEqual(exit_code, 42)
+            qs_pid = int(pid_file.read_text())
+            with self.assertRaises(ProcessLookupError):
+                os.kill(qs_pid, 0)
+        finally:
+            self.kill_group(proc)
+
+    def test_run_starts_shell_even_when_notes_path_is_a_file(self):
+        self.select('dms')
+        notes_parent = self.home / '.config'
+        notes_parent.mkdir(parents=True, exist_ok=True)
+        (notes_parent / 'desk-notes').write_text('not a directory')
+        events = self.home / 'bad-dir-events.jsonl'
+        (self.bin / 'qs').write_text('''#!/usr/bin/env python3
+import json, os
+from pathlib import Path
+with Path(os.environ['TEST_EVENTS']).open('a') as f:
+    f.write(json.dumps({'label': 'desk-notes', 'pid': os.getpid()}) + '\\n')
+''')
+        (self.bin / 'qs').chmod(0o755)
+        (self.bin / 'dms').write_text('''#!/usr/bin/env python3
+import json, os, signal, time
+from pathlib import Path
+with Path(os.environ['TEST_EVENTS']).open('a') as f:
+    f.write(json.dumps({'label': 'dms', 'pid': os.getpid()}) + '\\n')
+stopped = False
+signal.signal(signal.SIGTERM, lambda *_: globals().update(stopped=True))
+while not stopped:
+    time.sleep(0.05)
+''')
+        (self.bin / 'dms').chmod(0o755)
+        env = dict(self.env, TEST_EVENTS=str(events))
+        proc = subprocess.Popen(['bash', str(ROOT / 'scripts/ubuntu-desktop-shell.sh'), 'run'],
+                                env=env, start_new_session=True,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            self.wait_for(lambda: len(self.read_jsonl(events)) >= 1)
+            time.sleep(0.2)
+            labels = [r['label'] for r in self.read_jsonl(events)]
+            self.assertEqual(labels, ['dms'])
+            os.killpg(proc.pid, signal.SIGTERM)
+            proc.wait(timeout=3)
+        finally:
+            self.kill_group(proc)
 
 
 if __name__ == '__main__':
