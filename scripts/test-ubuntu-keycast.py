@@ -84,7 +84,8 @@ class KeycastEventsLockTests(unittest.TestCase):
                     conn, _ = server.accept()
                 except OSError:
                     break
-                conn.close()
+                with conn:
+                    conn.recv(64)
 
         thread = threading.Thread(target=serve_eof, daemon=True)
         thread.start()
