@@ -46,14 +46,13 @@ class KeycastEventsLockTests(unittest.TestCase):
         lock_file = self.tmp / 'dotfiles-hyprlock.lock'
         fake_proc = self.tmp / 'empty-proc'
         fake_proc.mkdir()
-        missing_sock = self.tmp / 'missing.sock'
-        self.assertFalse(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=missing_sock))
+        self.assertFalse(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=False))
         with lock_file.open('w') as handle:
-            self.assertFalse(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=missing_sock))
+            self.assertFalse(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=False))
             fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            self.assertTrue(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=missing_sock))
+            self.assertTrue(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=False))
             fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-            self.assertFalse(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=missing_sock))
+            self.assertFalse(self.mod.screen_locked(lock_path=lock_file, proc_root=fake_proc, hypr_socket=False))
 
     def test_screen_locked_detects_hyprlock_process_in_proc(self):
         fake_proc = self.tmp / 'proc'
@@ -61,10 +60,36 @@ class KeycastEventsLockTests(unittest.TestCase):
         pid_dir.mkdir(parents=True)
         (pid_dir / 'comm').write_text('hyprlock\n')
         missing_lock = self.tmp / 'missing.lock'
-        missing_sock = self.tmp / 'missing.sock'
-        self.assertTrue(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=missing_sock))
+        self.assertTrue(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=False))
         (pid_dir / 'comm').write_text('ghostty\n')
-        self.assertFalse(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=missing_sock))
+        self.assertFalse(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=False))
+
+    def test_screen_locked_fails_closed_when_hyprland_socket_query_fails(self):
+        fake_proc = self.tmp / 'empty-proc'
+        fake_proc.mkdir()
+        missing_lock = self.tmp / 'missing.lock'
+        missing_sock = self.tmp / 'unreachable.sock'
+        self.assertTrue(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=missing_sock))
+
+        bad_sock = self.tmp / 'eof.sock'
+        server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        server.bind(str(bad_sock))
+        server.listen(2)
+        server.settimeout(2)
+        stop = threading.Event()
+
+        def serve_eof():
+            while not stop.is_set():
+                try:
+                    conn, _ = server.accept()
+                except OSError:
+                    break
+                conn.close()
+
+        thread = threading.Thread(target=serve_eof, daemon=True)
+        thread.start()
+        self.addCleanup(lambda: (stop.set(), server.close(), thread.join(timeout=2)))
+        self.assertTrue(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=bad_sock))
 
     def test_screen_locked_detects_hyprland_socket_lock_without_hyprlock(self):
         sock_path = self.tmp / 'hypr.sock'
@@ -104,12 +129,11 @@ class KeycastEventsLockTests(unittest.TestCase):
         # Kernel truncates /proc/<pid>/comm at 15 bytes, which can split a multibyte UTF-8 sequence.
         (bad_dir / 'comm').write_bytes('あいうえおか'.encode('utf-8')[:14] + b'\n')
         missing_lock = self.tmp / 'missing.lock'
-        missing_sock = self.tmp / 'missing.sock'
-        self.assertFalse(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=missing_sock))
+        self.assertFalse(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=False))
         good_dir = fake_proc / '100002'
         good_dir.mkdir()
         (good_dir / 'comm').write_bytes(b'hyprlock\n')
-        self.assertTrue(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=missing_sock))
+        self.assertTrue(self.mod.screen_locked(lock_path=missing_lock, proc_root=fake_proc, hypr_socket=False))
 
     def test_locked_events_are_drained_and_clear_is_emitted_once(self):
         read_fd, write_fd = os.pipe()
@@ -187,8 +211,25 @@ class KeycastEventsLockTests(unittest.TestCase):
         os.set_blocking(read_fd, False)
         self.addCleanup(os.close, write_fd)
         dev_path = '/dev/input/event99'
+        unplug_path = '/dev/input/event98'
         lock_state = {'locked': True, 'calls': 0}
         now = int(time.time())
+
+        class UnpluggingHandle:
+            def __init__(self, name):
+                self.name = name
+                self.closed = False
+
+            def fileno(self):
+                return 999
+
+            def read(self, _size):
+                if self.closed:
+                    raise ValueError('I/O operation on closed file')
+                raise OSError('No such device')
+
+            def close(self):
+                self.closed = True
 
         def fake_screen_locked(*args, **kwargs):
             lock_state['calls'] += 1
@@ -199,6 +240,8 @@ class KeycastEventsLockTests(unittest.TestCase):
                 handle = os.fdopen(read_fd, 'rb', buffering=0)
                 self.addCleanup(handle.close)
                 return handle
+            if path == unplug_path:
+                return UnpluggingHandle(path)
             return open(path, mode, buffering=buffering)
 
         out = io.StringIO()
@@ -206,36 +249,45 @@ class KeycastEventsLockTests(unittest.TestCase):
 
         class FakeSelector:
             def __init__(self):
-                self.key = None
+                self.keys = {}
 
             def register(self, fileobj, events, data):
-                self.key = mock.Mock(fileobj=fileobj, data=data)
+                self.keys[fileobj] = mock.Mock(fileobj=fileobj, data=data)
 
             def unregister(self, fileobj):
-                self.key = None
+                self.keys.pop(fileobj, None)
 
             def select(self, timeout=None):
                 step['n'] += 1
+                ordered = list(self.keys.values())
+                kb_key = next(k for k in ordered if k.data == 'kb')
+                unplug_key = next((k for k in ordered if k.data == 'unplug'), None)
                 if step['n'] == 1:
-                    # Key queued while locked; lock releases before next read.
+                    # Key typed while locked must be dropped without emitting.
+                    os.write(write_fd, pack_key_event(31, 1, seconds=now - 3))
+                    return [(kb_key, 1)]
+                if step['n'] == 2:
+                    # Unlock coincides with an unplugged device in the same select() batch.
                     os.write(write_fd, pack_key_event(30, 1, seconds=now - 2))
                     lock_state['locked'] = False
-                    return [(self.key, 1)]
-                if 2 <= step['n'] <= 21:
+                    return [(kb_key, 1), (unplug_key, 1)]
+                if 3 <= step['n'] <= 22:
                     # 20 pointer motion bursts while unlocked should not poll screen_locked per burst.
                     os.write(write_fd, pack_rel_event(0, 1, seconds=now + 5))
-                    return [(self.key, 1)]
-                if step['n'] == 22:
+                    return [(kb_key, 1)]
+                if step['n'] == 23:
                     os.write(write_fd, pack_key_event(32, 1, seconds=now + 10))
-                    return [(self.key, 1)]
+                    return [(kb_key, 1)]
                 raise KeyboardInterrupt
 
+        orig_set_blocking = os.set_blocking
         with (
-            mock.patch.object(self.mod, 'key_names', return_value={30: 'KEY_A', 32: 'KEY_D'}),
-            mock.patch.object(self.mod, 'devices', return_value={dev_path: 'kb'}),
+            mock.patch.object(self.mod, 'key_names', return_value={30: 'KEY_A', 31: 'KEY_S', 32: 'KEY_D'}),
+            mock.patch.object(self.mod, 'devices', return_value={dev_path: 'kb', unplug_path: 'unplug'}),
             mock.patch.object(self.mod, 'swapped_keyboards', return_value=set()),
             mock.patch.object(self.mod, 'screen_locked', side_effect=fake_screen_locked),
             mock.patch.object(self.mod.selectors, 'DefaultSelector', FakeSelector),
+            mock.patch.object(self.mod.os, 'set_blocking', lambda fd, flag: None if fd == 999 else orig_set_blocking(fd, flag)),
             mock.patch('builtins.open', side_effect=fake_open),
             mock.patch('sys.stdout', out),
         ):
