@@ -89,9 +89,9 @@ def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None, hypr_socket
         sig = os.environ.get('HYPRLAND_INSTANCE_SIGNATURE')
         if runtime and sig:
             hypr_socket = Path(runtime) / 'hypr' / sig / '.socket.sock'
-    # Hyprland owns ext-session-lock-v1, so a live socket covers hyprlock and DMS; scan /proc only if it is unreachable.
-    hypr_socket_ok = False
-    if hypr_socket is not None:
+    # Anything but an explicit false (down, timeout, EOF) stays locked so a failed query cannot replay a password.
+    socket_says_unlocked = False
+    if hypr_socket is not False and hypr_socket is not None:
         try:
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
                 sock.settimeout(0.2)
@@ -99,10 +99,10 @@ def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None, hypr_socket
                 sock.sendall(b'locked')
                 reply = sock.recv(64).strip(b'\x00\r\n\t ')
         except OSError:
-            reply = None
-        if reply == b'true':
             return True
-        hypr_socket_ok = reply == b'false'
+        if reply != b'false':
+            return True
+        socket_says_unlocked = True
     if lock_path is not None:
         try:
             st = Path(lock_path).stat()
@@ -118,7 +118,7 @@ def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None, hypr_socket
                 parts = line.split()
                 if len(parts) >= 6 and parts[1] == 'FLOCK' and parts[5] == token:
                     return True
-    if hypr_socket_ok:
+    if socket_says_unlocked:
         return False
     try:
         entries = proc_root.iterdir()
@@ -283,6 +283,8 @@ def main():
                 continue
             if state.sync_lock(screen_locked()):
                 close_dead(drain_handles(list(opened.values())))
+                # The rest of this select() batch can already be closed and must not be read.
+                break
             if state.locked:
                 continue
             state.apply(data, device, swapped)
