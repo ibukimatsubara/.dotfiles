@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import selectors
+import socket
 import struct
 import subprocess
 import sys
@@ -77,15 +78,186 @@ def emit(text, seconds, micros):
     print(json.dumps({'text': text, 'time': stamp}, ensure_ascii=False), flush=True)
 
 
+def screen_locked(lock_path=None, proc_root=Path('/proc'), uid=None, hypr_socket=None):
+    # flock would take an unlocked file and make hyprlock's flock -n fail. Match the hold instead.
+    if uid is None:
+        uid = os.getuid()
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    if lock_path is None and runtime:
+        lock_path = Path(runtime) / 'dotfiles-hyprlock.lock'
+    if hypr_socket is None:
+        sig = os.environ.get('HYPRLAND_INSTANCE_SIGNATURE')
+        if runtime and sig:
+            hypr_socket = Path(runtime) / 'hypr' / sig / '.socket.sock'
+    # Anything but an explicit false (down, timeout, EOF) stays locked so a failed query cannot replay a password.
+    socket_says_unlocked = False
+    if hypr_socket is not False and hypr_socket is not None:
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.settimeout(0.2)
+                sock.connect(os.fspath(hypr_socket))
+                sock.sendall(b'locked')
+                reply = sock.recv(64).strip(b'\x00\r\n\t ')
+        except OSError:
+            return True
+        if reply != b'false':
+            return True
+        socket_says_unlocked = True
+    if lock_path is not None:
+        try:
+            st = Path(lock_path).stat()
+        except OSError:
+            st = None
+        if st is not None:
+            token = f'{os.major(st.st_dev):02x}:{os.minor(st.st_dev):02x}:{st.st_ino}'
+            try:
+                locks = Path('/proc/locks').read_text()
+            except OSError:
+                locks = ''
+            for line in locks.splitlines():
+                parts = line.split()
+                if len(parts) >= 6 and parts[1] == 'FLOCK' and parts[5] == token:
+                    return True
+    if socket_says_unlocked:
+        return False
+    try:
+        entries = proc_root.iterdir()
+    except OSError:
+        return False
+    for entry in entries:
+        if not entry.name.isdigit():
+            continue
+        try:
+            # Another session's hyprlock is not this screen.
+            if entry.stat().st_uid != uid:
+                continue
+            # comm is capped at 15 bytes and may end mid-codepoint.
+            comm = (entry / 'comm').read_bytes().strip()
+        except OSError:
+            continue
+        if comm == b'hyprlock':
+            return True
+    return False
+
+
+def drain_handles(handles):
+    dead = []
+    for handle in handles:
+        while True:
+            try:
+                chunk = handle.read(EVENT.size * 64)
+            except BlockingIOError:
+                break
+            except OSError:
+                dead.append(handle)
+                break
+            # FileIO.read returns None, not BlockingIOError, when a non-blocking fd would block.
+            if not chunk:
+                break
+    return dead
+
+
+def has_displayable_event(data):
+    for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
+        _, _, kind, code, value = EVENT.unpack_from(data, offset)
+        if kind == EV_KEY or (kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value):
+            return True
+    return False
+
+
+class EventState:
+    def __init__(self, names):
+        self.names = names
+        self.held = set()
+        self.pending = None  # A modifier combination pressed with no other key yet.
+        self.locked = False
+        self.unlocked_at = None
+
+    def sync_lock(self, locked, now=None):
+        locked = bool(locked)
+        unlocked = self.locked and not locked
+        if locked and not self.locked:
+            self.held.clear()
+            self.pending = None
+            print(json.dumps({'clear': True}), flush=True)
+        elif unlocked:
+            self.held.clear()
+            self.pending = None
+            self.unlocked_at = time.time() if now is None else now
+        self.locked = locked
+        return unlocked
+
+    def process_handle(self, handle, device, swapped, locked):
+        data = handle.read(EVENT.size * 64) or b''
+        if locked:
+            self.held.clear()
+            self.pending = None
+            return
+        self.apply(data, device, swapped)
+
+    def apply(self, data, device, swapped):
+        for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
+            seconds, micros, kind, code, value = EVENT.unpack_from(data, offset)
+            # Kernel time can predate unlock; ignore those so a password cannot replay.
+            if self.unlocked_at is not None and seconds + micros / 1_000_000 <= self.unlocked_at:
+                continue
+            if kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value:
+                arrow = ('↑' if value > 0 else '↓') if code == REL_WHEEL else ('→' if value > 0 else '←')
+                for _ in range(abs(value)):
+                    emit('Wheel ' + arrow, seconds, micros)
+                continue
+            if kind != EV_KEY:
+                continue
+            if device in swapped and code in (29, 125):
+                code = 154 - code
+            modifier = MODIFIERS.get(code)
+            if modifier:
+                if value == 1:
+                    self.held.add(modifier)
+                    self.pending = set(self.held)
+                elif value == 0:
+                    if self.pending and modifier in self.pending:
+                        emit('+'.join(m for m in ORDER if m in self.pending), seconds, micros)
+                    self.held.discard(modifier)
+                    self.pending = None
+                continue
+            if value == 0:
+                continue
+            self.pending = None
+            text = label(code, self.names)
+            prefix = [m for m in ORDER if m in self.held]
+            if len(text) == 1 and text.isalpha():
+                # Letters read as typed: lowercase, or uppercase with Shift alone.
+                if prefix == ['Shift']:
+                    prefix = []
+                elif not prefix:
+                    text = text.lower()
+            # Held-key repeats print the same text, which the overlay counts as ×N.
+            emit('+'.join(prefix + [text]), seconds, micros)
+
+
 def main():
     names = key_names()
+    state = EventState(names)
     selector = selectors.DefaultSelector()
     opened = {}
-    held = set()
-    pending = None  # A modifier combination pressed with no other key yet.
     rescan = 0
+    swapped = set()
+    next_lock_check = 0
+
+    def close_dead(handles):
+        for handle in handles:
+            selector.unregister(handle)
+            opened.pop(handle.name, None)
+            handle.close()
+
     while True:
-        if time.monotonic() >= rescan:
+        now_mono = time.monotonic()
+        if now_mono >= next_lock_check:
+            if state.sync_lock(screen_locked()):
+                close_dead(drain_handles(list(opened.values())))
+            next_lock_check = now_mono + 0.25
+        if now_mono >= rescan:
             swapped = swapped_keyboards()
             for path, device in devices().items():
                 if path not in opened:
@@ -98,51 +270,24 @@ def main():
                     opened[path] = handle
                     selector.register(handle, selectors.EVENT_READ, device)
             rescan = time.monotonic() + 3
-        for key, _ in selector.select(timeout=3):
+        for key, _ in selector.select(timeout=0.25):
             handle, device = key.fileobj, key.data
             try:
                 data = handle.read(EVENT.size * 64) or b''
             except OSError:
                 # Unplugged: forget it and pick it up again on the next rescan.
-                selector.unregister(handle)
-                opened.pop(handle.name, None)
-                handle.close()
+                close_dead([handle])
                 continue
-            for offset in range(0, len(data) - len(data) % EVENT.size, EVENT.size):
-                seconds, micros, kind, code, value = EVENT.unpack_from(data, offset)
-                if kind == EV_REL and code in (REL_WHEEL, REL_HWHEEL) and value:
-                    arrow = ('↑' if value > 0 else '↓') if code == REL_WHEEL else ('→' if value > 0 else '←')
-                    for _ in range(abs(value)):
-                        emit('Wheel ' + arrow, seconds, micros)
-                    continue
-                if kind != EV_KEY:
-                    continue
-                if device in swapped and code in (29, 125):
-                    code = 154 - code
-                modifier = MODIFIERS.get(code)
-                if modifier:
-                    if value == 1:
-                        held.add(modifier)
-                        pending = set(held)
-                    elif value == 0:
-                        if pending and modifier in pending:
-                            emit('+'.join(m for m in ORDER if m in pending), seconds, micros)
-                        held.discard(modifier)
-                        pending = None
-                    continue
-                if value == 0:
-                    continue
-                pending = None
-                text = label(code, names)
-                prefix = [m for m in ORDER if m in held]
-                if len(text) == 1 and text.isalpha():
-                    # Letters read as typed: lowercase, or uppercase with Shift alone.
-                    if prefix == ['Shift']:
-                        prefix = []
-                    elif not prefix:
-                        text = text.lower()
-                # Held-key repeats print the same text, which the overlay counts as ×N.
-                emit('+'.join(prefix + [text]), seconds, micros)
+            # Pointer motion is not shown; asking Hyprland on every batch pegs a core.
+            if not state.locked and not has_displayable_event(data):
+                continue
+            if state.sync_lock(screen_locked()):
+                close_dead(drain_handles(list(opened.values())))
+                # The rest of this select() batch can already be closed and must not be read.
+                break
+            if state.locked:
+                continue
+            state.apply(data, device, swapped)
 
 
 if __name__ == '__main__':

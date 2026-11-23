@@ -24,8 +24,8 @@ case "$backend" in dms|caelestia) ;; *) printf 'Invalid desktop shell: %s\n' "$b
 if [ "$action" = current ]; then printf '%s\n' "$backend"; exit 0; fi
 if [ "$action" = run ]; then
     shell_pid=
-    # -n can exit desk-notes alone; only the desktop shell's exit ends this run.
-    # Reap both on shutdown so the watcher cannot restart over a dying instance.
+    # -n can exit an overlay alone; only the desktop shell's exit ends this run.
+    # Reap every child on shutdown so the watcher cannot restart over a dying instance.
     stop_children() {
         local status=$?
         local pid attempt
@@ -51,9 +51,12 @@ if [ "$action" = run ]; then
     }
     trap stop_children EXIT HUP INT TERM
     # Quickshell only notices a notes file created later if its folder already exists.
-    # A failed mkdir must not abort the desktop shell.
-    if command -v qs >/dev/null 2>&1 && mkdir -p "$HOME/.config/desk-notes"; then
-        "$scripts_dir/hyprland-native.sh" qs -p "$scripts_dir/../platforms/ubuntu/quickshell/desk-notes" -n &
+    # A failed mkdir must not skip keycast or abort the desktop shell.
+    if command -v qs >/dev/null 2>&1; then
+        if mkdir -p "$HOME/.config/desk-notes"; then
+            "$scripts_dir/hyprland-native.sh" qs -p "$scripts_dir/../platforms/ubuntu/quickshell/desk-notes" -n &
+        fi
+        "$scripts_dir/hyprland-native.sh" qs -p "$scripts_dir/../platforms/ubuntu/quickshell/keycast" -n &
     fi
     run_managed() {
         "$@" &
